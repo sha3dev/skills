@@ -38,7 +38,10 @@ there are none. Setup does not create empty block directories.
 ## Process
 
 1. Before exploring or asking questions, run `node scripts/repo-state.mjs --root . --expect ready_for_setup`, resolving the script relative to this `SKILL.md`. On failure, return its JSON result and stop.
-2. Using the argument and conversation context, agree every contract value. Propose domain terms only from the conversation and include only those the user confirms. Ask what each block interacts with and propose missing solution blocks for confirmation.
+2. Using the argument and conversation context, agree every contract value. For
+   each product-specific term introduced by the user, propose a concise
+   definition and ask for confirmation. Ask what each block interacts with and
+   propose missing solution blocks for confirmation.
 3. Write the agreed JSON to a temporary file outside the repository. Run the bundled `scripts/initialize-repository.mjs` with `--root .`, `--input <temporary-file>`, and `--dry-run`.
 4. Present the generated `PROJECT.md` for approval. Do not manually create or edit any output.
 5. After approval, run the same command with the same input using `--write`, then run `npm install` and `npm run check:toolchain`. Report the results, remove the temporary input, and stop. Do not start another workflow stage.

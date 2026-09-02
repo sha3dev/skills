@@ -54,11 +54,11 @@ Repository block paths are derived deterministically from their names; setup
 does not ask the agent to choose a second identifier. The workflow that first
 writes block content creates its directory.
 
-Setup proposes domain terms found in the conversation and writes only those the
-user confirms. It also discovers interactions conversationally and
-may propose missing blocks for confirmation. It records only relationships
-among blocks the repository will build; external dependencies and infrastructure
-belong to later surface workflows.
+For each product-specific term introduced by the user, setup proposes a concise
+definition and asks for confirmation. It also discovers interactions
+conversationally and may propose missing blocks for confirmation. It records
+only relationships among blocks the repository will build; external
+dependencies and infrastructure belong to later surface workflows.
 Before writing, it previews only `PROJECT.md`; the remaining output is fixed by
 the platform.
 

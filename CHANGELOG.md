@@ -1,5 +1,11 @@
 # sha3dev-skills
 
+## 0.3.1
+
+### Patch Changes
+
+- Require setup to account for product-specific vocabulary deliberately introduced by the user before generating the project preview.
+
 ## 0.3.0
 
 ### Minor Changes
