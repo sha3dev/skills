@@ -1,0 +1,4 @@
+interface:
+  display_name: "TypeScript Stack"
+  short_description: "Write TypeScript through repository-owned gates"
+  default_prompt: "Use $typescript-stack while writing this application code."

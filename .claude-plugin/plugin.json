@@ -1,0 +1,22 @@
+{
+  "name": "sha3dev-skills",
+  "version": "0.1.0",
+  "description": "sha3dev's agent skills for practical software engineering and productivity workflows.",
+  "author": {
+    "name": "sha3dev",
+    "url": "https://github.com/sha3dev"
+  },
+  "homepage": "https://github.com/sha3dev/skills",
+  "repository": "https://github.com/sha3dev/skills",
+  "license": "MIT",
+  "keywords": [
+    "engineering",
+    "skills",
+    "productivity"
+  ],
+  "skills": [
+    "./skills/engineering/lazy",
+    "./skills/engineering/setup",
+    "./skills/engineering/typescript-stack"
+  ]
+}

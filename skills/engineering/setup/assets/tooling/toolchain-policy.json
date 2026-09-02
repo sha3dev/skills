@@ -1,0 +1,33 @@
+{
+	"minimumRuntimeVersions": {
+		"node": "22.12.0",
+		"npm": "10.9.0"
+	},
+	"minimumDependencyVersions": {
+		"fastify": "5.12.1",
+		"react": "19.2.8",
+		"react-dom": "19.2.8"
+	},
+	"minimumPlatformDevDependencyVersions": {
+		"@types/node": "22.20.1",
+		"@types/react": "19.2.18",
+		"@types/react-dom": "19.2.5",
+		"@vitejs/plugin-react": "6.1.1",
+		"tsx": "4.23.13",
+		"vite": "8.2.2"
+	},
+	"minimumToolVersions": {
+		"@biomejs/biome": "2.5.11",
+		"knip": "6.34.0",
+		"typescript": "7.0.2"
+	},
+	"requiredScripts": {
+		"format": "biome format --write .",
+		"fix": "biome check --write",
+		"check:toolchain": "node .agents/tools/verify-toolchain.mjs",
+		"check:biome": "biome check .",
+		"typecheck": "tsc --noEmit --project tsconfig.json",
+		"check:knip": "knip",
+		"check:tooling": "npm run check:toolchain && npm run check:biome && npm run typecheck && npm run check:knip"
+	}
+}

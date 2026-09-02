@@ -1,0 +1,5 @@
+# {{PROJECT_TITLE}}
+
+## Definition
+
+{{PROJECT_DEFINITION}}

@@ -1,0 +1,21 @@
+{
+  "name": "sha3dev",
+  "owner": {
+    "name": "sha3dev",
+    "url": "https://github.com/sha3dev"
+  },
+  "description": "sha3dev's skills as an installable Claude Code plugin.",
+  "plugins": [
+    {
+      "name": "sha3dev-skills",
+      "source": "./",
+      "description": "Agent skills for practical software engineering and productivity workflows.",
+      "category": "engineering",
+      "keywords": [
+        "engineering",
+        "skills",
+        "productivity"
+      ]
+    }
+  ]
+}
