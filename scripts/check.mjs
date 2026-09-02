@@ -185,40 +185,65 @@ async function checkCatalog() {
 async function checkSetup() {
 	const temporary = await mkdtemp(join(tmpdir(), "sha3dev-skills-check-"));
 	const target = join(temporary, "repository");
+	const projectMarkerTarget = join(temporary, "project-marker");
 	const input = join(temporary, "input.json");
 	const setupRoot = join(repo, "skills/engineering/setup");
 
 	try {
+		await mkdir(join(projectMarkerTarget, ".git"), { recursive: true });
+		await writeFile(
+			join(projectMarkerTarget, "PROJECT.md"),
+			"# Existing project\n",
+		);
+		const projectMarkerState = JSON.parse(
+			execFileSync(
+				process.execPath,
+				[
+					join(setupRoot, "scripts/repo-state.mjs"),
+					"--root",
+					projectMarkerTarget,
+				],
+				{ encoding: "utf8" },
+			),
+		);
+		assert(
+			projectMarkerState.state === "already_initialized" &&
+				projectMarkerState.markers.includes("PROJECT.md"),
+			"PROJECT.md is not the canonical setup state marker",
+		);
+
 		await mkdir(join(target, ".git"), { recursive: true });
 		const setupInput = {
 			title: "Example Project",
-			definition: [
-				"Build a focused product.",
-				"Serve its primary users.",
-				"Keep solution boundaries explicit.",
-				"Validate behavior incrementally.",
+			definition:
+				"Build a focused product for its primary users while keeping solution boundaries explicit.",
+			terms: [
+				{
+					term: "Member",
+					definition: "A person who uses the application.",
+				},
+				{
+					term: "Operator",
+					definition: "A person who manages the application.",
+				},
 			],
 			blocks: [
 				{
-					name: "Application",
+					name: "Web Application",
 					responsibility: "Own the user-facing experience.",
-					ownership: "repository",
 					type: "web",
-					folder: "application",
-					contents: ["User journeys"],
-					readWhen: ["Changing the user experience"],
 				},
 				{
-					name: "Identity Provider",
-					responsibility: "Authenticate users.",
-					ownership: "external",
+					name: "Editorial API",
+					responsibility: "Provide editorial content.",
+					type: "api",
 				},
 			],
 			relationships: [
 				{
-					from: "Application",
-					to: "Identity Provider",
-					description: "Authenticates application users.",
+					from: "Web Application",
+					to: "Editorial API",
+					description: "Requests editorial content.",
 				},
 			],
 		};
@@ -247,10 +272,8 @@ async function checkSetup() {
 			input,
 			JSON.stringify({
 				...setupInput,
-				blocks: setupInput.blocks.map((block) =>
-					block.ownership === "repository"
-						? { ...block, type: "web-api" }
-						: block,
+				blocks: setupInput.blocks.map((block, index) =>
+					index === 0 ? { ...block, type: "web-api" } : block,
 				),
 			}),
 		);
@@ -258,15 +281,20 @@ async function checkSetup() {
 			commandFails(process.execPath, [...args, "--dry-run"]),
 			"Setup accepted a hybrid repository block type",
 		);
+		await writeFile(input, JSON.stringify({ ...setupInput, terms: [] }));
+		assert(
+			!commandFails(process.execPath, [...args, "--dry-run"]),
+			"Setup rejected an empty domain language",
+		);
 		await writeFile(input, JSON.stringify(setupInput));
 		const preview = execFileSync(process.execPath, [...args, "--dry-run"], {
 			encoding: "utf8",
 		});
 		assert(
-			preview.includes("src/application/FOLDER.md"),
-			"Setup preview does not place blocks under src/",
+			preview.startsWith("# Example Project\n") &&
+				preview.includes("`src/web-application/`"),
+			"Setup preview is not the generated PROJECT.md",
 		);
-		assert(preview.includes("biome.json"), "Setup preview omits the toolchain");
 		execFileSync(process.execPath, [...args, "--write"]);
 
 		const state = JSON.parse(
@@ -284,26 +312,23 @@ async function checkSetup() {
 			(await readFile(join(target, "CLAUDE.md"), "utf8")) === "@AGENTS.md\n",
 			"Setup generated an invalid CLAUDE.md",
 		);
-		const folderDocument = await readFile(
-			join(target, "src/application/FOLDER.md"),
-			"utf8",
+		const project = await readFile(join(target, "PROJECT.md"), "utf8");
+		assert(
+			project.includes("**Web Application**") &&
+				project.includes("`web`") &&
+				project.includes("`src/web-application/`") &&
+				project.includes("Own the user-facing experience."),
+			"PROJECT.md does not own repository block facts",
 		);
 		assert(
-			folderDocument.includes("**Type:** `web`") &&
-				folderDocument.includes("Own the user-facing experience."),
-			"Block-local facts are missing from FOLDER.md",
-		);
-		const solutionMap = await readFile(join(target, "SOLUTION-MAP.md"), "utf8");
-		assert(
-			solutionMap.includes(
-				"[Application](./src/application/FOLDER.md) → **Identity Provider** — Authenticates application users.",
+			project.includes(
+				"**Web Application** → **Editorial API** — Requests editorial content.",
 			),
-			"Solution map does not render logical relationships",
+			"PROJECT.md does not render logical relationships",
 		);
 		assert(
-			!solutionMap.includes("Own the user-facing experience.") &&
-				!solutionMap.includes("`web`"),
-			"Solution map duplicates repository block facts",
+			project.includes("**Member**:\nA person who uses the application."),
+			"PROJECT.md does not render domain language",
 		);
 
 		const packageJson = JSON.parse(
@@ -397,9 +422,10 @@ async function checkSetup() {
 			"Toolchain verification accepted TypeScript outside src/",
 		);
 		await rm(join(target, "outside.ts"));
+		await mkdir(join(target, "src/web-application"), { recursive: true });
 
 		for (const filename of ["legacy.js", "module.mjs"]) {
-			const unsupportedSource = join(target, "src/application", filename);
+			const unsupportedSource = join(target, "src/web-application", filename);
 			await writeFile(unsupportedSource, "window.legacy = true;\n");
 			assert(
 				verifierRejects(),
@@ -408,14 +434,14 @@ async function checkSetup() {
 			await rm(unsupportedSource);
 		}
 
-		const source = join(target, "src/application/index.ts");
+		const source = join(target, "src/web-application/index.ts");
 		await writeFile(source, "export const answer = 42;\n");
-		packageJson.main = "src/application/index.ts";
+		packageJson.main = "src/web-application/index.ts";
 		await writeFile(
 			join(target, "package.json"),
 			`${JSON.stringify(packageJson, null, "\t")}\n`,
 		);
-		const opaqueAsset = join(target, "src/application/assets/vendor.js");
+		const opaqueAsset = join(target, "src/web-application/assets/vendor.js");
 		const opaqueAssetContents = "window.vendor={answer:42};\n";
 		await mkdir(dirname(opaqueAsset), { recursive: true });
 		await writeFile(opaqueAsset, opaqueAssetContents);
@@ -452,7 +478,7 @@ async function checkSetup() {
 			"Code tooling modified an opaque JavaScript asset",
 		);
 
-		const biomeViolation = join(target, "src/application/debugger.ts");
+		const biomeViolation = join(target, "src/web-application/debugger.ts");
 		await writeFile(biomeViolation, "debugger;\n");
 		assert(
 			commandFails(binary("biome"), ["check", biomeViolation], { cwd: target }),
@@ -460,7 +486,7 @@ async function checkSetup() {
 		);
 		await rm(biomeViolation);
 
-		const brokenSource = join(target, "src/application/broken.ts");
+		const brokenSource = join(target, "src/web-application/broken.ts");
 		await writeFile(brokenSource, "const count: string = 42;\n");
 		assert(
 			commandFails(binary("tsc"), ["--noEmit", "--project", "tsconfig.json"], {
@@ -470,7 +496,7 @@ async function checkSetup() {
 		);
 		await rm(brokenSource);
 
-		const unusedSource = join(target, "src/application/unused.ts");
+		const unusedSource = join(target, "src/web-application/unused.ts");
 		await writeFile(unusedSource, "export const unused = true;\n");
 		assert(
 			commandFails(binary("knip"), [], { cwd: target }),

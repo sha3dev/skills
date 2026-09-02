@@ -1,10 +1,9 @@
 # Sequential workflow artifacts
 
 `setup` is the one-time exception to this convention. It creates the permanent
-root project foundation (`AGENTS.md`, `CLAUDE.md`, `PROJECT.md`,
-`SOLUTION-MAP.md`, and `src/<block>/FOLDER.md` files) before sequential work
-begins. It must not store those files under `.scratch/` or run again after
-`SOLUTION-MAP.md` exists.
+root project foundation (`AGENTS.md`, `CLAUDE.md`, and `PROJECT.md`) before
+sequential work begins. It must not store those files under `.scratch/` or run
+again after `PROJECT.md` exists.
 
 Setup also installs the fixed TypeScript toolchain and
 `.agents/tools/repo-state.mjs`. Later skills use that helper for repository

@@ -1,5 +1,19 @@
 # sha3dev-skills
 
+## 0.3.0
+
+### Minor Changes
+
+- Generate confirmed domain language, complete block definitions, and logical relationships inside `PROJECT.md`, remove block marker documents, and keep the concise setup contract directly in the skill.
+
+  Treat `PROJECT.md` as the sole marker of an initialized project.
+  Derive repository block paths deterministically from block names.
+  Limit setup previews to the generated `PROJECT.md`.
+  Declare block paths without creating empty directories that Git cannot retain.
+  Leave external dependencies to later surface workflows instead of modeling them as setup blocks.
+
+- Make `typescript-stack` cover opaque JavaScript assets explicitly and remove redundant implementation guidance already owned by repository instructions or deterministic tooling.
+
 ## 0.2.0
 
 ### Minor Changes

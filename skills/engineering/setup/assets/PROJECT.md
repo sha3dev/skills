@@ -3,3 +3,9 @@
 ## Definition
 
 {{PROJECT_DEFINITION}}
+
+{{LANGUAGE_SECTION}}
+
+## Repository blocks
+
+{{REPOSITORY_BLOCKS}}{{RELATIONSHIPS}}

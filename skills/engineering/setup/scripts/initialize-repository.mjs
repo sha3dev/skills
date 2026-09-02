@@ -41,19 +41,6 @@ function text(value, path) {
 	return normalized;
 }
 
-function stringList(value, path, minimum = 1, maximum = Infinity) {
-	if (
-		!Array.isArray(value) ||
-		value.length < minimum ||
-		value.length > maximum
-	) {
-		const range =
-			maximum === Infinity ? `${minimum} or more` : `${minimum}-${maximum}`;
-		fail(`${path} must contain ${range} items`);
-	}
-	return value.map((item, index) => text(item, `${path}[${index}]`));
-}
-
 function object(value, path) {
 	if (!value || typeof value !== "object" || Array.isArray(value)) {
 		fail(`${path} must be an object`);
@@ -66,12 +53,46 @@ function exactKeys(value, allowed, path) {
 	if (unknown.length) fail(`${path} has unknown fields: ${unknown.join(", ")}`);
 }
 
+function blockFolder(name, path) {
+	const folder = name
+		.normalize("NFKD")
+		.replace(/\p{Diacritic}/gu, "")
+		.toLocaleLowerCase("en")
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "");
+	if (!folder) fail(`${path}.name does not produce a valid block path`);
+	return folder;
+}
+
 function normalizeInput(raw) {
 	const input = object(raw, "input");
-	exactKeys(input, ["title", "definition", "blocks", "relationships"], "input");
+	exactKeys(
+		input,
+		["title", "definition", "terms", "blocks", "relationships"],
+		"input",
+	);
 
 	const title = text(input.title, "title");
-	const definition = stringList(input.definition, "definition", 4, 5);
+	const definition = text(input.definition, "definition");
+	if (!Array.isArray(input.terms)) {
+		fail("terms must be an array");
+	}
+	const termNames = new Set();
+	const terms = input.terms.map((rawEntry, index) => {
+		const path = `terms[${index}]`;
+		const entry = object(rawEntry, path);
+		exactKeys(entry, ["term", "definition"], path);
+		const term = text(entry.term, `${path}.term`);
+		const normalizedTerm = term.toLocaleLowerCase("en");
+		if (termNames.has(normalizedTerm)) {
+			fail(`Duplicate domain term: ${term}`);
+		}
+		termNames.add(normalizedTerm);
+		return {
+			term,
+			definition: text(entry.definition, `${path}.definition`),
+		};
+	});
 	if (!Array.isArray(input.blocks) || input.blocks.length === 0) {
 		fail("blocks must contain at least one block");
 	}
@@ -81,58 +102,30 @@ function normalizeInput(raw) {
 	const blocks = input.blocks.map((rawBlock, index) => {
 		const path = `blocks[${index}]`;
 		const block = object(rawBlock, path);
-		const ownership = text(block.ownership, `${path}.ownership`);
-		const commonKeys = ["name", "responsibility", "ownership"];
-
-		if (ownership !== "repository" && ownership !== "external") {
-			fail(`${path}.ownership must be repository or external`);
-		}
-
-		exactKeys(
-			block,
-			ownership === "repository"
-				? [...commonKeys, "type", "folder", "contents", "readWhen"]
-				: commonKeys,
-			path,
-		);
+		exactKeys(block, ["name", "responsibility", "type"], path);
 
 		const name = text(block.name, `${path}.name`);
 		const normalizedName = name.toLocaleLowerCase("en");
 		if (names.has(normalizedName)) fail(`Duplicate block name: ${name}`);
 		names.add(normalizedName);
 
-		const normalized = {
-			name,
-			responsibility: text(block.responsibility, `${path}.responsibility`),
-			ownership,
-		};
-
-		if (ownership === "external") return normalized;
-
 		const type = text(block.type, `${path}.type`);
 		if (!new Set(["web", "api", "worker"]).has(type)) {
 			fail(`${path}.type must be web, api, or worker`);
 		}
 
-		const folder = text(block.folder, `${path}.folder`);
-		if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(folder)) {
-			fail(`${path}.folder must be kebab-case`);
-		}
-		if (folders.has(folder)) fail(`Duplicate block folder: ${folder}`);
+		const folder = blockFolder(name, path);
+		if (folders.has(folder))
+			fail(`Duplicate derived block path: src/${folder}/`);
 		folders.add(folder);
 
 		return {
-			...normalized,
+			name,
+			responsibility: text(block.responsibility, `${path}.responsibility`),
 			type,
 			folder,
-			contents: stringList(block.contents, `${path}.contents`),
-			readWhen: stringList(block.readWhen, `${path}.readWhen`),
 		};
 	});
-
-	if (!blocks.some((block) => block.ownership === "repository")) {
-		fail("blocks must contain at least one repository block");
-	}
 
 	if (!Array.isArray(input.relationships)) {
 		fail("relationships must be an array");
@@ -158,7 +151,7 @@ function normalizeInput(raw) {
 		};
 	});
 
-	return { title, definition, blocks, relationships };
+	return { title, definition, terms, blocks, relationships };
 }
 
 function render(template, replacements, path) {
@@ -188,8 +181,6 @@ async function buildFiles(input) {
 		loadAsset("AGENTS.md"),
 		loadAsset("CLAUDE.md"),
 		loadAsset("PROJECT.md"),
-		loadAsset("SOLUTION-MAP.md"),
-		loadAsset("FOLDER.md"),
 		readFile(resolve(scriptDirectory, "repo-state.mjs"), "utf8"),
 		loadAsset("tooling/biome.json"),
 		loadAsset("tooling/tsconfig.json"),
@@ -201,8 +192,6 @@ async function buildFiles(input) {
 		agents,
 		claude,
 		projectTemplate,
-		mapTemplate,
-		folderTemplate,
 		repoState,
 		biome,
 		tsconfig,
@@ -222,35 +211,23 @@ async function buildFiles(input) {
 	);
 	assertMinimumVersion(npmVersion, policy.minimumRuntimeVersions.npm, "npm");
 
-	const repositoryBlocks = input.blocks.filter(
-		(block) => block.ownership === "repository",
+	const repositoryLines = input.blocks.map(
+		(block) =>
+			`- **${block.name}** — \`${block.type}\` — \`src/${block.folder}/\` — ${block.responsibility}`,
 	);
-	const externalBlocks = input.blocks.filter(
-		(block) => block.ownership === "external",
-	);
-	const blockByName = new Map(input.blocks.map((block) => [block.name, block]));
-	const blockReference = (name) => {
-		const block = blockByName.get(name);
-		return block.ownership === "repository"
-			? `[${block.name}](./src/${block.folder}/FOLDER.md)`
-			: `**${block.name}**`;
-	};
-	const repositoryLines = repositoryBlocks.map(
-		(block) => `- ${blockReference(block.name)}`,
-	);
-	const externalSection = externalBlocks.length
-		? `\n\n## External blocks\n\n${externalBlocks
-				.map((block) => `- **${block.name}** — ${block.responsibility}`)
-				.join("\n")}`
-		: "";
 	const relationshipSection = input.relationships.length
 		? `\n\n## Relationships\n\n${input.relationships
 				.map(
 					(relationship) =>
-						`- ${blockReference(relationship.from)} → ${blockReference(relationship.to)} — ${relationship.description}`,
+						`- **${relationship.from}** → **${relationship.to}** — ${relationship.description}`,
 				)
 				.join("\n")}`
 		: "";
+	const languageSection = input.terms.length
+		? `## Language\n\n${input.terms
+				.map((entry) => `**${entry.term}**:\n${entry.definition}`)
+				.join("\n\n")}`
+		: "## Language";
 
 	const packageJson = formattedJson({
 		private: true,
@@ -292,21 +269,12 @@ ${ignoredDependencies}
 				projectTemplate,
 				{
 					PROJECT_TITLE: input.title,
-					PROJECT_DEFINITION: input.definition.join(" "),
-				},
-				"PROJECT.md",
-			),
-		},
-		{
-			path: "SOLUTION-MAP.md",
-			content: render(
-				mapTemplate,
-				{
+					PROJECT_DEFINITION: input.definition,
+					LANGUAGE_SECTION: languageSection,
 					REPOSITORY_BLOCKS: repositoryLines.join("\n"),
-					EXTERNAL_BLOCKS: externalSection,
 					RELATIONSHIPS: relationshipSection,
 				},
-				"SOLUTION-MAP.md",
+				"PROJECT.md",
 			),
 		},
 		{
@@ -346,25 +314,6 @@ ${ignoredDependencies}
 		{ path: ".node-version", content: `${nodeVersion}\n` },
 	];
 
-	for (const block of input.blocks.filter(
-		(candidate) => candidate.ownership === "repository",
-	)) {
-		files.push({
-			path: `src/${block.folder}/FOLDER.md`,
-			content: render(
-				folderTemplate,
-				{
-					BLOCK_NAME: block.name,
-					BLOCK_TYPE: block.type,
-					BLOCK_RESPONSIBILITY: block.responsibility,
-					BLOCK_CONTENTS: block.contents.map((item) => `- ${item}`).join("\n"),
-					BLOCK_READ_WHEN: block.readWhen.map((item) => `- ${item}`).join("\n"),
-				},
-				`src/${block.folder}/FOLDER.md`,
-			),
-		});
-	}
-
 	return files;
 }
 
@@ -377,18 +326,10 @@ async function exists(path) {
 	}
 }
 
-async function preflight(root, input, files) {
+async function preflight(root, files) {
 	const state = await getRepositoryState(root);
 	if (state.state !== "ready_for_setup") {
 		fail(`Repository state is ${JSON.stringify(state)}`);
-	}
-
-	for (const block of input.blocks.filter(
-		(candidate) => candidate.ownership === "repository",
-	)) {
-		if (await exists(resolve(root, "src", block.folder))) {
-			fail(`Output folder already exists: src/${block.folder}`);
-		}
 	}
 
 	for (const file of files) {
@@ -399,19 +340,9 @@ async function preflight(root, input, files) {
 }
 
 function preview(files) {
-	const lines = ["# Setup preview", "", "## Files", ""];
-	for (const file of files) lines.push(`- \`${file.path}\``);
-
-	lines.push("", "## Contents", "");
-	for (const file of files) {
-		lines.push(`### \`${file.path}\``, "");
-		if (file.path.endsWith(".mjs")) {
-			lines.push(`Copied verbatim from \`${file.copiedFrom}\`.`, "");
-		} else {
-			lines.push("```markdown", file.content.trimEnd(), "```", "");
-		}
-	}
-	return `${lines.join("\n").trimEnd()}\n`;
+	const project = files.find((file) => file.path === "PROJECT.md");
+	if (!project) fail("PROJECT.md is missing from setup output");
+	return project.content;
 }
 
 async function ensureDirectory(path, createdDirectories) {
@@ -425,28 +356,17 @@ async function ensureDirectory(path, createdDirectories) {
 	}
 }
 
-async function writeFiles(root, input, files) {
+async function writeFiles(root, files) {
 	const createdFiles = [];
 	const createdDirectories = [];
 
 	try {
 		await ensureDirectory(resolve(root, ".agents"), createdDirectories);
 		await ensureDirectory(resolve(root, ".agents/tools"), createdDirectories);
-		await ensureDirectory(resolve(root, "src"), createdDirectories);
 
-		for (const block of input.blocks.filter(
-			(candidate) => candidate.ownership === "repository",
-		)) {
-			const directory = resolve(root, "src", block.folder);
-			await mkdir(directory);
-			createdDirectories.push(directory);
-		}
-
-		const ordered = [...files].sort((left, right) => {
-			if (left.path === "SOLUTION-MAP.md") return 1;
-			if (right.path === "SOLUTION-MAP.md") return -1;
-			return left.path.localeCompare(right.path);
-		});
+		const ordered = [...files].sort((left, right) =>
+			left.path.localeCompare(right.path),
+		);
 
 		for (const file of ordered) {
 			const target = resolve(root, file.path);
@@ -482,16 +402,19 @@ async function main() {
 	const inputPath = resolve(option(args, "--input"));
 	const input = normalizeInput(JSON.parse(await readFile(inputPath, "utf8")));
 	const files = await buildFiles(input);
-	await preflight(root, input, files);
+	await preflight(root, files);
 
 	if (dryRun) {
 		process.stdout.write(preview(files));
 		return;
 	}
 
-	await writeFiles(root, input, files);
+	await writeFiles(root, files);
 	process.stdout.write(
-		`${JSON.stringify({ state: "initialized", files: files.map((file) => file.path) })}\n`,
+		`${JSON.stringify({
+			state: "initialized",
+			files: files.map((file) => file.path),
+		})}\n`,
 	);
 }
 

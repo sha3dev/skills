@@ -30,10 +30,10 @@ with the rough product idea. In Codex:
 $setup Build an editorial CMS and a public website for a video platform.
 ```
 
-`setup` will guide the conversation. It will agree the product definition,
-identify repository-owned `web`, `api`, and `worker` blocks, discover their
-logical relationships, and distinguish them from external systems. It shows a
-complete preview and waits for approval before writing anything.
+`setup` will guide the conversation. It will agree the product definition and
+domain language, identify `web`, `api`, and `worker` blocks, and discover their
+logical relationships. It shows the generated `PROJECT.md` and waits for
+approval before writing anything.
 
 The generated foundation includes:
 
@@ -41,11 +41,7 @@ The generated foundation includes:
 AGENTS.md
 CLAUDE.md
 PROJECT.md
-SOLUTION-MAP.md
 .agents/
-src/
-└── <block>/
-    └── FOLDER.md
 biome.json
 knip.json
 package.json
@@ -70,7 +66,7 @@ npm run check:toolchain
 Before setup, the repository may contain common metadata such as `.git`,
 `.gitignore`, `README.md`, `LICENSE`, installed agent skills, and
 `skills-lock.json`. It must not already contain application code, `AGENTS.md`,
-or `SOLUTION-MAP.md`.
+or `PROJECT.md`.
 
 ## Installation
 
