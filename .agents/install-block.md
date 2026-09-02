@@ -35,7 +35,7 @@ Use the single-skill form when documenting one named skill:
 <canonical-block name="skills-sh-one-skill">
 
 ```bash
-npx skills@latest add sha3dev/skills --skill=<name>
+npx skills@latest add sha3dev/skills --skill <name>
 ```
 
 ```bash

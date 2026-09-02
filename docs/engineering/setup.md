@@ -62,6 +62,10 @@ JavaScript that must be delivered without transformation is permitted only at
 `src/<block>/assets/**/*.js`. Biome and Knip ignore that narrow asset boundary;
 other JavaScript module formats under `src/` are rejected.
 
+Biome checks `skills-lock.json` using the upstream skills installer's canonical
+two-space serialization. The lockfile remains tool-owned and committed for
+reproducible project-scoped skill installations.
+
 The toolchain verifier requires the fixed platform at compatible minimum
 versions, rejects direct ESLint, Prettier, oxlint, and dprint dependencies, and
 requires native ESM through an exact `"type": "module"` declaration in

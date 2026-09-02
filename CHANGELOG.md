@@ -1,5 +1,20 @@
 # sha3dev-skills
 
+## 0.2.0
+
+### Minor Changes
+
+- Keep generated repositories green after project-scoped skill installation by
+  teaching Biome the installer-owned `skills-lock.json` serialization. Cover
+  the real two-space lockfile format in the setup regression test.
+
+### Patch Changes
+
+- Turn the root README into an end-to-end getting-started guide covering
+  requirements, project-scoped installation, first `setup` invocation, generated
+  artifacts, daily skill use, and updates. Correct the documented single-skill
+  installer syntax to match the `skills` CLI.
+
 ## 0.1.0
 
 ### Minor Changes

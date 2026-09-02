@@ -419,6 +419,22 @@ async function checkSetup() {
 		const opaqueAssetContents = "window.vendor={answer:42};\n";
 		await mkdir(dirname(opaqueAsset), { recursive: true });
 		await writeFile(opaqueAsset, opaqueAssetContents);
+		await writeFile(
+			join(target, "skills-lock.json"),
+			`${JSON.stringify(
+				{
+					version: 1,
+					skills: {
+						setup: {
+							source: "sha3dev/skills",
+							sourceType: "github",
+						},
+					},
+				},
+				null,
+				2,
+			)}\n`,
+		);
 
 		const binary = (name) => join(repo, "node_modules", ".bin", name);
 		execFileSync(binary("biome"), ["check", "."], {

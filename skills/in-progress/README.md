@@ -6,7 +6,7 @@ catalog until they graduate to a promoted bucket.
 Install one directly with:
 
 ```bash
-npx skills@latest add sha3dev/skills --skill=<name>
+npx skills@latest add sha3dev/skills --skill <name>
 ```
 
 No skills have been published yet.
