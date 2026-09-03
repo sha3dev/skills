@@ -7,10 +7,10 @@
 
 ## Repository maintenance
 
-Workflow skills live at `skills/flow/<name>/`; reusable supporting skills live
+Workflow skills live at `skills/workflows/<name>/`; reusable supporting skills live
 at `skills/toolkit/<name>/`. Do not add other category or empty folders. Every
 skill must appear in the top-level `README.md`, with matching human-facing
-documentation at `docs/flow/<name>.md` or `docs/toolkit/<name>.md`.
+documentation at `docs/workflows/<name>.md` or `docs/toolkit/<name>.md`.
 
 Documentation explains when and why to use a skill without duplicating its
 procedure or installation commands. Use `What it does`, `When to reach for it`,

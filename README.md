@@ -19,21 +19,21 @@ git init
 npx skills@latest add sha3dev/skills
 ```
 
-Choose a project-scoped installation, select your agent, and install all nine
+Choose a project-scoped installation, select your agent, and install all ten
 skills. Project-scoped installations create `skills-lock.json`; commit it so
 the installed sources and content hashes remain reproducible.
 
-Restart the agent in the repository after installation, then invoke `setup`
-with the rough product idea. In Codex:
+Restart the agent in the repository after installation. Invoke `flow` without
+arguments to enter or continue the appropriate workflow:
 
 ```text
-$setup Build an editorial CMS and a public website for a video platform.
+$flow
 ```
 
-`setup` will guide the conversation. It will agree the product definition and
-domain language, identify `web`, `api`, and `worker` applications, and discover
-their logical relationships. It shows the generated `PROJECT.md` and waits for
-approval before writing anything.
+In a new repository it starts the setup flow and asks for the rough product
+idea. It will agree the product definition and domain language, identify `web`,
+`api`, and `worker` applications, and discover their logical relationships. It
+shows the generated `PROJECT.md` and waits for approval before writing anything.
 
 The generated foundation includes:
 
@@ -84,23 +84,24 @@ To install one named skill:
 npx skills@latest add sha3dev/skills --skill <name>
 ```
 
-When installing a flow skill individually, also install the toolkit skills
+When installing a workflow skill individually, also install the toolkit skills
 listed in its prerequisites.
 
 ## Available skills
 
-### Flow
+### Workflows
 
 End-to-end development stages with an explicit start, progression, and finish.
 
 | Skill | Invocation | Purpose |
 | --- | --- | --- |
-| [`setup`](./docs/flow/setup.md) | Explicit | Initialize an empty repository, define typed applications and relationships, and materialize the fixed toolchain. |
-| [`to-web-surface`](./docs/flow/to-web-surface.md) | Explicit | Specify one web interface through a persistent design interview, then build it incrementally with the user. |
+| [`flow`](./docs/workflows/flow.md) | Explicit | Select and run the appropriate workflow in an isolated worker context. |
+| [`setup`](./docs/workflows/setup.md) | Explicit | Initialize an empty repository, define typed applications and relationships, and materialize the fixed toolchain. |
+| [`to-web-surface`](./docs/workflows/to-web-surface.md) | Explicit | Specify one web interface through a persistent design interview, then build it incrementally with the user. |
 
 ### Toolkit
 
-Reusable constraints, practices, and specialist guidance that support the flow.
+Reusable constraints, practices, and specialist guidance that support the workflows.
 
 | Skill | Invocation | Purpose |
 | --- | --- | --- |
@@ -112,10 +113,14 @@ Reusable constraints, practices, and specialist guidance that support the flow.
 | [`fixing-accessibility`](./docs/toolkit/fixing-accessibility.md) | Automatic | Audit and fix accessibility when interactive controls, forms, dialogs, focus, or keyboard behavior change. |
 | [`shadcn`](./docs/toolkit/shadcn.md) | Automatic | Work with shadcn projects, registries, components, and presets using live project and CLI context. |
 
-`setup` runs once. Invoke `to-web-surface` for a `web` application; it uses
-`interview` to resolve the UI specification one question at a time, then
-iterates on the resulting live interface until approval. `typescript-stack` is
-selected automatically whenever the agent writes application TypeScript or TSX.
+`flow` is the only workflow entry point users need to know. It selects and
+continues the applicable installed workflow in an isolated subagent context
+when supported. Each workflow gets one writer and durable artifacts remain
+canonical.
+Internally, `setup` runs once and `to-web-surface` handles a `web` application;
+it uses `interview` to resolve the UI specification one question at a time,
+then iterates on the resulting live interface until approval. `typescript-stack`
+is selected automatically whenever the agent writes application TypeScript or TSX.
 Invoke `lazy` explicitly when simplicity is the main constraint for a task.
 `frontend-design`, `composition-patterns`, and `fixing-accessibility` activate
 only for their respective UI concerns. `shadcn` activates for projects that

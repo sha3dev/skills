@@ -1,5 +1,18 @@
 # sha3dev-skills
 
+## 0.6.0
+
+### Minor Changes
+
+- Add the user-invoked `flow` skill as the workflow orchestrator. It discovers
+  the project's durable state, prioritizes resumable work, and immediately
+  continues through the appropriate installed workflow in a clean,
+  single-writer subagent context when supported, while keeping routing internal
+  and user communication minimal.
+
+- Rename the workflow category from `flow` to `workflows`, avoiding ambiguity
+  between the category and its `flow` orchestrator.
+
 ## 0.5.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 ---
 name: to-web-surface
-description: Specify and build one web application's final interface through a persistent design interview and visible incremental implementation.
+description: Specify, build, or resume one initialized web application's interface through a persistent design interview and visible incremental implementation.
 disable-model-invocation: true
 argument-hint: "[web application]"
 ---
