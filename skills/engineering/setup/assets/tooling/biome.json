@@ -5,7 +5,6 @@
 		"includes": [
 			"**",
 			"!!**/.agents",
-			"!!**/.scratch",
 			"!!**/coverage",
 			"!!**/dist",
 			"!!src/*/assets/**/*.js"

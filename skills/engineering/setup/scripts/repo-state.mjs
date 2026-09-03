@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { spawnSync } from "node:child_process";
 import { constants, realpathSync } from "node:fs";
 import { access, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -41,7 +42,27 @@ export async function getRepositoryState(rootInput = ".") {
 	const markers = ["PROJECT.md"].filter((entry) => entries.includes(entry));
 
 	if (markers.length > 0) {
-		return { state: "already_initialized", markers };
+		const progressTool = resolve(root, ".agents/tools/project-progress.mjs");
+		if (!(await exists(progressTool))) {
+			return { state: "already_initialized", markers };
+		}
+		const progress = spawnSync(
+			process.execPath,
+			[progressTool, "--root", root],
+			{ encoding: "utf8" },
+		);
+		if (progress.status !== 0) {
+			return {
+				state: "invalid_project",
+				markers,
+				error: progress.stderr.trim() || "PROJECT.md could not be parsed",
+			};
+		}
+		return {
+			state: "already_initialized",
+			markers,
+			blocks: JSON.parse(progress.stdout).blocks,
+		};
 	}
 
 	const reservedOutputs = [

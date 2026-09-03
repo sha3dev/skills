@@ -3,9 +3,9 @@
 Agent skills for taking a software project from an initial idea to working
 TypeScript code through explicit, incremental workflows.
 
-The platform is intentionally fixed: Node.js with `tsx` for server-side
-TypeScript, React/Vite for web interfaces, Fastify for APIs, and Biome,
-TypeScript, and Knip for deterministic code-quality checks.
+The platform is intentionally fixed: npm workspaces with Turborepo, Node.js
+with `tsx` for server-side TypeScript, React/Vite for web interfaces, Fastify
+for APIs, and Biome, TypeScript, and Knip for deterministic code-quality checks.
 
 ## Quick start
 
@@ -19,7 +19,7 @@ git init
 npx skills@latest add sha3dev/skills
 ```
 
-Choose a project-scoped installation, select your agent, and install all three
+Choose a project-scoped installation, select your agent, and install all four
 skills. Project-scoped installations create `skills-lock.json`; commit it so
 the installed sources and content hashes remain reproducible.
 
@@ -46,6 +46,7 @@ biome.json
 knip.json
 package.json
 tsconfig.json
+turbo.json
 ```
 
 After approval, `setup` installs the fixed platform and runs its toolchain
@@ -109,16 +110,16 @@ Invoke the initial workflow with the namespaced command:
 | Skill | Invocation | Purpose |
 | --- | --- | --- |
 | [`setup`](./docs/engineering/setup.md) | Explicit | Initialize an empty repository, define typed solution blocks and relationships, and materialize the fixed toolchain. |
+| [`to-web-surface`](./docs/engineering/to-web-surface.md) | Explicit | Build one web block's disconnected interface incrementally with the user. |
 | [`lazy`](./docs/engineering/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
 | [`typescript-stack`](./docs/engineering/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
 
-`setup` runs once. After that, `typescript-stack` is selected automatically
+`setup` runs once. Invoke `to-web-surface` for a `web` block and iterate on its
+live interface until approving it. `typescript-stack` is selected automatically
 whenever the agent writes application TypeScript or TSX. Invoke `lazy`
 explicitly when simplicity is the main constraint for a task.
 
-The current release covers repository setup and TypeScript implementation
-discipline. Incremental web, API, and worker surface workflows are planned but
-are not included yet.
+API and worker surface workflows are planned but are not included yet.
 
 ## Updating
 
@@ -134,10 +135,6 @@ Claude Code manages plugin updates through its plugin manager.
 ## Repository organization
 
 - [`engineering`](./skills/engineering/README.md): daily software engineering work.
-- [`productivity`](./skills/productivity/README.md): general workflow tools.
-- [`misc`](./skills/misc/README.md): maintained skills that are not promoted.
-- [`in-progress`](./skills/in-progress/README.md): public beta skills excluded from releases.
-- [`deprecated`](./skills/deprecated/README.md): retired skills retained for reference.
 
 ## Maintainer commands
 
@@ -145,13 +142,5 @@ Claude Code manages plugin updates through its plugin manager.
 scripts/list-skills.sh
 scripts/link-skills.sh
 npm run check
-npm run check-plugin-version
 claude plugin validate . --strict
-```
-
-Create a changeset for every user-visible addition, removal, or behavioral
-change:
-
-```bash
-npm run changeset
 ```

@@ -30,10 +30,12 @@ and `relationships`, with only the nested fields above. All text values are
 non-empty and single-line. External dependencies and infrastructure are outside
 setup.
 
-The generator derives a unique kebab-case `src/` path from each block name.
-`PROJECT.md` is the sole persistent source for these values and paths. It keeps
-an empty Language section when there are no terms and omits Relationships when
-there are none. Setup does not create empty block directories.
+The generator derives a unique kebab-case `src/` path from each block name and
+initializes its `surface` progress as `pending`. `PROJECT.md` is the sole
+persistent source for these values, paths, and progress. It keeps an empty
+Language section when there are no terms and omits Relationships when there
+are none. Setup configures npm workspaces and Turborepo but does not create
+empty block directories.
 
 ## Process
 

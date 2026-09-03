@@ -6,6 +6,7 @@ Skills used for daily software engineering work.
 
 - [`lazy`](./lazy): Force the smallest correct implementation without unnecessary code, dependencies, files, or abstractions.
 - [`setup`](./setup): Initialize project context, domain language, `src/` solution blocks, agent entrypoints, and the fixed TypeScript toolchain.
+- [`to-web-surface`](./to-web-surface): Build one web block's disconnected interface incrementally with the user.
 
 ## Model-invoked
 

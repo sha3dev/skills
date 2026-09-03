@@ -3,9 +3,10 @@
 ## What it does
 
 `typescript-stack` governs application-code changes on the fixed TypeScript
-platform: Node.js with the `tsx` runtime, React with Vite, and Fastify. It uses
-the repository's existing Biome, TypeScript, Knip, and toolchain gates instead
-of encoding mechanical code-style decisions in agent instructions.
+platform: npm workspaces with Turborepo, Node.js with the `tsx` runtime, React
+with Vite, and Fastify. It uses the repository's existing Biome, TypeScript,
+Knip, and toolchain gates instead of encoding mechanical code-style decisions
+in agent instructions.
 
 The skill does not initialize, migrate, or rewrite tooling while application
 code is being changed.

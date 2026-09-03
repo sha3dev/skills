@@ -182,8 +182,10 @@ async function buildFiles(input) {
 		loadAsset("CLAUDE.md"),
 		loadAsset("PROJECT.md"),
 		readFile(resolve(scriptDirectory, "repo-state.mjs"), "utf8"),
+		loadAsset("tooling/project-progress.mjs"),
 		loadAsset("tooling/biome.json"),
 		loadAsset("tooling/tsconfig.json"),
+		loadAsset("tooling/turbo.json"),
 		loadAsset("tooling/toolchain-policy.json"),
 		loadAsset("tooling/verify-toolchain.mjs"),
 		loadAsset("tooling/version-policy.mjs"),
@@ -193,8 +195,10 @@ async function buildFiles(input) {
 		claude,
 		projectTemplate,
 		repoState,
+		projectProgress,
 		biome,
 		tsconfig,
+		turbo,
 		policySource,
 		toolchainVerifier,
 		versionPolicy,
@@ -212,8 +216,13 @@ async function buildFiles(input) {
 	assertMinimumVersion(npmVersion, policy.minimumRuntimeVersions.npm, "npm");
 
 	const repositoryLines = input.blocks.map(
-		(block) =>
-			`- **${block.name}** — \`${block.type}\` — \`src/${block.folder}/\` — ${block.responsibility}`,
+		(block) => `### ${block.name}
+
+- Type: \`${block.type}\`
+- Path: \`src/${block.folder}/\`
+- Responsibility: ${block.responsibility}
+- Progress:
+  - \`surface\`: \`pending\``,
 	);
 	const relationshipSection = input.relationships.length
 		? `\n\n## Relationships\n\n${input.relationships
@@ -232,6 +241,7 @@ async function buildFiles(input) {
 	const packageJson = formattedJson({
 		private: true,
 		type: "module",
+		workspaces: policy.requiredWorkspaces,
 		scripts: {
 			...policy.requiredScripts,
 			check: "npm run check:tooling",
@@ -254,7 +264,7 @@ async function buildFiles(input) {
 		.join(",\n");
 	const knip = `{
 \t"$schema": "https://unpkg.com/knip@${policy.minimumToolVersions.knip}/schema.json",
-\t"ignore": [".agents/**", "src/*/assets/**/*.js"],
+\t"ignore": [".agents/**", "**/dist/**", "src/*/assets/**/*.js"],
 \t"ignoreDependencies": [
 ${ignoredDependencies}
 \t]
@@ -271,7 +281,7 @@ ${ignoredDependencies}
 					PROJECT_TITLE: input.title,
 					PROJECT_DEFINITION: input.definition,
 					LANGUAGE_SECTION: languageSection,
-					REPOSITORY_BLOCKS: repositoryLines.join("\n"),
+					REPOSITORY_BLOCKS: repositoryLines.join("\n\n"),
 					RELATIONSHIPS: relationshipSection,
 				},
 				"PROJECT.md",
@@ -281,6 +291,12 @@ ${ignoredDependencies}
 			path: ".agents/tools/repo-state.mjs",
 			content: repoState,
 			copiedFrom: "scripts/repo-state.mjs",
+			mode: 0o755,
+		},
+		{
+			path: ".agents/tools/project-progress.mjs",
+			content: projectProgress,
+			copiedFrom: "assets/tooling/project-progress.mjs",
 			mode: 0o755,
 		},
 		{
@@ -308,6 +324,11 @@ ${ignoredDependencies}
 			path: "tsconfig.json",
 			content: tsconfig,
 			copiedFrom: "assets/tooling/tsconfig.json",
+		},
+		{
+			path: "turbo.json",
+			content: turbo,
+			copiedFrom: "assets/tooling/turbo.json",
 		},
 		{ path: "knip.json", content: knip },
 		{ path: "package.json", content: packageJson },

@@ -11,9 +11,9 @@ responsibilities so later agents can avoid broad codebase exploration.
 It creates one canonical `AGENTS.md`; `CLAUDE.md` imports it so agent harnesses
 share the same instructions without duplication.
 
-It also installs React/Vite, Fastify, the `tsx` runtime, Biome, TypeScript,
-Knip, minimum-version policy, repository-specific runtime pins, and a
-read-only toolchain verifier.
+It also installs npm workspaces, Turborepo, React/Vite, Fastify, the `tsx`
+runtime, Biome, TypeScript, Knip, minimum-version policy,
+repository-specific runtime pins, and a read-only toolchain verifier.
 
 ## When to reach for it
 
@@ -36,19 +36,33 @@ PROJECT.md
 .agents/
 ├── toolchain-policy.json
 └── tools/
+    ├── project-progress.mjs
     ├── repo-state.mjs
     └── verify-toolchain.mjs
 biome.json
 knip.json
 package.json
 tsconfig.json
+turbo.json
 ```
 
 `PROJECT.md` owns the global product definition, confirmed project-specific
-domain terms, block names, types, paths, responsibilities, and logical
-relationships. Its Language section defines canonical terms without
-requirements, implementation details, or general programming terminology.
-Setup declares block paths without creating empty directories.
+domain terms, block names, types, paths, responsibilities, logical
+relationships, and phase progress. Every block starts with its `surface` phase
+set to `pending`. The generated progress tool permits only deterministic
+`pending` to `in-progress` to `complete` transitions. Its Language section
+defines canonical terms without requirements, implementation details, or
+general programming terminology. Setup declares block paths without creating
+empty directories.
+
+The repository-state tool reports initialization state and, for initialized
+repositories, every block's type, path, responsibility, and phase progress.
+The progress tool remains the only writer for phase transitions.
+
+Each block becomes an independently runnable npm workspace when a later
+workflow materializes it. Shared packages live under `src/shared/`. Turborepo
+coordinates workspace development and builds; it does not define runtime
+communication between blocks.
 
 Repository block paths are derived deterministically from their names; setup
 does not ask the agent to choose a second identifier. The workflow that first
@@ -85,6 +99,6 @@ run a green `npm run check:toolchain` against repository-pinned versions.
 ## Where it fits
 
 `setup` is the one-time repository bootstrap. Later workflow skills consume its
-project definition, domain language, block map, and toolchain.
-`typescript-stack` consumes the generated gates while later workflow skills
-persist their own work artifacts under `.scratch/`.
+project definition, domain language, block map, progress, and toolchain.
+`typescript-stack` consumes the generated gates, while application code is the
+durable output of surface workflows.

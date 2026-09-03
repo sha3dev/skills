@@ -1,8 +1,7 @@
 # Writing skill documentation
 
-Every promoted skill has a human-facing documentation page at
-`docs/<bucket>/<skill-name>.md`. The docs tree mirrors the `engineering` and
-`productivity` buckets under `skills/`.
+Every published skill has a human-facing documentation page at
+`docs/engineering/<skill-name>.md`.
 
 The page explains when and why to use the skill. It does not duplicate the
 procedural instructions in `SKILL.md`.
@@ -17,9 +16,8 @@ Use this section order:
 6. `## It's working if`
 7. `## Where it fits`
 
-Do not include installation commands in individual skill pages. The canonical
-commands live in [install-block.md](./install-block.md).
+Do not include installation commands in individual skill pages. Keep them in
+the top-level `README.md`.
 
-Create or resynchronize the page whenever a promoted skill is added, renamed,
-moved, or behaviorally changed. Skills in `misc`, `in-progress`, and
-`deprecated` do not receive documentation pages.
+Create or resynchronize the page whenever a skill is added, renamed, moved, or
+behaviorally changed.

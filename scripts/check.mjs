@@ -16,8 +16,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..");
-const promotedBuckets = ["engineering", "productivity"];
-const nonPromotedBuckets = ["misc", "in-progress", "deprecated"];
+const skillBucket = "engineering";
 
 function assert(condition, message) {
 	if (!condition) throw new Error(message);
@@ -46,13 +45,6 @@ async function exists(path) {
 	} catch {
 		return false;
 	}
-}
-
-function canonicalBlock(source, name) {
-	const section = source
-		.split(`<canonical-block name="${name}">`)[1]
-		?.split("</canonical-block>")[0];
-	return section?.match(/```[^\n]*\n([\s\S]*?)\n```/)?.[1];
 }
 
 async function checkSkill(skillRoot, name) {
@@ -86,100 +78,57 @@ async function checkCatalog() {
 		await readFile(join(repo, ".claude-plugin/plugin.json"), "utf8"),
 	);
 	const expectedPluginSkills = [];
-	const skillNames = new Set();
 	const rootReadme = await readFile(join(repo, "README.md"), "utf8");
+	const bucketRoot = join(repo, "skills", skillBucket);
+	const bucketReadme = await readFile(join(bucketRoot, "README.md"), "utf8");
 
-	for (const bucket of promotedBuckets) {
-		const bucketRoot = join(repo, "skills", bucket);
-		const bucketReadme = await readFile(join(bucketRoot, "README.md"), "utf8");
+	for (const name of await directories(bucketRoot)) {
+		const skillRoot = join(bucketRoot, name);
+		if (!(await exists(join(skillRoot, "SKILL.md")))) continue;
 
-		for (const name of await directories(bucketRoot)) {
-			const skillRoot = join(bucketRoot, name);
-			const skillPath = join(skillRoot, "SKILL.md");
-			if (!(await exists(skillPath))) continue;
+		expectedPluginSkills.push(`./skills/${skillBucket}/${name}`);
+		assert(
+			bucketReadme.includes(`[\`${name}\`](./${name})`),
+			`${skillBucket} README does not list ${name}`,
+		);
+		assert(
+			rootReadme.includes(`(./docs/${skillBucket}/${name}.md)`),
+			`Top-level README does not list ${name}`,
+		);
+		await checkSkill(skillRoot, name);
 
-			assert(!skillNames.has(name), `Duplicate skill name: ${name}`);
-			skillNames.add(name);
-			expectedPluginSkills.push(`./skills/${bucket}/${name}`);
-			assert(
-				bucketReadme.includes(`[\`${name}\`](./${name})`),
-				`${bucket} README does not list ${name}`,
-			);
-			assert(
-				rootReadme.includes(`(./docs/${bucket}/${name}.md)`),
-				`Top-level README does not list ${name}`,
-			);
-			await checkSkill(skillRoot, name);
-
-			const docs = await readFile(
-				join(repo, "docs", bucket, `${name}.md`),
-				"utf8",
-			);
-			for (const heading of [
-				"## What it does",
-				"## When to reach for it",
-				"## It's working if",
-				"## Where it fits",
-			]) {
-				assert(docs.includes(heading), `${name} docs are missing ${heading}`);
-			}
-			assert(
-				!/^## Install$/m.test(docs),
-				`${name} docs contain install instructions`,
-			);
-			assert(
-				!docs.includes("npx skills"),
-				`${name} docs contain install commands`,
-			);
+		const docs = await readFile(
+			join(repo, "docs", skillBucket, `${name}.md`),
+			"utf8",
+		);
+		for (const heading of [
+			"## What it does",
+			"## When to reach for it",
+			"## It's working if",
+			"## Where it fits",
+		]) {
+			assert(docs.includes(heading), `${name} docs are missing ${heading}`);
 		}
-	}
-
-	for (const bucket of nonPromotedBuckets) {
-		const bucketRoot = join(repo, "skills", bucket);
-		const bucketReadme = await readFile(join(bucketRoot, "README.md"), "utf8");
-
-		for (const name of await directories(bucketRoot)) {
-			if (!(await exists(join(bucketRoot, name, "SKILL.md")))) continue;
-			assert(!skillNames.has(name), `Duplicate skill name: ${name}`);
-			skillNames.add(name);
-			await checkSkill(join(bucketRoot, name), name);
-			assert(
-				bucketReadme.includes(`[\`${name}\`](./${name})`),
-				`${bucket} README does not list ${name}`,
-			);
-			assert(
-				!rootReadme.includes(`skills/${bucket}/${name}`),
-				`Top-level README promotes ${name}`,
-			);
-			assert(
-				!(await exists(join(repo, "docs", bucket, `${name}.md`))),
-				`Non-promoted skill ${name} has a docs page`,
-			);
-		}
+		assert(
+			!/^## Install$/m.test(docs),
+			`${name} docs contain install instructions`,
+		);
+		assert(
+			!docs.includes("npx skills"),
+			`${name} docs contain install commands`,
+		);
 	}
 
 	assert(
 		JSON.stringify([...plugin.skills].sort()) ===
 			JSON.stringify(expectedPluginSkills.sort()),
-		"Plugin skills do not match promoted skills",
+		"Plugin skills do not match the engineering catalog",
 	);
 
 	assert(
 		(await readFile(join(repo, "CLAUDE.md"), "utf8")) === "@AGENTS.md\n",
 		"CLAUDE.md must contain only @AGENTS.md",
 	);
-
-	const installBlock = await readFile(
-		join(repo, ".agents/install-block.md"),
-		"utf8",
-	);
-	for (const name of ["claude-code", "skills-sh-whole-set"]) {
-		const block = canonicalBlock(installBlock, name);
-		assert(
-			block && rootReadme.includes(block),
-			`README installation block differs: ${name}`,
-		);
-	}
 }
 
 async function checkSetup() {
@@ -292,7 +241,8 @@ async function checkSetup() {
 		});
 		assert(
 			preview.startsWith("# Example Project\n") &&
-				preview.includes("`src/web-application/`"),
+				preview.includes("- Path: `src/web-application/`") &&
+				preview.includes("  - `surface`: `pending`"),
 			"Setup preview is not the generated PROJECT.md",
 		);
 		execFileSync(process.execPath, [...args, "--write"]);
@@ -305,8 +255,12 @@ async function checkSetup() {
 			),
 		);
 		assert(
-			state.state === "already_initialized",
-			"Setup state is not initialized",
+			state.state === "already_initialized" &&
+				state.blocks.length === 2 &&
+				state.blocks[0].name === "Web Application" &&
+				state.blocks[0].type === "web" &&
+				state.blocks[0].progress.surface === "pending",
+			"Setup state does not report repository block progress",
 		);
 		assert(
 			(await readFile(join(target, "CLAUDE.md"), "utf8")) === "@AGENTS.md\n",
@@ -314,10 +268,11 @@ async function checkSetup() {
 		);
 		const project = await readFile(join(target, "PROJECT.md"), "utf8");
 		assert(
-			project.includes("**Web Application**") &&
-				project.includes("`web`") &&
-				project.includes("`src/web-application/`") &&
-				project.includes("Own the user-facing experience."),
+			project.includes("### Web Application") &&
+				project.includes("- Type: `web`") &&
+				project.includes("- Path: `src/web-application/`") &&
+				project.includes("- Responsibility: Own the user-facing experience.") &&
+				project.includes("  - `surface`: `pending`"),
 			"PROJECT.md does not own repository block facts",
 		);
 		assert(
@@ -338,13 +293,18 @@ async function checkSetup() {
 			packageJson.type === "module",
 			"TypeScript tooling did not enable ESM",
 		);
+		assert(
+			JSON.stringify(packageJson.workspaces) ===
+				JSON.stringify(["src/*", "src/shared/*"]),
+			"Setup did not configure the expected workspaces",
+		);
 		for (const name of ["fastify", "react", "react-dom"]) {
 			assert(
 				packageJson.dependencies[name],
 				`Setup omitted platform dependency ${name}`,
 			);
 		}
-		for (const name of ["tsx", "vite", "@vitejs/plugin-react"]) {
+		for (const name of ["tsx", "vite", "@vitejs/plugin-react", "turbo"]) {
 			assert(
 				packageJson.devDependencies[name],
 				`Setup omitted platform devDependency ${name}`,
@@ -370,6 +330,69 @@ async function checkSetup() {
 			}),
 		);
 		assert(validation.status === "valid", "Generated toolchain is not valid");
+
+		const progressTool = join(target, ".agents/tools/project-progress.mjs");
+		const webBlocks = JSON.parse(
+			execFileSync(
+				process.execPath,
+				[progressTool, "--root", target, "--type", "web"],
+				{ encoding: "utf8" },
+			),
+		);
+		assert(
+			webBlocks.blocks.length === 1 &&
+				webBlocks.blocks[0].progress.surface === "pending",
+			"Project progress tool did not find the pending web surface",
+		);
+		execFileSync(process.execPath, [
+			progressTool,
+			"--root",
+			target,
+			"--block",
+			"Web Application",
+			"--phase",
+			"surface",
+			"--set",
+			"in-progress",
+		]);
+		assert(
+			(await readFile(join(target, "PROJECT.md"), "utf8")).includes(
+				"  - `surface`: `in-progress`",
+			),
+			"Project progress tool did not update the selected phase",
+		);
+		const updatedState = JSON.parse(
+			execFileSync(
+				process.execPath,
+				[join(target, ".agents/tools/repo-state.mjs"), "--root", target],
+				{ encoding: "utf8" },
+			),
+		);
+		assert(
+			updatedState.blocks[0].progress.surface === "in-progress",
+			"Repository state did not reflect the surface transition",
+		);
+		const webInitializer = join(
+			repo,
+			"skills/engineering/to-web-surface/scripts/initialize-web-block.mjs",
+		);
+		const initializedWeb = JSON.parse(
+			execFileSync(
+				process.execPath,
+				[webInitializer, "--root", target, "--block", "Web Application"],
+				{ encoding: "utf8" },
+			),
+		);
+		assert(
+			initializedWeb.status === "initialized" &&
+				(await exists(join(target, "src/web-application/src/main.tsx"))),
+			"Web surface initializer did not create the selected workspace",
+		);
+		execFileSync(
+			"npm",
+			["run", "build", "--workspace", initializedWeb.workspace],
+			{ cwd: target, stdio: "pipe" },
+		);
 
 		const packagePath = join(target, "package.json");
 		const verifierRejects = () =>
@@ -422,10 +445,10 @@ async function checkSetup() {
 			"Toolchain verification accepted TypeScript outside src/",
 		);
 		await rm(join(target, "outside.ts"));
-		await mkdir(join(target, "src/web-application"), { recursive: true });
+		await mkdir(join(target, "src/editorial-api"), { recursive: true });
 
 		for (const filename of ["legacy.js", "module.mjs"]) {
-			const unsupportedSource = join(target, "src/web-application", filename);
+			const unsupportedSource = join(target, "src/editorial-api", filename);
 			await writeFile(unsupportedSource, "window.legacy = true;\n");
 			assert(
 				verifierRejects(),
@@ -434,14 +457,14 @@ async function checkSetup() {
 			await rm(unsupportedSource);
 		}
 
-		const source = join(target, "src/web-application/index.ts");
+		const source = join(target, "src/editorial-api/index.ts");
 		await writeFile(source, "export const answer = 42;\n");
-		packageJson.main = "src/web-application/index.ts";
+		packageJson.main = "src/editorial-api/index.ts";
 		await writeFile(
 			join(target, "package.json"),
 			`${JSON.stringify(packageJson, null, "\t")}\n`,
 		);
-		const opaqueAsset = join(target, "src/web-application/assets/vendor.js");
+		const opaqueAsset = join(target, "src/editorial-api/assets/vendor.js");
 		const opaqueAssetContents = "window.vendor={answer:42};\n";
 		await mkdir(dirname(opaqueAsset), { recursive: true });
 		await writeFile(opaqueAsset, opaqueAssetContents);
@@ -478,7 +501,7 @@ async function checkSetup() {
 			"Code tooling modified an opaque JavaScript asset",
 		);
 
-		const biomeViolation = join(target, "src/web-application/debugger.ts");
+		const biomeViolation = join(target, "src/editorial-api/debugger.ts");
 		await writeFile(biomeViolation, "debugger;\n");
 		assert(
 			commandFails(binary("biome"), ["check", biomeViolation], { cwd: target }),
@@ -486,7 +509,7 @@ async function checkSetup() {
 		);
 		await rm(biomeViolation);
 
-		const brokenSource = join(target, "src/web-application/broken.ts");
+		const brokenSource = join(target, "src/editorial-api/broken.ts");
 		await writeFile(brokenSource, "const count: string = 42;\n");
 		assert(
 			commandFails(binary("tsc"), ["--noEmit", "--project", "tsconfig.json"], {
@@ -496,7 +519,7 @@ async function checkSetup() {
 		);
 		await rm(brokenSource);
 
-		const unusedSource = join(target, "src/web-application/unused.ts");
+		const unusedSource = join(target, "src/editorial-api/unused.ts");
 		await writeFile(unusedSource, "export const unused = true;\n");
 		assert(
 			commandFails(binary("knip"), [], { cwd: target }),

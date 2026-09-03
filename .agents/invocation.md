@@ -22,5 +22,5 @@ A model-invoked skill is reachable by either the model or the user.
 Keep both harness policies aligned. A skill must not be user-invoked in one
 harness and model-invoked in another.
 
-Bucket README files and the top-level catalog group promoted skills under
-`User-invoked` and `Model-invoked` headings.
+The engineering README groups skills under `User-invoked` and `Model-invoked`
+headings. The top-level catalog records the invocation mode for every skill.

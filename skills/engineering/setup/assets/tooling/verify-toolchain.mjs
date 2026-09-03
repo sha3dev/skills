@@ -34,7 +34,6 @@ async function findRepositoryViolations(root) {
 	const ignored = new Set([
 		".agents",
 		".git",
-		".scratch",
 		"coverage",
 		"dist",
 		"node_modules",
@@ -82,6 +81,7 @@ try {
 		join(root, "package.json"),
 		"package.json",
 	);
+	const turboJson = await readJson(join(root, "turbo.json"), "turbo.json");
 	if (packageJson.type !== "module")
 		fail('package.json must declare "type": "module"');
 	const pinnedNode = (
@@ -112,6 +112,20 @@ try {
 	}
 	if (packageJson.engines?.node !== `>=${minimumNode}`) {
 		fail(`engines.node must be >=${minimumNode}`);
+	}
+	if (
+		JSON.stringify(packageJson.workspaces) !==
+		JSON.stringify(policy.requiredWorkspaces)
+	) {
+		fail("package.json workspaces do not match the toolchain policy");
+	}
+	if (
+		turboJson.tasks?.dev?.cache !== false ||
+		turboJson.tasks?.dev?.persistent !== true ||
+		!turboJson.tasks?.build?.dependsOn?.includes("^build") ||
+		!turboJson.tasks?.build?.outputs?.includes("dist/**")
+	) {
+		fail("turbo.json is missing the required dev or build task");
 	}
 	const repositoryViolations = await findRepositoryViolations(root);
 	if (repositoryViolations.length > 0) {
