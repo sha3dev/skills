@@ -73,10 +73,6 @@ async function checkSkill(skillRoot, name) {
 }
 
 async function checkCatalog() {
-	const plugin = JSON.parse(
-		await readFile(join(repo, ".claude-plugin/plugin.json"), "utf8"),
-	);
-	const expectedPluginSkills = [];
 	const rootReadme = await readFile(join(repo, "README.md"), "utf8");
 	const skillsRoot = join(repo, "skills");
 
@@ -87,7 +83,6 @@ async function checkCatalog() {
 			`skills/${name} is not a skill`,
 		);
 
-		expectedPluginSkills.push(`./skills/${name}`);
 		assert(
 			rootReadme.includes(`(./docs/${name}.md)`),
 			`Top-level README does not list ${name}`,
@@ -112,12 +107,6 @@ async function checkCatalog() {
 			`${name} docs contain install commands`,
 		);
 	}
-
-	assert(
-		JSON.stringify([...plugin.skills].sort()) ===
-			JSON.stringify(expectedPluginSkills.sort()),
-		"Plugin skills do not match the skill catalog",
-	);
 
 	assert(
 		(await readFile(join(repo, "CLAUDE.md"), "utf8")) === "@AGENTS.md\n",

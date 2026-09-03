@@ -61,8 +61,7 @@ npm run check:toolchain
 - Git.
 - Node.js 22.12.0 or newer.
 - npm 10.9.0 or newer.
-- An agent supported by the [`skills`](https://skills.sh/) installer, or Claude
-  Code with plugin support.
+- An agent supported by the [`skills`](https://skills.sh/) installer.
 
 Before setup, the repository may contain common metadata such as `.git`,
 `.gitignore`, `README.md`, `LICENSE`, installed agent skills, and
@@ -70,11 +69,6 @@ Before setup, the repository may contain common metadata such as `.git`,
 or `PROJECT.md`.
 
 ## Installation
-
-Choose one route. Do not install both routes for Claude Code because that can
-expose duplicate copies of the same skills.
-
-### Codex and other agents
 
 ```bash
 npx skills@latest add sha3dev/skills
@@ -88,21 +82,6 @@ To install one named skill:
 
 ```bash
 npx skills@latest add sha3dev/skills --skill <name>
-```
-
-### Claude Code plugin
-
-Add this repository as a marketplace, then install the managed plugin:
-
-```text
-/plugin marketplace add sha3dev/skills
-/plugin install sha3dev-skills@sha3dev
-```
-
-Invoke the initial workflow with the namespaced command:
-
-```text
-/sha3dev-skills:setup Build an editorial CMS and a public website.
 ```
 
 ## Available skills
@@ -130,11 +109,9 @@ npx skills@latest update
 ```
 
 Review and commit the resulting skill files and `skills-lock.json` changes.
-Claude Code manages plugin updates through its plugin manager.
 
 ## Maintainer commands
 
 ```bash
 npm run check
-claude plugin validate . --strict
 ```

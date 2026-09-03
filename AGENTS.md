@@ -8,8 +8,8 @@
 ## Repository maintenance
 
 Skills live at `skills/<name>/`; do not add category or empty folders. Every
-skill must appear in the top-level `README.md` and `.claude-plugin/plugin.json`,
-with human-facing documentation at `docs/<name>.md`.
+skill must appear in the top-level `README.md`, with human-facing documentation
+at `docs/<name>.md`.
 
 Documentation explains when and why to use a skill without duplicating its
 procedure or installation commands. Use `What it does`, `When to reach for it`,
@@ -23,11 +23,7 @@ model-invoked skills, omit both settings and use precise trigger language in the
 description. Keep both harness policies aligned and record the mode in the
 top-level catalog.
 
-After editing `.claude-plugin/plugin.json` or
-`.claude-plugin/marketplace.json`, run:
-
-```bash
-claude plugin validate . --strict
-```
+Every version bump must include the corresponding `CHANGELOG.md` entry before
+publication.
 
 Run `npm run check` before finishing repository changes.
