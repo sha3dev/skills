@@ -37,10 +37,18 @@ new prose here.
 
 ## Delegate
 
-Once the route is unambiguous, spawn exactly one execution subagent with no
-inherited conversation turns (`fork_turns: "none"` when supported). Do not run
-independent writers or permit nested delegation. Subagents share the worktree;
-this is context isolation, not filesystem isolation.
+The unit of delegation is one workflow run: one skill, one outcome, one
+application. Its end is the only natural place to drop context. An interface
+interview and its increments are worth nothing to the next application, and
+carrying them there anchors new decisions on old ones.
+
+Once the route is unambiguous, spawn exactly one worker for that run, with no
+inherited conversation turns. Reuse that same worker for every user reply
+inside the run. Never re-spawn it per question: that trades a warm context for
+a re-read of the skill, its artifacts, and the code already written, on every
+turn. If workers cannot stay alive across turns, run the workflow in this
+context instead, under the same communication limits — repeated cold spawns
+cost more than they isolate.
 
 Background processes a worker starts, such as a development server, belong to
 that worker and outlive it. Require it to stop them before returning `complete`
@@ -55,19 +63,25 @@ Give the worker only:
 - The latest relevant user reply, including referenced attachments, only when
   it is not durable yet.
 
-Tell it to read the selected `SKILL.md` completely, derive all other context
+Tell it to read the selected `SKILL.md` completely, derive every other fact
 from durable project artifacts, execute until that workflow's next stopping
 condition, and return only:
 
 - `status`: `needs-input`, `complete`, or `blocked`.
 - `user_message`: the concise, standalone message the user needs next.
 
-On `needs-input`, relay the message and reuse that worker for the user's reply.
-On `blocked`, close it and relay the blocker. On `complete`, close it and route
-again. If the new decision is identical to the one just executed, report the
-inconsistency and stop. Otherwise act on it in a fresh worker. If clean
-subagents are unavailable, execute the selected workflow locally with the same
-context and communication limits.
+On `needs-input`, relay the message and send the user's reply back to the same
+worker. On `blocked`, close it and relay the blocker. On `complete`, close it
+and route again.
+
+Closing a worker ends that run's context, which is the point. Do not carry its
+questions, answers, or intermediate results into the next routing decision; let
+`route.mjs` and the durable artifacts produce it. If the new decision is
+identical to the one just executed, report the inconsistency and stop.
+Otherwise act on it in a fresh worker.
+
+Do not run independent writers or permit nested delegation. Workers share the
+worktree; this is context isolation, not filesystem isolation.
 
 ## Boundaries
 

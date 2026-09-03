@@ -19,10 +19,13 @@ Work explicitly recorded as in progress is resumed before anything pending. An
 open phase that no installed workflow can advance is reported as such rather
 than retried, so a gap in the installed workflows is visible instead of silent.
 
-One worker remains active for the duration of a workflow so an interview can
-continue across turns. On completion, `flow` reads durable state again and
-continues an unambiguous next workflow in a fresh worker. Project artifacts,
-not agent context, remain the source of truth.
+One worker covers one workflow run — one skill, one outcome, one application —
+and stays alive for its whole duration, so an interview continues across turns
+without re-reading the skill, its artifacts, or the code already written. That
+run's end is the point of the isolation: the worker closes, its context goes
+with it, and the next application starts from durable artifacts rather than
+from the previous one's decisions. Project artifacts, not agent context, remain
+the source of truth.
 
 The internal skill names are not part of the user journey. Knowing and invoking
 `flow` is sufficient.

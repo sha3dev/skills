@@ -75,3 +75,11 @@ another application's interface.
 When revising an approved surface, require an explicit user request and use the
 same progress command with `--set in-progress --reopen` before editing. Never
 change another application's progress or code.
+
+## Run boundary
+
+This workflow is one run for one application: it starts at step 1 and ends at
+step 7, at a blocker, or when it needs a user decision. Everything it needs to
+resume is durable in `PROJECT.md` and `SURFACE.md`, so a run carries no state
+between applications. Do not begin another application's surface inside this
+run, and do not reuse this run's interview or increments for one.

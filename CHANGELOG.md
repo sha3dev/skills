@@ -71,6 +71,12 @@
 - Rename the workflow category from `flow` to `workflows`, avoiding ambiguity
   between the category and its `flow` orchestrator.
 
+- Make one workflow run the unit of delegation. Keep a single worker alive for
+  a run's whole duration instead of re-spawning it per question, and fall back
+  to local execution where workers cannot persist. Drop that run's context at
+  its boundary so a new application starts from durable artifacts rather than
+  from the previous one's decisions.
+
 ## 0.5.0
 
 ### Minor Changes
