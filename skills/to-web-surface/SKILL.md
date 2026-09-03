@@ -20,10 +20,10 @@ the deliverable; do not create a parallel plan or tracking artifact.
    entries. Inspect only the selected block when it already exists.
 3. If `surface` is `pending`, agree the first visible increment, run the bundled
    `scripts/initialize-web-block.mjs --root . --block <name>`, resolving it
-   relative to this `SKILL.md`, then run `npm install` and implement the
-   increment. Start with the application shell and global navigation unless the
-   user asks otherwise. Then run
+   relative to this `SKILL.md`, then run
    `node .agents/tools/project-progress.mjs --root . --block <name> --phase surface --set in-progress`.
+   Run `npm install` and implement the increment. Start with the application
+   shell and global navigation unless the user asks otherwise.
 4. Keep the block runnable. After each small, coherent increment, apply the
    repository's TypeScript workflow, inspect the rendered result when tooling
    permits, and give the user the exact preview URL. Start only this block with

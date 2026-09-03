@@ -25,5 +25,3 @@ top-level catalog.
 
 Every version bump must include the corresponding `CHANGELOG.md` entry before
 publication.
-
-Run `npm run check` before finishing repository changes.

@@ -57,10 +57,10 @@ async function findRepositoryViolations(root) {
 				} else if (
 					entry.name.endsWith(".js") &&
 					insideSource &&
-					!/^src\/[^/]+\/assets\/.+\.js$/.test(repositoryPath)
+					!/^src\/[^/]+\/public\/.+\.js$/.test(repositoryPath)
 				) {
 					violations.push(
-						`Opaque JavaScript must stay under src/<block>/assets/: ${repositoryPath}`,
+						`Opaque JavaScript must stay under src/<block>/public/: ${repositoryPath}`,
 					);
 				}
 			}
@@ -151,8 +151,10 @@ try {
 	const checkSteps = (packageJson.scripts?.check ?? "")
 		.split("&&")
 		.map((step) => step.trim());
-	if (!checkSteps.includes("npm run check:tooling")) {
-		fail("package.json script check must run npm run check:tooling");
+	for (const step of ["npm run check:project", "npm run check:tooling"]) {
+		if (!checkSteps.includes(step)) {
+			fail(`package.json script check must run ${step}`);
+		}
 	}
 
 	for (const [group, minimumVersions] of [

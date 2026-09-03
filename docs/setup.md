@@ -77,7 +77,7 @@ Before writing, it previews only `PROJECT.md`; the remaining output is fixed by
 the platform.
 
 JavaScript that must be delivered without transformation is permitted only at
-`src/<block>/assets/**/*.js`. Biome and Knip ignore that narrow asset boundary;
+`src/<block>/public/**/*.js`. Biome and Knip ignore that narrow asset boundary;
 other JavaScript module formats under `src/` are rejected.
 
 Biome checks `skills-lock.json` using the upstream skills installer's canonical
@@ -94,7 +94,8 @@ recommended rules without a separate house style.
 
 A new agent can start at `AGENTS.md`, use `PROJECT.md` to select the relevant
 block and domain language, avoid reading unrelated repository content, and
-run a green `npm run check:toolchain` against repository-pinned versions.
+run a green `npm run check` against the project contract and repository-pinned
+toolchain.
 
 ## Where it fits
 

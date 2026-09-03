@@ -44,7 +44,11 @@ export async function getRepositoryState(rootInput = ".") {
 	if (markers.length > 0) {
 		const progressTool = resolve(root, ".agents/tools/project-progress.mjs");
 		if (!(await exists(progressTool))) {
-			return { state: "already_initialized", markers };
+			return {
+				state: "invalid_project",
+				markers,
+				error: ".agents/tools/project-progress.mjs is missing",
+			};
 		}
 		const progress = spawnSync(
 			process.execPath,

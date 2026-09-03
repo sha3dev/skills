@@ -16,15 +16,21 @@ function option(args, name) {
 }
 
 function parseBlocks(source) {
-	const start = source.indexOf("## Repository blocks\n");
+	const heading = "## Repository blocks\n";
+	const start = source.indexOf(heading);
 	if (start === -1) fail("PROJECT.md has no Repository blocks section");
-	const end = source.indexOf("\n## ", start + 1);
-	const section = source.slice(start, end === -1 ? source.length : end);
+	const contentStart = start + heading.length;
+	const end = source.indexOf("\n## ", contentStart);
+	const section = source.slice(contentStart, end === -1 ? source.length : end);
 	const pattern =
 		/^### (.+)\n\n- Type: `(web|api|worker)`\n- Path: `([^`]+)`\n- Responsibility: ([^\n]+)\n- Progress:\n((?: {2}- `[^`]+`: `(?:pending|in-progress|complete)`\n)+)/gm;
 	const blocks = [];
+	let cursor = 0;
 
 	for (const match of section.matchAll(pattern)) {
+		if (section.slice(cursor, match.index).trim()) {
+			fail("PROJECT.md contains an invalid repository block");
+		}
 		const progress = {};
 		for (const phase of match[5].matchAll(
 			/^ {2}- `([^`]+)`: `(pending|in-progress|complete)`$/gm,
@@ -33,18 +39,23 @@ function parseBlocks(source) {
 				fail(`Duplicate phase in ${match[1]}: ${phase[1]}`);
 			progress[phase[1]] = phase[2];
 		}
+		if (!progress.surface) fail(`${match[1]} has no surface phase`);
 		blocks.push({
 			name: match[1],
 			type: match[2],
 			path: match[3],
 			responsibility: match[4],
 			progress,
-			start: start + match.index,
-			end: start + match.index + match[0].length,
+			start: contentStart + match.index,
+			end: contentStart + match.index + match[0].length,
 		});
+		cursor = match.index + match[0].length;
 	}
 
 	if (blocks.length === 0) fail("PROJECT.md has no valid repository blocks");
+	if (section.slice(cursor).trim()) {
+		fail("PROJECT.md contains an invalid repository block");
+	}
 	const names = new Set();
 	for (const block of blocks) {
 		const name = block.name.toLocaleLowerCase("en");

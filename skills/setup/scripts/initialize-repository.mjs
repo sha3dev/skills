@@ -244,7 +244,7 @@ async function buildFiles(input) {
 		workspaces: policy.requiredWorkspaces,
 		scripts: {
 			...policy.requiredScripts,
-			check: "npm run check:tooling",
+			check: "npm run check:project && npm run check:tooling",
 		},
 		dependencies: policy.minimumDependencyVersions,
 		devDependencies: {
@@ -264,7 +264,7 @@ async function buildFiles(input) {
 		.join(",\n");
 	const knip = `{
 \t"$schema": "https://unpkg.com/knip@${policy.minimumToolVersions.knip}/schema.json",
-\t"ignore": [".agents/**", "**/dist/**", "src/*/assets/**/*.js"],
+\t"ignore": [".agents/**", "**/dist/**", "src/*/public/**/*.js"],
 \t"ignoreDependencies": [
 ${ignoredDependencies}
 \t]

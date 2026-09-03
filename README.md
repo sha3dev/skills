@@ -109,9 +109,3 @@ npx skills@latest update
 ```
 
 Review and commit the resulting skill files and `skills-lock.json` changes.
-
-## Maintainer commands
-
-```bash
-npm run check
-```

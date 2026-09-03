@@ -29,6 +29,7 @@
 		"format": "biome format --write .",
 		"fix": "biome check --write",
 		"check:toolchain": "node .agents/tools/verify-toolchain.mjs",
+		"check:project": "node .agents/tools/repo-state.mjs --root . --expect already_initialized",
 		"check:biome": "biome check .",
 		"typecheck": "tsc --noEmit --project tsconfig.json",
 		"check:knip": "knip",

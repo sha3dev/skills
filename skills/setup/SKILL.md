@@ -46,7 +46,7 @@ empty block directories.
    propose missing solution blocks for confirmation.
 3. Write the agreed JSON to a temporary file outside the repository. Run the bundled `scripts/initialize-repository.mjs` with `--root .`, `--input <temporary-file>`, and `--dry-run`.
 4. Present the generated `PROJECT.md` for approval. Do not manually create or edit any output.
-5. After approval, run the same command with the same input using `--write`, then run `npm install` and `npm run check:toolchain`. Report the results, remove the temporary input, and stop. Do not start another workflow stage.
+5. After approval, run the same command with the same input using `--write`, then run `npm install` and `npm run check`. Report the results, remove the temporary input, and stop. Do not start another workflow stage.
 
 The scripts own validation, rendering, collision detection, writing, and
 rollback. Never bypass them or merge with existing output.

@@ -8,7 +8,7 @@ description: "Write application code on the fixed Node.js/tsx, React/Vite, and F
 Use the repository-provided platform. Server `.ts` runs through the `tsx`
 runtime without precompilation; `tsx` and the `.tsx` JSX extension are
 unrelated. Opaque `.js` stays untouched by code tooling and is allowed only
-under `src/<block>/assets/`; all other application source uses TypeScript or TSX.
+under `src/<block>/public/`; all other application source uses TypeScript or TSX.
 
 Biome owns formatting, imports, naming, and lint rules. TypeScript with
 `noEmit` owns type correctness. Knip owns unused files, exports, and
