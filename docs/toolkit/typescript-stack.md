@@ -47,11 +47,20 @@ Vite, and TypeScript uses `noEmit` only for static checking.
 No. The standard defines compatible minimums. Each repository pins its own
 resolved versions and verifies them against those minimums.
 
+## One gate
+
+`npm run check` already runs the toolchain verification, so a code change never
+verifies it separately. The workflow that owns the run checks the toolchain once
+on entry; every increment inside that run reaches it through `npm run check`.
+
+The verification separates an uninstalled `node_modules` from a broken
+toolchain: the first asks for `npm install`, the second is a configuration
+problem to report rather than repair mid-change.
+
 ## It's working if
 
-The read-only toolchain check passes before editing, safe Biome fixes are
-limited to edited paths, and the complete repository `npm run check` gate is
-green without suppressions or weakened configuration.
+Safe Biome fixes are limited to edited paths, and the complete repository
+`npm run check` gate is green without suppressions or weakened configuration.
 
 ## Where it fits
 

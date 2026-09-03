@@ -14,10 +14,13 @@ while `PROJECT.md` remains the sole progress tracker.
 
 ## Workflow
 
-1. Run `npm run check:toolchain`, then
-   `node .agents/tools/repo-state.mjs --root . --expect already_initialized`.
-   Stop on failure. Use its `applications` to select the named `web` application,
-   or ask the user when the choice is ambiguous.
+1. Run `node .agents/tools/repo-state.mjs --root . --expect already_initialized`
+   and stop on failure. Use its `applications` to select the named `web`
+   application, or ask the user when the choice is ambiguous. Then run
+   `npm run check:toolchain` once, as this workflow's entry check: run
+   `npm install` and retry when it reports that dependencies are not installed,
+   and stop on any other failure. Later steps reach the toolchain through
+   `npm run check` and never repeat this entry check.
 2. Read the relevant `PROJECT.md` definition, language, application, and
    relationship entries. Read `<application.path>/SURFACE.md` first when it
    exists, then inspect `<application.path>/surface/` when implementation already

@@ -19,6 +19,10 @@ application. Invoke it on a completed surface only when explicitly revising it.
 must declare a `web-surface` phase, and the `interview` toolkit skill must be
 available.
 
+The workflow verifies the toolchain once on entry and installs dependencies when
+they are missing, so a fresh clone does not read as a broken repository. After
+that, increments reach the toolchain through `npm run check`.
+
 ## It's working if
 
 The operator can resume from `SURFACE.md`, receives one short UI decision at a

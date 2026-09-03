@@ -17,11 +17,14 @@ dependencies. Do not reproduce their rules in prose or subjective review.
 
 ## Workflow
 
-1. Run `npm run check:toolchain` at the repository root. If it is missing
-   or fails, report the exact configuration problem and stop; do not initialize
-   or migrate tooling during a code change.
-2. Implement the requested behavior. Comments explain only intent or invariants.
-3. Run `npm run fix -- <edited-paths>` for safe Biome fixes, then `npm run check`.
+1. Implement the requested behavior. Comments explain only intent or invariants.
+2. Run `npm run fix -- <edited-paths>` for safe Biome fixes, then `npm run check`.
    Resolve diagnostics at their source and repeat until green.
+
+`npm run check` is the only gate, and it already verifies the toolchain. Never
+add a verification pass before or beside it. When it reports that dependencies
+are not installed, run `npm install` and retry. When it reports a toolchain
+configuration problem, report that problem and stop; do not initialize or
+migrate tooling during a code change.
 
 Never use unsafe fixes, suppress checks, or change their configuration to pass.
