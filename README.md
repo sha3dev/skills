@@ -109,10 +109,10 @@ Invoke the initial workflow with the namespaced command:
 
 | Skill | Invocation | Purpose |
 | --- | --- | --- |
-| [`setup`](./docs/engineering/setup.md) | Explicit | Initialize an empty repository, define typed solution blocks and relationships, and materialize the fixed toolchain. |
-| [`to-web-surface`](./docs/engineering/to-web-surface.md) | Explicit | Build one web block's disconnected interface incrementally with the user. |
-| [`lazy`](./docs/engineering/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
-| [`typescript-stack`](./docs/engineering/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
+| [`setup`](./docs/setup.md) | Explicit | Initialize an empty repository, define typed solution blocks and relationships, and materialize the fixed toolchain. |
+| [`to-web-surface`](./docs/to-web-surface.md) | Explicit | Build one web block's disconnected interface incrementally with the user. |
+| [`lazy`](./docs/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
+| [`typescript-stack`](./docs/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
 
 `setup` runs once. Invoke `to-web-surface` for a `web` block and iterate on its
 live interface until approving it. `typescript-stack` is selected automatically
@@ -132,15 +132,9 @@ npx skills@latest update
 Review and commit the resulting skill files and `skills-lock.json` changes.
 Claude Code manages plugin updates through its plugin manager.
 
-## Repository organization
-
-- [`engineering`](./skills/engineering/README.md): daily software engineering work.
-
 ## Maintainer commands
 
 ```bash
-scripts/list-skills.sh
-scripts/link-skills.sh
 npm run check
 claude plugin validate . --strict
 ```

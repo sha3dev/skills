@@ -16,7 +16,6 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..");
-const skillBucket = "engineering";
 
 function assert(condition, message) {
 	if (!condition) throw new Error(message);
@@ -79,28 +78,23 @@ async function checkCatalog() {
 	);
 	const expectedPluginSkills = [];
 	const rootReadme = await readFile(join(repo, "README.md"), "utf8");
-	const bucketRoot = join(repo, "skills", skillBucket);
-	const bucketReadme = await readFile(join(bucketRoot, "README.md"), "utf8");
+	const skillsRoot = join(repo, "skills");
 
-	for (const name of await directories(bucketRoot)) {
-		const skillRoot = join(bucketRoot, name);
-		if (!(await exists(join(skillRoot, "SKILL.md")))) continue;
-
-		expectedPluginSkills.push(`./skills/${skillBucket}/${name}`);
+	for (const name of await directories(skillsRoot)) {
+		const skillRoot = join(skillsRoot, name);
 		assert(
-			bucketReadme.includes(`[\`${name}\`](./${name})`),
-			`${skillBucket} README does not list ${name}`,
+			await exists(join(skillRoot, "SKILL.md")),
+			`skills/${name} is not a skill`,
 		);
+
+		expectedPluginSkills.push(`./skills/${name}`);
 		assert(
-			rootReadme.includes(`(./docs/${skillBucket}/${name}.md)`),
+			rootReadme.includes(`(./docs/${name}.md)`),
 			`Top-level README does not list ${name}`,
 		);
 		await checkSkill(skillRoot, name);
 
-		const docs = await readFile(
-			join(repo, "docs", skillBucket, `${name}.md`),
-			"utf8",
-		);
+		const docs = await readFile(join(repo, "docs", `${name}.md`), "utf8");
 		for (const heading of [
 			"## What it does",
 			"## When to reach for it",
@@ -122,7 +116,7 @@ async function checkCatalog() {
 	assert(
 		JSON.stringify([...plugin.skills].sort()) ===
 			JSON.stringify(expectedPluginSkills.sort()),
-		"Plugin skills do not match the engineering catalog",
+		"Plugin skills do not match the skill catalog",
 	);
 
 	assert(
@@ -136,7 +130,7 @@ async function checkSetup() {
 	const target = join(temporary, "repository");
 	const projectMarkerTarget = join(temporary, "project-marker");
 	const input = join(temporary, "input.json");
-	const setupRoot = join(repo, "skills/engineering/setup");
+	const setupRoot = join(repo, "skills/setup");
 
 	try {
 		await mkdir(join(projectMarkerTarget, ".git"), { recursive: true });
@@ -374,7 +368,7 @@ async function checkSetup() {
 		);
 		const webInitializer = join(
 			repo,
-			"skills/engineering/to-web-surface/scripts/initialize-web-block.mjs",
+			"skills/to-web-surface/scripts/initialize-web-block.mjs",
 		);
 		const initializedWeb = JSON.parse(
 			execFileSync(

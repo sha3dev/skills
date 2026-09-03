@@ -14,9 +14,9 @@
     "skills"
   ],
   "skills": [
-    "./skills/engineering/lazy",
-    "./skills/engineering/setup",
-    "./skills/engineering/to-web-surface",
-    "./skills/engineering/typescript-stack"
+    "./skills/lazy",
+    "./skills/setup",
+    "./skills/to-web-surface",
+    "./skills/typescript-stack"
   ]
 }
