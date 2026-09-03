@@ -65,7 +65,7 @@ export async function getRepositoryState(rootInput = ".") {
 		return {
 			state: "already_initialized",
 			markers,
-			blocks: JSON.parse(progress.stdout).blocks,
+			applications: JSON.parse(progress.stdout).applications,
 		};
 	}
 

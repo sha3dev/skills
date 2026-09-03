@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { execFileSync } from "node:child_process";
-import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, rmdir, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 
 function fail(message) {
@@ -44,45 +44,52 @@ function html(value) {
 try {
 	const args = process.argv.slice(2);
 	const root = resolve(option(args, "--root"));
-	const blockName = option(args, "--block");
+	const applicationName = option(args, "--app");
 	const progressTool = join(root, ".agents/tools/project-progress.mjs");
 	const result = JSON.parse(
 		execFileSync(
 			process.execPath,
-			[progressTool, "--root", root, "--block", blockName],
+			[progressTool, "--root", root, "--app", applicationName],
 			{ encoding: "utf8" },
 		),
 	);
-	const block = result.blocks?.[0];
-	if (block?.type !== "web") fail(`${blockName} is not a web block`);
+	const application = result.applications?.[0];
+	if (application?.type !== "web") {
+		fail(`${applicationName} is not a web application`);
+	}
 	if (
-		!block.progress ||
-		!["pending", "in-progress"].includes(block.progress.surface)
+		!application.progress ||
+		!["pending", "in-progress"].includes(application.progress.surface)
 	) {
-		fail(`${block.name} surface is not open for initialization`);
+		fail(`${application.name} surface is not open for initialization`);
 	}
 
-	const blockRoot = resolve(root, block.path);
-	const repositoryPath = relative(root, blockRoot).split(sep).join("/");
-	if (!repositoryPath.startsWith("src/") || repositoryPath.includes("..")) {
-		fail(`Invalid block path: ${block.path}`);
+	const applicationRoot = resolve(root, application.path);
+	const repositoryPath = relative(root, applicationRoot).split(sep).join("/");
+	if (!/^apps\/[^/]+$/.test(repositoryPath)) {
+		fail(`Invalid application path: ${application.path}`);
 	}
-	const packagePath = join(blockRoot, "package.json");
+	const surfaceRoot = join(applicationRoot, "surface");
+	const surfacePath = `${repositoryPath}/surface/`;
+	const packagePath = join(surfaceRoot, "package.json");
 	if (await exists(packagePath)) {
 		const existingPackage = JSON.parse(await readFile(packagePath, "utf8"));
 		process.stdout.write(
-			`${JSON.stringify({ status: "already-initialized", block: block.name, path: block.path, workspace: existingPackage.name })}\n`,
+			`${JSON.stringify({ status: "already-initialized", application: application.name, path: surfacePath, workspace: existingPackage.name })}\n`,
 		);
 		process.exit(0);
 	}
-	if (await exists(blockRoot)) fail(`Block path already exists: ${block.path}`);
+	if (await exists(surfaceRoot)) {
+		fail(`Surface path already exists: ${surfacePath}`);
+	}
+	const applicationRootExisted = await exists(applicationRoot);
 
 	const rootPackage = JSON.parse(
 		await readFile(join(root, "package.json"), "utf8"),
 	);
-	const slug = basename(blockRoot);
+	const slug = basename(applicationRoot);
 	const packageJson = {
-		name: `@project/${slug}`,
+		name: `@project/${slug}-surface`,
 		private: true,
 		type: "module",
 		scripts: {
@@ -117,7 +124,7 @@ try {
 		["package.json", `${JSON.stringify(packageJson, null, "\t")}\n`],
 		[
 			"index.html",
-			`<!doctype html>\n<html lang="en">\n\t<head>\n\t\t<meta charset="UTF-8" />\n\t\t<meta name="viewport" content="width=device-width, initial-scale=1.0" />\n\t\t<title>${html(block.name)}</title>\n\t</head>\n\t<body>\n\t\t<div id="root"></div>\n\t\t<script type="module" src="/src/main.tsx"></script>\n\t</body>\n</html>\n`,
+			`<!doctype html>\n<html lang="en">\n\t<head>\n\t\t<meta charset="UTF-8" />\n\t\t<meta name="viewport" content="width=device-width, initial-scale=1.0" />\n\t\t<title>${html(application.name)}</title>\n\t</head>\n\t<body>\n\t\t<div id="root"></div>\n\t\t<script type="module" src="/src/main.tsx"></script>\n\t</body>\n</html>\n`,
 		],
 		[
 			"vite.config.ts",
@@ -125,7 +132,7 @@ try {
 		],
 		[
 			"src/App.tsx",
-			`export function App() {\n\treturn (\n\t\t<main>\n\t\t\t<h1>{${JSON.stringify(block.name)}}</h1>\n\t\t</main>\n\t);\n}\n`,
+			`export function App() {\n\treturn (\n\t\t<main>\n\t\t\t<h1>{${JSON.stringify(application.name)}}</h1>\n\t\t</main>\n\t);\n}\n`,
 		],
 		[
 			"src/main.tsx",
@@ -138,20 +145,21 @@ try {
 		["src/vite-env.d.ts", '/// <reference types="vite/client" />\n'],
 	]);
 
-	await mkdir(blockRoot, { recursive: true });
+	await mkdir(surfaceRoot, { recursive: true });
 	try {
 		for (const [path, content] of files) {
-			const target = join(blockRoot, path);
+			const target = join(surfaceRoot, path);
 			await mkdir(dirname(target), { recursive: true });
 			await writeFile(target, content, { flag: "wx" });
 		}
 	} catch (error) {
-		await rm(blockRoot, { recursive: true, force: true });
+		await rm(surfaceRoot, { recursive: true, force: true });
+		if (!applicationRootExisted) await rmdir(applicationRoot).catch(() => {});
 		throw error;
 	}
 
 	process.stdout.write(
-		`${JSON.stringify({ status: "initialized", block: block.name, path: block.path, workspace: packageJson.name })}\n`,
+		`${JSON.stringify({ status: "initialized", application: application.name, path: surfacePath, workspace: packageJson.name })}\n`,
 	);
 } catch (error) {
 	fail(error.message);

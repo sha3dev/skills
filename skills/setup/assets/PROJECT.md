@@ -6,6 +6,6 @@
 
 {{LANGUAGE_SECTION}}
 
-## Repository blocks
+## Applications
 
-{{REPOSITORY_BLOCKS}}{{RELATIONSHIPS}}
+{{APPLICATIONS}}{{RELATIONSHIPS}}

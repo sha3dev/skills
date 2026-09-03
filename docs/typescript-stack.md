@@ -24,11 +24,11 @@ versions. Each repository chooses its concrete platform and tool versions; its
 `.node-version`, `packageManager`, and `package-lock.json` make those choices
 reproducible.
 
-All application TypeScript lives under `src/`. JavaScript delivered without
-transformation is allowed only under `src/<block>/public/`. Biome owns
-formatting, imports, and recommended lint rules; TypeScript owns type
-correctness without emitting JavaScript; Knip owns unused files, exports, and
-dependencies.
+Application TypeScript lives under application surfaces in `apps/` or shared
+packages in `packages/`. JavaScript delivered without transformation is allowed
+only under `apps/<app>/surface/public/`. Biome owns formatting, imports, and
+recommended lint rules; TypeScript owns type correctness without emitting
+JavaScript; Knip owns unused files, exports, and dependencies.
 
 ## Semantic decisions
 

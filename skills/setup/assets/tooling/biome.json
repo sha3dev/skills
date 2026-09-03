@@ -7,7 +7,7 @@
 			"!!**/.agents",
 			"!!**/coverage",
 			"!!**/dist",
-			"!!src/*/public/**/*.js"
+			"!!apps/*/surface/public/**/*.js"
 		]
 	},
 	"linter": {

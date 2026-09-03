@@ -53,14 +53,14 @@ function exactKeys(value, allowed, path) {
 	if (unknown.length) fail(`${path} has unknown fields: ${unknown.join(", ")}`);
 }
 
-function blockFolder(name, path) {
+function applicationFolder(name, path) {
 	const folder = name
 		.normalize("NFKD")
 		.replace(/\p{Diacritic}/gu, "")
 		.toLocaleLowerCase("en")
 		.replace(/[^a-z0-9]+/g, "-")
 		.replace(/^-+|-+$/g, "");
-	if (!folder) fail(`${path}.name does not produce a valid block path`);
+	if (!folder) fail(`${path}.name does not produce a valid application path`);
 	return folder;
 }
 
@@ -68,7 +68,7 @@ function normalizeInput(raw) {
 	const input = object(raw, "input");
 	exactKeys(
 		input,
-		["title", "definition", "terms", "blocks", "relationships"],
+		["title", "definition", "terms", "applications", "relationships"],
 		"input",
 	);
 
@@ -93,35 +93,38 @@ function normalizeInput(raw) {
 			definition: text(entry.definition, `${path}.definition`),
 		};
 	});
-	if (!Array.isArray(input.blocks) || input.blocks.length === 0) {
-		fail("blocks must contain at least one block");
+	if (!Array.isArray(input.applications) || input.applications.length === 0) {
+		fail("applications must contain at least one application");
 	}
 
 	const names = new Set();
 	const folders = new Set();
-	const blocks = input.blocks.map((rawBlock, index) => {
-		const path = `blocks[${index}]`;
-		const block = object(rawBlock, path);
-		exactKeys(block, ["name", "responsibility", "type"], path);
+	const applications = input.applications.map((rawApplication, index) => {
+		const path = `applications[${index}]`;
+		const application = object(rawApplication, path);
+		exactKeys(application, ["name", "responsibility", "type"], path);
 
-		const name = text(block.name, `${path}.name`);
+		const name = text(application.name, `${path}.name`);
 		const normalizedName = name.toLocaleLowerCase("en");
-		if (names.has(normalizedName)) fail(`Duplicate block name: ${name}`);
+		if (names.has(normalizedName)) fail(`Duplicate application name: ${name}`);
 		names.add(normalizedName);
 
-		const type = text(block.type, `${path}.type`);
+		const type = text(application.type, `${path}.type`);
 		if (!new Set(["web", "api", "worker"]).has(type)) {
 			fail(`${path}.type must be web, api, or worker`);
 		}
 
-		const folder = blockFolder(name, path);
+		const folder = applicationFolder(name, path);
 		if (folders.has(folder))
-			fail(`Duplicate derived block path: src/${folder}/`);
+			fail(`Duplicate derived application path: apps/${folder}/`);
 		folders.add(folder);
 
 		return {
 			name,
-			responsibility: text(block.responsibility, `${path}.responsibility`),
+			responsibility: text(
+				application.responsibility,
+				`${path}.responsibility`,
+			),
 			type,
 			folder,
 		};
@@ -130,7 +133,9 @@ function normalizeInput(raw) {
 	if (!Array.isArray(input.relationships)) {
 		fail("relationships must be an array");
 	}
-	const blockNames = new Set(blocks.map((block) => block.name));
+	const applicationNames = new Set(
+		applications.map((application) => application.name),
+	);
 	const pairs = new Set();
 	const relationships = input.relationships.map((rawRelationship, index) => {
 		const path = `relationships[${index}]`;
@@ -138,9 +143,13 @@ function normalizeInput(raw) {
 		exactKeys(relationship, ["from", "to", "description"], path);
 		const from = text(relationship.from, `${path}.from`);
 		const to = text(relationship.to, `${path}.to`);
-		if (!blockNames.has(from)) fail(`${path}.from references an unknown block`);
-		if (!blockNames.has(to)) fail(`${path}.to references an unknown block`);
-		if (from === to) fail(`${path} must connect two different blocks`);
+		if (!applicationNames.has(from)) {
+			fail(`${path}.from references an unknown application`);
+		}
+		if (!applicationNames.has(to)) {
+			fail(`${path}.to references an unknown application`);
+		}
+		if (from === to) fail(`${path} must connect two different applications`);
 		const pair = `${from}\0${to}`;
 		if (pairs.has(pair)) fail(`Duplicate relationship: ${from} -> ${to}`);
 		pairs.add(pair);
@@ -151,7 +160,7 @@ function normalizeInput(raw) {
 		};
 	});
 
-	return { title, definition, terms, blocks, relationships };
+	return { title, definition, terms, applications, relationships };
 }
 
 function render(template, replacements, path) {
@@ -215,12 +224,12 @@ async function buildFiles(input) {
 	);
 	assertMinimumVersion(npmVersion, policy.minimumRuntimeVersions.npm, "npm");
 
-	const repositoryLines = input.blocks.map(
-		(block) => `### ${block.name}
+	const applicationLines = input.applications.map(
+		(application) => `### ${application.name}
 
-- Type: \`${block.type}\`
-- Path: \`src/${block.folder}/\`
-- Responsibility: ${block.responsibility}
+- Type: \`${application.type}\`
+- Path: \`apps/${application.folder}/\`
+- Responsibility: ${application.responsibility}
 - Progress:
   - \`surface\`: \`pending\``,
 	);
@@ -264,7 +273,7 @@ async function buildFiles(input) {
 		.join(",\n");
 	const knip = `{
 \t"$schema": "https://unpkg.com/knip@${policy.minimumToolVersions.knip}/schema.json",
-\t"ignore": [".agents/**", "**/dist/**", "src/*/public/**/*.js"],
+\t"ignore": [".agents/**", "**/dist/**", "apps/*/surface/public/**/*.js"],
 \t"ignoreDependencies": [
 ${ignoredDependencies}
 \t]
@@ -281,7 +290,7 @@ ${ignoredDependencies}
 					PROJECT_TITLE: input.title,
 					PROJECT_DEFINITION: input.definition,
 					LANGUAGE_SECTION: languageSection,
-					REPOSITORY_BLOCKS: repositoryLines.join("\n\n"),
+					APPLICATIONS: applicationLines.join("\n\n"),
 					RELATIONSHIPS: relationshipSection,
 				},
 				"PROJECT.md",

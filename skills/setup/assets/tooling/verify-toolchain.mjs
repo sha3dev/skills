@@ -47,20 +47,27 @@ async function findRepositoryViolations(root) {
 				if (!ignored.has(entry.name)) await visit(path);
 			} else {
 				const repositoryPath = relative(root, path).split(sep).join("/");
-				const insideSource = repositoryPath.startsWith("src/");
-				if (/\.tsx?$/.test(entry.name) && !insideSource) {
-					violations.push(`TypeScript must stay under src/: ${repositoryPath}`);
-				} else if (/\.(?:cjs|jsx|mjs)$/.test(entry.name) && insideSource) {
+				const insideApplication =
+					/^apps\/[^/]+\/surface\//.test(repositoryPath) ||
+					/^packages\/[^/]+\//.test(repositoryPath);
+				if (/\.tsx?$/.test(entry.name) && !insideApplication) {
 					violations.push(
-						`Unsupported JavaScript extension under src/: ${repositoryPath}`,
+						`TypeScript must stay under apps/<app>/surface/ or packages/<package>/: ${repositoryPath}`,
+					);
+				} else if (
+					/\.(?:cjs|jsx|mjs)$/.test(entry.name) &&
+					insideApplication
+				) {
+					violations.push(
+						`Unsupported JavaScript extension under apps/<app>/surface/ or packages/<package>/: ${repositoryPath}`,
 					);
 				} else if (
 					entry.name.endsWith(".js") &&
-					insideSource &&
-					!/^src\/[^/]+\/public\/.+\.js$/.test(repositoryPath)
+					insideApplication &&
+					!/^apps\/[^/]+\/surface\/public\/.+\.js$/.test(repositoryPath)
 				) {
 					violations.push(
-						`Opaque JavaScript must stay under src/<block>/public/: ${repositoryPath}`,
+						`Opaque JavaScript must stay under apps/<app>/surface/public/: ${repositoryPath}`,
 					);
 				}
 			}

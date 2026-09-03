@@ -31,8 +31,8 @@ $setup Build an editorial CMS and a public website for a video platform.
 ```
 
 `setup` will guide the conversation. It will agree the product definition and
-domain language, identify `web`, `api`, and `worker` blocks, and discover their
-logical relationships. It shows the generated `PROJECT.md` and waits for
+domain language, identify `web`, `api`, and `worker` applications, and discover
+their logical relationships. It shows the generated `PROJECT.md` and waits for
 approval before writing anything.
 
 The generated foundation includes:
@@ -88,15 +88,15 @@ npx skills@latest add sha3dev/skills --skill <name>
 
 | Skill | Invocation | Purpose |
 | --- | --- | --- |
-| [`setup`](./docs/setup.md) | Explicit | Initialize an empty repository, define typed solution blocks and relationships, and materialize the fixed toolchain. |
-| [`to-web-surface`](./docs/to-web-surface.md) | Explicit | Build one web block's disconnected interface incrementally with the user. |
+| [`setup`](./docs/setup.md) | Explicit | Initialize an empty repository, define typed applications and relationships, and materialize the fixed toolchain. |
+| [`to-web-surface`](./docs/to-web-surface.md) | Explicit | Build one web application's disconnected interface incrementally with the user. |
 | [`lazy`](./docs/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
 | [`typescript-stack`](./docs/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
 
-`setup` runs once. Invoke `to-web-surface` for a `web` block and iterate on its
-live interface until approving it. `typescript-stack` is selected automatically
-whenever the agent writes application TypeScript or TSX. Invoke `lazy`
-explicitly when simplicity is the main constraint for a task.
+`setup` runs once. Invoke `to-web-surface` for a `web` application and iterate on
+its live interface until approving it. `typescript-stack` is selected
+automatically whenever the agent writes application TypeScript or TSX. Invoke
+`lazy` explicitly when simplicity is the main constraint for a task.
 
 API and worker surface workflows are planned but are not included yet.
 

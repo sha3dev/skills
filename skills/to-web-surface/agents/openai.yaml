@@ -1,6 +1,6 @@
 interface:
   display_name: "To Web Surface"
   short_description: "Build a web interface incrementally"
-  default_prompt: "Use $to-web-surface to develop a web block surface with me."
+  default_prompt: "Use $to-web-surface to develop a web application surface with me."
 policy:
   allow_implicit_invocation: false

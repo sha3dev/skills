@@ -22,7 +22,7 @@
 		"turbo": "2.10.12",
 		"typescript": "7.0.2"
 	},
-	"requiredWorkspaces": ["src/*", "src/shared/*"],
+	"requiredWorkspaces": ["apps/*/surface", "packages/*"],
 	"requiredScripts": {
 		"build": "turbo run build",
 		"dev": "turbo run dev",
