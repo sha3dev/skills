@@ -1,0 +1,6 @@
+interface:
+  display_name: "To Web Surface"
+  short_description: "Specify and build a web interface"
+  default_prompt: "Use $to-web-surface to interview me about and build a web application surface."
+policy:
+  allow_implicit_invocation: false

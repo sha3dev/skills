@@ -19,7 +19,7 @@ git init
 npx skills@latest add sha3dev/skills
 ```
 
-Choose a project-scoped installation, select your agent, and install all eight
+Choose a project-scoped installation, select your agent, and install all nine
 skills. Project-scoped installations create `skills-lock.json`; commit it so
 the installed sources and content hashes remain reproducible.
 
@@ -84,23 +84,39 @@ To install one named skill:
 npx skills@latest add sha3dev/skills --skill <name>
 ```
 
+When installing a flow skill individually, also install the toolkit skills
+listed in its prerequisites.
+
 ## Available skills
+
+### Flow
+
+End-to-end development stages with an explicit start, progression, and finish.
 
 | Skill | Invocation | Purpose |
 | --- | --- | --- |
-| [`setup`](./docs/setup.md) | Explicit | Initialize an empty repository, define typed applications and relationships, and materialize the fixed toolchain. |
-| [`to-web-surface`](./docs/to-web-surface.md) | Explicit | Build one web application's disconnected interface incrementally with the user. |
-| [`lazy`](./docs/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
-| [`typescript-stack`](./docs/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
-| [`frontend-design`](./docs/frontend-design.md) | Automatic | Give new or substantially reshaped interfaces a distinctive, subject-specific visual direction. |
-| [`composition-patterns`](./docs/composition-patterns.md) | Automatic | Design scalable React component APIs when reuse or boolean-prop proliferation makes composition material. |
-| [`fixing-accessibility`](./docs/fixing-accessibility.md) | Automatic | Audit and fix accessibility when interactive controls, forms, dialogs, focus, or keyboard behavior change. |
-| [`shadcn`](./docs/shadcn.md) | Automatic | Work with shadcn projects, registries, components, and presets using live project and CLI context. |
+| [`setup`](./docs/flow/setup.md) | Explicit | Initialize an empty repository, define typed applications and relationships, and materialize the fixed toolchain. |
+| [`to-web-surface`](./docs/flow/to-web-surface.md) | Explicit | Specify one web interface through a persistent design interview, then build it incrementally with the user. |
 
-`setup` runs once. Invoke `to-web-surface` for a `web` application and iterate on
-its live interface until approving it. `typescript-stack` is selected
-automatically whenever the agent writes application TypeScript or TSX. Invoke
-`lazy` explicitly when simplicity is the main constraint for a task.
+### Toolkit
+
+Reusable constraints, practices, and specialist guidance that support the flow.
+
+| Skill | Invocation | Purpose |
+| --- | --- | --- |
+| [`interview`](./docs/toolkit/interview.md) | Automatic | Resolve dependent decisions one question at a time while maintaining a durable, resumable artifact. |
+| [`lazy`](./docs/toolkit/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
+| [`typescript-stack`](./docs/toolkit/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
+| [`frontend-design`](./docs/toolkit/frontend-design.md) | Automatic | Give new or substantially reshaped interfaces a distinctive, subject-specific visual direction. |
+| [`composition-patterns`](./docs/toolkit/composition-patterns.md) | Automatic | Design scalable React component APIs when reuse or boolean-prop proliferation makes composition material. |
+| [`fixing-accessibility`](./docs/toolkit/fixing-accessibility.md) | Automatic | Audit and fix accessibility when interactive controls, forms, dialogs, focus, or keyboard behavior change. |
+| [`shadcn`](./docs/toolkit/shadcn.md) | Automatic | Work with shadcn projects, registries, components, and presets using live project and CLI context. |
+
+`setup` runs once. Invoke `to-web-surface` for a `web` application; it uses
+`interview` to resolve the UI specification one question at a time, then
+iterates on the resulting live interface until approval. `typescript-stack` is
+selected automatically whenever the agent writes application TypeScript or TSX.
+Invoke `lazy` explicitly when simplicity is the main constraint for a task.
 `frontend-design`, `composition-patterns`, and `fixing-accessibility` activate
 only for their respective UI concerns. `shadcn` activates for projects that
 already contain `components.json` or when shadcn is explicitly requested; it

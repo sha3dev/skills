@@ -1,0 +1,4 @@
+interface:
+  display_name: "Interview"
+  short_description: "Resolve decisions into a durable artifact"
+  default_prompt: "Use $interview to resolve this idea with me one decision at a time."

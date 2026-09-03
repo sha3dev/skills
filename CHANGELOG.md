@@ -1,5 +1,20 @@
 # sha3dev-skills
 
+## 0.5.0
+
+### Minor Changes
+
+- Organize end-to-end workflow skills under `flow` and reusable supporting
+  guidance under `toolkit`, with matching documentation and catalog sections.
+
+- Add the model-invoked `interview` toolkit skill for resolving dependent
+  decisions through short, one-at-a-time questions with recommended answers and
+  a durable artifact that can resume without chat history.
+
+- Make `to-web-surface` maintain a confirmed, implementation-facing
+  `SURFACE.md` before building, resume existing interviews and workspaces safely,
+  and return newly discovered product decisions to the persistent interview.
+
 ## 0.4.0
 
 ### Minor Changes
