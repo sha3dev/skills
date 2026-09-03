@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fixing Accessibility"
+  short_description: "Audit and fix interface accessibility"
+  default_prompt: "Use $fixing-accessibility to audit and fix accessibility in this interface."

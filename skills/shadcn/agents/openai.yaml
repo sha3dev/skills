@@ -1,0 +1,4 @@
+interface:
+  display_name: "shadcn"
+  short_description: "Build with project-aware shadcn components"
+  default_prompt: "Use $shadcn to add or improve components in this shadcn project."

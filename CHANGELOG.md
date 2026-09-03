@@ -1,5 +1,15 @@
 # sha3dev-skills
 
+## 0.4.0
+
+### Minor Changes
+
+- Add model-invoked frontend guidance with narrow activation boundaries:
+  Anthropic's distinctive visual-design process, Vercel's React composition
+  patterns, targeted interface accessibility fixes, and project-aware shadcn
+  component and CLI workflows. Preserve upstream licenses and source revisions,
+  and adapt shadcn's project-context discovery to portable agent harnesses.
+
 ## 0.3.1
 
 ### Patch Changes

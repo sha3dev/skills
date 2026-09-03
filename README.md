@@ -19,7 +19,7 @@ git init
 npx skills@latest add sha3dev/skills
 ```
 
-Choose a project-scoped installation, select your agent, and install all four
+Choose a project-scoped installation, select your agent, and install all eight
 skills. Project-scoped installations create `skills-lock.json`; commit it so
 the installed sources and content hashes remain reproducible.
 
@@ -92,11 +92,19 @@ npx skills@latest add sha3dev/skills --skill <name>
 | [`to-web-surface`](./docs/to-web-surface.md) | Explicit | Build one web application's disconnected interface incrementally with the user. |
 | [`lazy`](./docs/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
 | [`typescript-stack`](./docs/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
+| [`frontend-design`](./docs/frontend-design.md) | Automatic | Give new or substantially reshaped interfaces a distinctive, subject-specific visual direction. |
+| [`composition-patterns`](./docs/composition-patterns.md) | Automatic | Design scalable React component APIs when reuse or boolean-prop proliferation makes composition material. |
+| [`fixing-accessibility`](./docs/fixing-accessibility.md) | Automatic | Audit and fix accessibility when interactive controls, forms, dialogs, focus, or keyboard behavior change. |
+| [`shadcn`](./docs/shadcn.md) | Automatic | Work with shadcn projects, registries, components, and presets using live project and CLI context. |
 
 `setup` runs once. Invoke `to-web-surface` for a `web` application and iterate on
 its live interface until approving it. `typescript-stack` is selected
 automatically whenever the agent writes application TypeScript or TSX. Invoke
 `lazy` explicitly when simplicity is the main constraint for a task.
+`frontend-design`, `composition-patterns`, and `fixing-accessibility` activate
+only for their respective UI concerns. `shadcn` activates for projects that
+already contain `components.json` or when shadcn is explicitly requested; it
+does not introduce shadcn into every React application.
 
 API and worker surface workflows are planned but are not included yet.
 

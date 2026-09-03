@@ -1,0 +1,4 @@
+interface:
+  display_name: "Composition Patterns"
+  short_description: "Design scalable React component APIs"
+  default_prompt: "Use $composition-patterns to improve this reusable React component API."
