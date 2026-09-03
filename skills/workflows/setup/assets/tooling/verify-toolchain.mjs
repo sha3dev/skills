@@ -34,6 +34,7 @@ async function findRepositoryViolations(root) {
 	const ignored = new Set([
 		".agents",
 		".git",
+		".turbo",
 		"coverage",
 		"dist",
 		"node_modules",
@@ -130,9 +131,10 @@ try {
 		turboJson.tasks?.dev?.cache !== false ||
 		turboJson.tasks?.dev?.persistent !== true ||
 		!turboJson.tasks?.build?.dependsOn?.includes("^build") ||
-		!turboJson.tasks?.build?.outputs?.includes("dist/**")
+		!turboJson.tasks?.build?.outputs?.includes("dist/**") ||
+		!turboJson.tasks?.typecheck
 	) {
-		fail("turbo.json is missing the required dev or build task");
+		fail("turbo.json is missing the required build, dev, or typecheck task");
 	}
 	const repositoryViolations = await findRepositoryViolations(root);
 	if (repositoryViolations.length > 0) {

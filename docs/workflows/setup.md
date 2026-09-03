@@ -33,6 +33,7 @@ skills, and `skills-lock.json` are allowed.
 AGENTS.md
 CLAUDE.md
 PROJECT.md
+.gitignore
 .agents/
 ├── toolchain-policy.json
 └── tools/
@@ -42,7 +43,7 @@ PROJECT.md
 biome.json
 knip.json
 package.json
-tsconfig.json
+tsconfig.base.json
 turbo.json
 ```
 
@@ -62,8 +63,21 @@ progress. The progress tool remains the only writer for phase transitions.
 Each application path is an architectural boundary under `apps/`. Its `surface/`
 directory becomes an independently runnable npm workspace when a later workflow
 materializes it. Reusable packages live under `packages/`. Turborepo coordinates
-workspace development and builds; it does not define runtime communication
-between applications.
+workspace development, builds, and type checking; it does not define runtime
+communication between applications.
+
+`tsconfig.base.json` holds the shared, environment-neutral compiler options.
+Each workspace owns a `tsconfig.json` that extends it and declares the libraries
+its runtime actually provides, so a browser surface and a Node application are
+never type-checked against the same globals. The root `typecheck` script runs
+`turbo run typecheck` across workspaces, which is a no-op until the first one
+exists.
+
+`.gitignore` is the one conditional output. Setup writes the template when the
+repository has none, and otherwise leaves an existing file untouched after
+checking that it already ignores `node_modules`, `dist`, `.turbo`, and
+`coverage`. It reports the missing entries instead of merging into a file it
+does not own.
 
 Application paths are derived deterministically from their names; setup
 does not ask the agent to choose a second identifier. The workflow that first

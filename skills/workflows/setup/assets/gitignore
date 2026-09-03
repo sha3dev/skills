@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Tool caches
+.turbo/
+coverage/
+
+# Local environment
+.env
+.env.*
+
+# Operating system
+.DS_Store

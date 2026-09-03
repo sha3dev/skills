@@ -189,11 +189,12 @@ async function buildFiles(input) {
 	const assets = await Promise.all([
 		loadAsset("AGENTS.md"),
 		loadAsset("CLAUDE.md"),
+		loadAsset("gitignore"),
 		loadAsset("PROJECT.md"),
 		readFile(resolve(scriptDirectory, "repo-state.mjs"), "utf8"),
 		loadAsset("tooling/project-progress.mjs"),
 		loadAsset("tooling/biome.json"),
-		loadAsset("tooling/tsconfig.json"),
+		loadAsset("tooling/tsconfig.base.json"),
 		loadAsset("tooling/turbo.json"),
 		loadAsset("tooling/toolchain-policy.json"),
 		loadAsset("tooling/verify-toolchain.mjs"),
@@ -202,6 +203,7 @@ async function buildFiles(input) {
 	const [
 		agents,
 		claude,
+		gitignore,
 		projectTemplate,
 		repoState,
 		projectProgress,
@@ -273,7 +275,12 @@ async function buildFiles(input) {
 		.join(",\n");
 	const knip = `{
 \t"$schema": "https://unpkg.com/knip@${policy.minimumToolVersions.knip}/schema.json",
-\t"ignore": [".agents/**", "**/dist/**", "apps/*/surface/public/**/*.js"],
+\t"ignore": [
+\t\t".agents/**",
+\t\t"**/.turbo/**",
+\t\t"**/dist/**",
+\t\t"apps/*/surface/public/**/*.js"
+\t],
 \t"ignoreDependencies": [
 ${ignoredDependencies}
 \t]
@@ -330,9 +337,9 @@ ${ignoredDependencies}
 			copiedFrom: "assets/tooling/biome.json",
 		},
 		{
-			path: "tsconfig.json",
+			path: "tsconfig.base.json",
 			content: tsconfig,
-			copiedFrom: "assets/tooling/tsconfig.json",
+			copiedFrom: "assets/tooling/tsconfig.base.json",
 		},
 		{
 			path: "turbo.json",
@@ -342,6 +349,12 @@ ${ignoredDependencies}
 		{ path: "knip.json", content: knip },
 		{ path: "package.json", content: packageJson },
 		{ path: ".node-version", content: `${nodeVersion}\n` },
+		{
+			path: ".gitignore",
+			content: gitignore,
+			copiedFrom: "assets/gitignore",
+			requiredEntries: requiredIgnoreEntries(gitignore),
+		},
 	];
 
 	return files;
@@ -356,17 +369,53 @@ async function exists(path) {
 	}
 }
 
+function ignoreEntries(content) {
+	return content
+		.split("\n")
+		.map((line) => line.trim().replace(/\/$/, ""))
+		.filter((line) => line && !line.startsWith("#"));
+}
+
+// Only the paths this toolchain generates are enforced against an existing
+// .gitignore; the rest of the template is a convenience default.
+function requiredIgnoreEntries(template) {
+	const required = ["node_modules", "dist", ".turbo", "coverage"];
+	const covered = new Set(ignoreEntries(template));
+	const uncovered = required.filter((entry) => !covered.has(entry));
+	if (uncovered.length) {
+		fail(`assets/gitignore does not cover: ${uncovered.join(", ")}`);
+	}
+	return required;
+}
+
 async function preflight(root, files) {
 	const state = await getRepositoryState(root);
 	if (state.state !== "ready_for_setup") {
 		fail(`Repository state is ${JSON.stringify(state)}`);
 	}
 
+	const pending = [];
+
 	for (const file of files) {
-		if (await exists(resolve(root, file.path))) {
+		if (!(await exists(resolve(root, file.path)))) {
+			pending.push(file);
+			continue;
+		}
+		if (!file.requiredEntries) {
 			fail(`Output file already exists: ${file.path}`);
 		}
+		const present = new Set(
+			ignoreEntries(await readFile(resolve(root, file.path), "utf8")),
+		);
+		const missing = file.requiredEntries.filter((entry) => !present.has(entry));
+		if (missing.length > 0) {
+			fail(
+				`${file.path} must ignore ${missing.join(", ")}; add them and run setup again`,
+			);
+		}
 	}
+
+	return pending;
 }
 
 function preview(files) {
@@ -432,18 +481,18 @@ async function main() {
 	const inputPath = resolve(option(args, "--input"));
 	const input = normalizeInput(JSON.parse(await readFile(inputPath, "utf8")));
 	const files = await buildFiles(input);
-	await preflight(root, files);
+	const pending = await preflight(root, files);
 
 	if (dryRun) {
 		process.stdout.write(preview(files));
 		return;
 	}
 
-	await writeFiles(root, files);
+	await writeFiles(root, pending);
 	process.stdout.write(
 		`${JSON.stringify({
 			state: "initialized",
-			files: files.map((file) => file.path),
+			files: pending.map((file) => file.path),
 		})}\n`,
 	);
 }

@@ -5,6 +5,7 @@
 		"includes": [
 			"**",
 			"!!**/.agents",
+			"!!**/.turbo",
 			"!!**/coverage",
 			"!!**/dist",
 			"!!apps/*/surface/public/**/*.js"

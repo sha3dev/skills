@@ -42,10 +42,11 @@ AGENTS.md
 CLAUDE.md
 PROJECT.md
 .agents/
+.gitignore
 biome.json
 knip.json
 package.json
-tsconfig.json
+tsconfig.base.json
 turbo.json
 ```
 

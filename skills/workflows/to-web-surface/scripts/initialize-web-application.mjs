@@ -96,12 +96,14 @@ try {
 			build: "vite build",
 			dev: "vite",
 			preview: "vite preview",
+			typecheck: "tsc --noEmit --project tsconfig.json",
 		},
 		dependencies: {
 			react: dependency(rootPackage, "dependencies", "react"),
 			"react-dom": dependency(rootPackage, "dependencies", "react-dom"),
 		},
 		devDependencies: {
+			typescript: dependency(rootPackage, "devDependencies", "typescript"),
 			"@types/react": dependency(
 				rootPackage,
 				"devDependencies",
@@ -120,8 +122,18 @@ try {
 			vite: dependency(rootPackage, "devDependencies", "vite"),
 		},
 	};
+	const tsconfig = `{
+\t"extends": "../../../tsconfig.base.json",
+\t"compilerOptions": {
+\t\t"jsx": "react-jsx",
+\t\t"lib": ["ES2024", "DOM", "DOM.Iterable"]
+\t},
+\t"include": ["src", "vite.config.ts"]
+}
+`;
 	const files = new Map([
 		["package.json", `${JSON.stringify(packageJson, null, "\t")}\n`],
+		["tsconfig.json", tsconfig],
 		[
 			"index.html",
 			`<!doctype html>\n<html lang="en">\n\t<head>\n\t\t<meta charset="UTF-8" />\n\t\t<meta name="viewport" content="width=device-width, initial-scale=1.0" />\n\t\t<title>${html(application.name)}</title>\n\t</head>\n\t<body>\n\t\t<div id="root"></div>\n\t\t<script type="module" src="/src/main.tsx"></script>\n\t</body>\n</html>\n`,

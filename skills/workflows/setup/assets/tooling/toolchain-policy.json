@@ -31,7 +31,7 @@
 		"check:toolchain": "node .agents/tools/verify-toolchain.mjs",
 		"check:project": "node .agents/tools/repo-state.mjs --root . --expect already_initialized",
 		"check:biome": "biome check .",
-		"typecheck": "tsc --noEmit --project tsconfig.json",
+		"typecheck": "turbo run typecheck",
 		"check:knip": "knip",
 		"check:tooling": "npm run check:toolchain && npm run check:biome && npm run typecheck && npm run check:knip"
 	}

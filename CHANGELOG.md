@@ -1,5 +1,28 @@
 # sha3dev-skills
 
+## 0.6.1
+
+### Patch Changes
+
+- Keep a freshly initialized repository green. `setup` previously wrote a single
+  root `tsconfig.json` whose `include` patterns matched nothing until the first
+  application workspace existed, so the `npm run check` that closes setup always
+  failed with `TS18003`.
+
+  Split the compiler configuration into a shared, environment-neutral
+  `tsconfig.base.json` and a per-workspace `tsconfig.json` that declares the
+  libraries its runtime provides. Run type checking through `turbo run
+  typecheck`, which is a no-op with zero workspaces, and exclude Turborepo's
+  `.turbo` cache from Biome, Knip, and the toolchain verifier.
+
+  A browser surface and a Node application are no longer type-checked against
+  the same globals.
+
+- Generate `.gitignore` from a setup asset so `node_modules`, `dist`, `.turbo`,
+  and `coverage` stay untracked. When the repository already has one, leave it
+  untouched and require only that it covers those paths, reporting the missing
+  entries rather than merging into a file setup does not own.
+
 ## 0.6.0
 
 ### Minor Changes
