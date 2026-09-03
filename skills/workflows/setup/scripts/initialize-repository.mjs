@@ -233,7 +233,7 @@ async function buildFiles(input) {
 - Path: \`apps/${application.folder}/\`
 - Responsibility: ${application.responsibility}
 - Progress:
-  - \`surface\`: \`pending\``,
+  - \`${application.type}-surface\`: \`pending\``,
 	);
 	const relationshipSection = input.relationships.length
 		? `\n\n## Relationships\n\n${input.relationships

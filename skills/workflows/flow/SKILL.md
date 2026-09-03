@@ -17,14 +17,16 @@ Enter or continue the project's workflow. The skill takes no arguments.
    project, and an unsupported or invalid state. Prefer durable evidence over
    conversation and do not ask for discoverable context. Treat a failed state
    check as invalid state; do not route by guessing.
-2. Resume explicitly recorded `in-progress` work first. Otherwise choose an
-   eligible `pending` outcome. Treat outcomes with the same status as equal
-   unless the canonical state or an exposed workflow description defines an
-   order or prerequisite. Never infer `complete` from artifacts, code, or
-   checks when the canonical progress source does not record it.
-3. Match that outcome to an installed workflow skill using exposed descriptions.
-   Exclude this orchestrator. Do not load the selected `SKILL.md` or its working
-   artifacts into the main context.
+2. An application phase named `<phase>` is advanced only by the installed
+   workflow skill named `to-<phase>`; an uninitialized repository is advanced
+   only by `setup`. A phase whose workflow is not installed is never an eligible
+   outcome. Never match outcomes to workflows by description.
+3. Among eligible outcomes, resume explicitly recorded `in-progress` work first.
+   Otherwise choose an eligible `pending` outcome. Treat outcomes with the same
+   status as equal unless the canonical state defines an order or prerequisite.
+   Never infer `complete` from artifacts, code, or checks when the canonical
+   progress source does not record it. Do not load the selected `SKILL.md` or
+   its working artifacts into the main context.
 4. If several outcomes have equal priority, use clear conversation context to
    disambiguate. Otherwise state the minimum useful context, recommend one only
    when evidence supports it, and ask for the product choice needed to route.
@@ -33,9 +35,9 @@ Enter or continue the project's workflow. The skill takes no arguments.
 When durable project state is absent, route to initialization only if top-level
 evidence suggests the repository may be eligible; that workflow owns the exact
 readiness check. In an initialized repository, resume active work before
-starting another available surface or stage. If no installed workflow can advance
-the selected outcome, state the concrete blocker instead of inventing a
-workflow.
+starting another available surface or stage. When every remaining outcome is
+ineligible, name the missing workflow skills and stop instead of inventing a
+workflow or routing into one that rejects the application.
 
 ## Delegate
 

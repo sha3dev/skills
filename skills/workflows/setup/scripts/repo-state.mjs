@@ -6,21 +6,30 @@ import { access, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
-const allowedBeforeSetup = new Set([
-	".DS_Store",
-	".agents",
-	".claude",
-	".codex",
-	".editorconfig",
-	".git",
-	".gitattributes",
-	".gitignore",
-	"LICENSE",
-	"LICENSE.md",
-	"LICENSE.txt",
-	"README.md",
-	"skills-lock.json",
+const conflictingBeforeSetup = new Set([
+	".node-version",
+	".nvmrc",
+	"apps",
+	"biome.json",
+	"bun.lockb",
+	"knip.json",
+	"npm-shrinkwrap.json",
+	"package-lock.json",
+	"package.json",
+	"packages",
+	"pnpm-lock.yaml",
+	"pnpm-workspace.yaml",
+	"src",
+	"tsconfig.json",
+	"turbo.json",
+	"yarn.lock",
 ]);
+
+const sourceExtension = /\.(?:c|m)?[jt]sx?$/;
+
+function conflictsBeforeSetup(entry) {
+	return conflictingBeforeSetup.has(entry) || sourceExtension.test(entry);
+}
 
 async function exists(path) {
 	try {
@@ -84,9 +93,7 @@ export async function getRepositoryState(rootInput = ".") {
 		return { state: "output_conflict", paths: conflicts };
 	}
 
-	const unexpected = entries
-		.filter((entry) => !allowedBeforeSetup.has(entry))
-		.sort();
+	const unexpected = entries.filter(conflictsBeforeSetup).sort();
 
 	return unexpected.length
 		? { state: "not_empty", entries: unexpected }

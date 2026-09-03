@@ -31,7 +31,8 @@ values are non-empty and single-line. External dependencies and infrastructure
 are outside setup.
 
 The generator derives a unique kebab-case path under `apps/` from each
-application name and initializes its `surface` progress as `pending`.
+application name and initializes one progress phase named after its type,
+`<type>-surface`, as `pending`.
 `PROJECT.md` is the sole persistent source for these values, paths, and progress.
 It keeps an empty Language section when there are no terms and omits
 Relationships when there are none. Setup configures npm workspaces and Turborepo

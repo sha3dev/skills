@@ -22,9 +22,9 @@ while `PROJECT.md` remains the sole progress tracker.
    relationship entries. Read `<application.path>/SURFACE.md` first when it
    exists, then inspect `<application.path>/surface/` when implementation already
    exists. Create `SURFACE.md` if absent, seeded only with facts from those
-   sources and the user's request. If `surface` is `pending`, change it to
+   sources and the user's request. If `web-surface` is `pending`, change it to
    `in-progress` with
-   `node .agents/tools/project-progress.mjs --root . --app <name> --phase surface --set in-progress`.
+   `node .agents/tools/project-progress.mjs --root . --app <name> --phase web-surface --set in-progress`.
 3. Use `$interview` before implementation, using
    `SURFACE.md` as its durable artifact. Its subject-specific lens is the UI's
    purpose and audience, journeys, information architecture, screens, states,
@@ -55,7 +55,7 @@ while `PROJECT.md` remains the sole progress tracker.
    decision, and record that decision in `SURFACE.md` before changing the code.
 7. Only after the user explicitly approves the whole interface and the
    repository check passes, run
-   `node .agents/tools/project-progress.mjs --root . --app <name> --phase surface --set complete`.
+   `node .agents/tools/project-progress.mjs --root . --app <name> --phase web-surface --set complete`.
    Stop without starting another phase.
 
 When revising an approved surface, require an explicit user request and use the

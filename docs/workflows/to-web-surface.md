@@ -16,7 +16,7 @@ application. Invoke it on a completed surface only when explicitly revising it.
 ## Prerequisites
 
 `setup` must have generated a valid `PROJECT.md` and toolchain, the application
-must declare a `surface` phase, and the `interview` toolkit skill must be
+must declare a `web-surface` phase, and the `interview` toolkit skill must be
 available.
 
 ## It's working if

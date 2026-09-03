@@ -39,7 +39,10 @@ function parseApplications(source) {
 				fail(`Duplicate phase in ${match[1]}: ${phase[1]}`);
 			progress[phase[1]] = phase[2];
 		}
-		if (!progress.surface) fail(`${match[1]} has no surface phase`);
+		const surfacePhase = `${match[2]}-surface`;
+		if (!progress[surfacePhase]) {
+			fail(`${match[1]} has no ${surfacePhase} phase`);
+		}
 		applications.push({
 			name: match[1],
 			type: match[2],
@@ -123,7 +126,10 @@ try {
 		if (current !== nextStatus) {
 			const before = `  - \`${phase}\`: \`${current}\``;
 			const after = `  - \`${phase}\`: \`${nextStatus}\``;
-			const applicationSource = source.slice(application.start, application.end);
+			const applicationSource = source.slice(
+				application.start,
+				application.end,
+			);
 			if (!applicationSource.includes(before)) {
 				fail(`Cannot locate ${phase} status`);
 			}

@@ -64,10 +64,10 @@ npm run check:toolchain
 - npm 10.9.0 or newer.
 - An agent supported by the [`skills`](https://skills.sh/) installer.
 
-Before setup, the repository may contain common metadata such as `.git`,
-`.gitignore`, `README.md`, `LICENSE`, installed agent skills, and
-`skills-lock.json`. It must not already contain application code, `AGENTS.md`,
-or `PROJECT.md`.
+Before setup, the repository may contain metadata, documentation, editor and
+CI configuration, installed agent skills, and `skills-lock.json`. It must not
+already contain application code, a `package.json` or lockfile, `apps/`,
+`packages/`, `src/`, `AGENTS.md`, `CLAUDE.md`, or `PROJECT.md`.
 
 ## Installation
 

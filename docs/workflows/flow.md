@@ -3,7 +3,11 @@
 ## What it does
 
 `flow` reads the project's durable workflow state, chooses the appropriate
-installed workflow, and runs it in a clean subagent context when supported. The
+installed workflow, and runs it in a clean subagent context when supported.
+Routing is deterministic: a phase named `<phase>` is advanced only by the
+workflow skill named `to-<phase>`, so an outcome whose workflow is not
+installed is reported by name instead of routed into a workflow that would
+reject it. The
 main context retains only routing, product decisions, and the concise
 user-facing result.
 
