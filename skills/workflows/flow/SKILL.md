@@ -1,6 +1,6 @@
 ---
 name: flow
-description: Inspect durable project state, select the appropriate installed workflow, and run it in an isolated subagent when supported. Use explicitly without arguments to enter or continue a project.
+description: Inspect durable project state, select the appropriate installed workflow, and run it in an isolated worker context when supported. Use explicitly without arguments to enter or continue a project.
 disable-model-invocation: true
 ---
 
@@ -39,10 +39,12 @@ workflow.
 
 ## Delegate
 
-Once the route is unambiguous, spawn exactly one execution subagent with no
-inherited conversation turns (`fork_turns: "none"` when supported). Do not run
-independent writers or permit nested delegation. Subagents share the worktree;
-this is context isolation, not filesystem isolation.
+Once the route is unambiguous, spawn exactly one execution worker. It must
+start from an empty context: inherit no conversation turns, and receive only
+the values listed below. If the delegation mechanism can only fork the current
+context, it is not clean; treat it as unavailable. Do not run independent
+writers or permit nested delegation. The worker shares the worktree; this is
+context isolation, not filesystem isolation.
 
 Give the worker only:
 
@@ -63,8 +65,8 @@ On `needs-input`, relay the message and reuse that worker for the user's reply.
 On `blocked`, close it and relay the blocker. On `complete`, close it and
 re-read durable state. If state did not advance, report the inconsistency and
 stop. Otherwise continue an unambiguous next workflow in a fresh worker, or ask
-only for the product choice needed to continue. If clean subagents are
-unavailable, execute the selected workflow locally with the same context and
+only for the product choice needed to continue. If no clean worker is
+available, execute the selected workflow locally with the same context and
 communication limits.
 
 ## Boundaries

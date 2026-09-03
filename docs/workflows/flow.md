@@ -3,7 +3,7 @@
 ## What it does
 
 `flow` reads the project's durable workflow state, chooses the appropriate
-installed workflow, and runs it in a clean subagent context when supported. The
+installed workflow, and runs it in a clean worker context when supported. The
 main context retains only routing, product decisions, and the concise
 user-facing result.
 
@@ -29,5 +29,5 @@ choice needed, without seeing or invoking the internal route.
 ## Where it fits
 
 `flow` is the user-facing entry point and orchestrator. The selected workflow
-still owns its approvals, work, progress changes, and stopping rules. Subagents
+still owns its approvals, work, progress changes, and stopping rules. Workers
 share its worktree and permissions; isolation applies only to model context.
