@@ -45,6 +45,13 @@
   file and the instruction to resolve diagnostics at their source pointed at
   deleting correct work in progress.
 
+- Make the unused-code check silent when it has nothing to report. `knip.json`
+  no longer ignores `dist` and `.turbo`, which Knip already skips through the
+  `.gitignore` setup guarantees, and `check:knip` suppresses configuration
+  hints. Every run previously printed four hints asking to delete generated
+  rules, including the opaque-asset boundary that has no match until an
+  application ships one and that the repository must keep.
+
 ### Patch Changes
 
 - Describe `flow` delegation in terms of the guarantee it needs — a worker that

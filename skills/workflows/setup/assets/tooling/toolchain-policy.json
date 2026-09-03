@@ -33,7 +33,7 @@
 		"check:biome": "biome check .",
 		"typecheck": "turbo run typecheck",
 		"check:code": "npm run check:biome && npm run typecheck",
-		"check:knip": "knip",
+		"check:knip": "knip --no-config-hints",
 		"check:tooling": "npm run check:toolchain && npm run check:code && npm run check:knip"
 	}
 }
