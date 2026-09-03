@@ -21,7 +21,24 @@ dependencies. Do not reproduce their rules in prose or subjective review.
    or fails, report the exact configuration problem and stop; do not initialize
    or migrate tooling during a code change.
 2. Implement the requested behavior. Comments explain only intent or invariants.
-3. Run `npm run fix -- <edited-paths>` for safe Biome fixes, then `npm run check`.
-   Resolve diagnostics at their source and repeat until green.
+3. Run `npm run fix -- <edited-paths>` for safe Biome fixes, then
+   `npm run check:code`. Resolve diagnostics at their source and repeat until
+   green.
+4. Run `npm run check` before handing the work back, and again before any
+   workflow records a phase as complete.
 
 Never use unsafe fixes, suppress checks, or change their configuration to pass.
+
+## Unused code
+
+`check:code` holds only what must be true of every intermediate state:
+formatting, lint, and types. `check` adds Knip, which asks a different
+question — is this code reachable from an entry point yet? A component written
+before the screen that renders it, or a fixture written before its consumer, is
+a legitimate `Unused files` report, and deleting it to reach green destroys
+correct work.
+
+So run Knip at a boundary where the answer is meaningful: the end of a task or
+phase, when everything written is expected to be wired up. If Knip still
+reports code as unreachable there, that is a real finding — connect it or
+remove it. Never silence it by widening `knip.json`.

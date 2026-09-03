@@ -36,6 +36,15 @@
   its boundary so a new application starts from durable artifacts rather than
   from the previous one's decisions.
 
+- Separate the per-edit gate from the boundary gate. A new `check:code` script
+  runs Biome and type checking, the invariants that hold after every edit, and
+  is what `typescript-stack` and `to-web-surface` run between increments.
+  `npm run check` keeps its full meaning and adds Knip's unused-code analysis at
+  a task or phase boundary. Previously the increment loop ran the complete gate,
+  so a component written before the screen that renders it failed as an unused
+  file and the instruction to resolve diagnostics at their source pointed at
+  deleting correct work in progress.
+
 ### Patch Changes
 
 - Describe `flow` delegation in terms of the guarantee it needs — a worker that

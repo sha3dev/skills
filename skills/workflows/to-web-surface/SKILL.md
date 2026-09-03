@@ -51,8 +51,11 @@ while `PROJECT.md` remains the sole progress tracker.
    port is strict and only one surface runs at a time, a port conflict means an
    abandoned server owns it: stop that process and start again on the same
    port. Never fall back to another port.
-7. After each increment, apply the repository's TypeScript workflow. Before
-   presenting the increment, use available browser tooling to inspect it at
+7. After each increment, apply the repository's TypeScript workflow through
+   `npm run check:code`. An increment may leave interface code that nothing
+   renders yet; that is not a defect to fix, so do not run the unused-code
+   check between increments and never delete unwired work to satisfy one.
+   Before presenting the increment, use available browser tooling to inspect it at
    representative desktop and mobile widths and exercise the changed
    interactions. Ensure it follows the
    user's established direction, has no visible or functional errors, lays out
@@ -61,8 +64,8 @@ while `PROJECT.md` remains the sole progress tracker.
    stop refining once the result is good enough for user review. Give the user
    the preview URL. Use `$interview` again when review reveals a product
    decision, and record that decision in `SURFACE.md` before changing the code.
-8. Only after the user explicitly approves the whole interface and the
-   repository check passes, run
+8. Only after the user explicitly approves the whole interface and the full
+   `npm run check` passes, including its unused-code check, run
    `node .agents/tools/project-progress.mjs --root . --app <name> --phase web-surface --set complete`.
    Stop the development server and stop without starting another phase.
 
@@ -79,7 +82,7 @@ change another application's progress or code.
 ## Run boundary
 
 This workflow is one run for one application: it starts at step 1 and ends at
-step 7, at a blocker, or when it needs a user decision. Everything it needs to
+step 8, at a blocker, or when it needs a user decision. Everything it needs to
 resume is durable in `PROJECT.md` and `SURFACE.md`, so a run carries no state
 between applications. Do not begin another application's surface inside this
 run, and do not reuse this run's interview or increments for one.

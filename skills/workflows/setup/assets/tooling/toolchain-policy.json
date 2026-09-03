@@ -32,7 +32,8 @@
 		"check:project": "node .agents/tools/repo-state.mjs --root . --expect already_initialized",
 		"check:biome": "biome check .",
 		"typecheck": "turbo run typecheck",
+		"check:code": "npm run check:biome && npm run typecheck",
 		"check:knip": "knip",
-		"check:tooling": "npm run check:toolchain && npm run check:biome && npm run typecheck && npm run check:knip"
+		"check:tooling": "npm run check:toolchain && npm run check:code && npm run check:knip"
 	}
 }
