@@ -1,0 +1,12 @@
+{
+	"initialize": {
+		"skill": "setup"
+	},
+	"phases": [
+		{
+			"phase": "web-surface",
+			"applicationTypes": ["web"],
+			"skill": "to-web-surface"
+		}
+	]
+}

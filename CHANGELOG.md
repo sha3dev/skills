@@ -6,10 +6,8 @@
 
 - Name each application's progress phase after its type, `web-surface`,
   `api-surface`, or `worker-surface`, so an outcome identifies the workflow that
-  can advance it. Route `flow` deterministically from a phase named `<phase>` to
-  the installed workflow skill named `to-<phase>` instead of matching skill
-  descriptions, treat a phase whose workflow is not installed as ineligible, and
-  name the missing workflow rather than routing into one that rejects the
+  can advance it. A phase whose workflow is not installed is reported as
+  unroutable instead of being routed into a workflow that rejects the
   application. Previously every application declared a single `surface` phase,
   so `api` and `worker` applications produced an outcome no installed workflow
   could accept.
@@ -24,6 +22,13 @@
   the generated tooling configuration, and none of setup's own output.
   Documentation, editor and CI configuration, an existing `node_modules`, and
   other unrelated files no longer block initialization.
+
+- Make `flow` routing deterministic. A bundled `route.mjs` resolves durable
+  project state and a declarative `routes.json` rule table into one decision —
+  `run`, `choose`, `done`, or `blocked` — instead of having the agent inspect
+  the repository and match outcomes against skill descriptions. Open work with
+  no installed workflow is reported explicitly rather than retried, and adding a
+  workflow is a rule change instead of a prompt change.
 
 ### Patch Changes
 
