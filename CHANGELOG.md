@@ -1,5 +1,16 @@
 # sha3dev-skills
 
+## Unreleased
+
+### Minor Changes
+
+- Make `flow` routing deterministic. A bundled `route.mjs` resolves durable
+  project state and a declarative `routes.json` rule table into one decision —
+  `run`, `choose`, `done`, or `blocked` — instead of having the agent inspect
+  the repository and match outcomes against skill descriptions. Open work with
+  no installed workflow is reported explicitly rather than retried, and adding a
+  workflow is a rule change instead of a prompt change.
+
 ## 0.6.0
 
 ### Minor Changes

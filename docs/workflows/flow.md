@@ -7,6 +7,18 @@ installed workflow, and runs it in a clean subagent context when supported. The
 main context retains only routing, product decisions, and the concise
 user-facing result.
 
+The choice itself is deterministic. A bundled script resolves the durable state
+and a declarative rule table into a single decision: continue one workflow, ask
+which application to continue, report that nothing is open, or report a
+concrete blocker. The agent acts on that decision instead of inferring one from
+skill descriptions or repository contents, so the same project state always
+routes the same way. Supporting a new outcome is a rule change, not a prompt
+change.
+
+Work explicitly recorded as in progress is resumed before anything pending. An
+open phase that no installed workflow can advance is reported as such rather
+than retried, so a gap in the installed workflows is visible instead of silent.
+
 One worker remains active for the duration of a workflow so an interview can
 continue across turns. On completion, `flow` reads durable state again and
 continues an unambiguous next workflow in a fresh worker. Project artifacts,
@@ -23,8 +35,9 @@ when returning to a project after time away or finishing a workflow stage.
 ## It's working if
 
 The correct workflow continues immediately without unrelated conversation or
-tool noise entering its context. The user receives only the context or product
-choice needed, without seeing or invoking the internal route.
+tool noise entering its context. Identical project state produces an identical
+route. The user receives only the context or product choice needed, without
+seeing or invoking the internal route.
 
 ## Where it fits
 

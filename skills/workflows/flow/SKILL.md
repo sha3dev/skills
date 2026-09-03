@@ -10,32 +10,30 @@ Enter or continue the project's workflow. The skill takes no arguments.
 
 ## Route
 
-1. Establish the current state from the cheapest durable source. When
-   `.agents/tools/repo-state.mjs` exists, run it with `--root .` and read only
-   the relevant parts of `PROJECT.md`. Otherwise, inspect only enough top-level
-   repository state to distinguish an eligible new project, an initialized
-   project, and an unsupported or invalid state. Prefer durable evidence over
-   conversation and do not ask for discoverable context. Treat a failed state
-   check as invalid state; do not route by guessing.
-2. Resume explicitly recorded `in-progress` work first. Otherwise choose an
-   eligible `pending` outcome. Treat outcomes with the same status as equal
-   unless the canonical state or an exposed workflow description defines an
-   order or prerequisite. Never infer `complete` from artifacts, code, or
-   checks when the canonical progress source does not record it.
-3. Match that outcome to an installed workflow skill using exposed descriptions.
-   Exclude this orchestrator. Do not load the selected `SKILL.md` or its working
-   artifacts into the main context.
-4. If several outcomes have equal priority, use clear conversation context to
-   disambiguate. Otherwise state the minimum useful context, recommend one only
-   when evidence supports it, and ask for the product choice needed to route.
-   Ask nothing when the route is unambiguous.
+Run the bundled `scripts/route.mjs` with `--root .`, resolving it relative to
+this `SKILL.md`. It reads the project's durable state, applies `routes.json`,
+and prints one JSON `decision`. That decision is the route. Never override it
+from conversation, artifacts, code, or checks, and never route by inspecting
+the repository yourself.
 
-When durable project state is absent, route to initialization only if top-level
-evidence suggests the repository may be eligible; that workflow owns the exact
-readiness check. In an initialized repository, resume active work before
-starting another available surface or stage. If no installed workflow can advance
-the selected outcome, state the concrete blocker instead of inventing a
-workflow.
+- `run` — continue with `skill` for the reported `application` and `phase`.
+- `choose` — the open work is genuinely ambiguous. Answer from unambiguous
+  conversation context when it exists; otherwise state the minimum useful
+  context and ask which application to continue, in product terms. Then
+  continue with that candidate's `skill`.
+- `done` — no phase is open. Say so and stop.
+- `blocked` — report the concrete blocker from `reason` with `detail`, `state`,
+  or `unroutable`. Never invent a workflow to work around it.
+
+A non-empty `unroutable` list is not itself a blocker while a route exists;
+mention it only when the user needs to know that some work has no installed
+workflow. A `skillStatus` of `unverified` means the installation layout could
+not be confirmed, not that the workflow is missing; proceed, and treat an actual
+load failure as a blocker.
+
+Do not load the selected `SKILL.md` or its working artifacts into the main
+context. Supporting another outcome means adding a rule to `routes.json`, not
+new prose here.
 
 ## Delegate
 
@@ -60,12 +58,11 @@ condition, and return only:
 - `user_message`: the concise, standalone message the user needs next.
 
 On `needs-input`, relay the message and reuse that worker for the user's reply.
-On `blocked`, close it and relay the blocker. On `complete`, close it and
-re-read durable state. If state did not advance, report the inconsistency and
-stop. Otherwise continue an unambiguous next workflow in a fresh worker, or ask
-only for the product choice needed to continue. If clean subagents are
-unavailable, execute the selected workflow locally with the same context and
-communication limits.
+On `blocked`, close it and relay the blocker. On `complete`, close it and route
+again. If the new decision is identical to the one just executed, report the
+inconsistency and stop. Otherwise act on it in a fresh worker. If clean
+subagents are unavailable, execute the selected workflow locally with the same
+context and communication limits.
 
 ## Boundaries
 
