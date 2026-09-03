@@ -61,3 +61,18 @@ while `PROJECT.md` remains the sole progress tracker.
 When revising an approved surface, require an explicit user request and use the
 same progress command with `--set in-progress --reopen` before editing. Never
 change another application's progress or code.
+
+## Isolation
+
+Steps 1 to 4 and every review exchange stay in the invoking context. They are
+interactive, produce almost no tool output, and their state already lives in
+`SURFACE.md`; isolating them would only spend a worker per question.
+
+Steps 5 and 6 are isolated segments. Delegate one worker per increment, giving
+it the repository root, this `SKILL.md`, the application name, the confirmed
+`SURFACE.md`, and the single increment to build. It runs the initialization,
+implementation, checks, and inspection, and returns what changed plus the
+preview URL. It never asks the user anything: an unsettled product decision
+ends the segment so the invoking context can resolve it through `$interview`
+before the next increment. Return there for the user's review of each
+increment and for the final approval in step 7.

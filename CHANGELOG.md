@@ -13,6 +13,13 @@
 - Rename the workflow category from `flow` to `workflows`, avoiding ambiguity
   between the category and its `flow` orchestrator.
 
+- Delegate by context cost instead of by workflow boundary. Run the selected
+  workflow in the routing context and isolate only the segments it marks as
+  tool-heavy and non-interactive, because a relayed question and its answer
+  reach that context either way. Let `to-web-surface` declare its interview and
+  reviews as interactive and its initialization and implementation increments
+  as isolated segments.
+
 ## 0.5.0
 
 ### Minor Changes

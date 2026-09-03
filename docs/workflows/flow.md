@@ -3,14 +3,17 @@
 ## What it does
 
 `flow` reads the project's durable workflow state, chooses the appropriate
-installed workflow, and runs it in a clean subagent context when supported. The
-main context retains only routing, product decisions, and the concise
-user-facing result.
+installed workflow, and runs it. Decisions and questions stay in the main
+conversation; the workflow's tool-heavy segments run in clean subagents that
+return only what the user needs to read.
 
-One worker remains active for the duration of a workflow so an interview can
-continue across turns. On completion, `flow` reads durable state again and
-continues an unambiguous next workflow in a fresh worker. Project artifacts,
-not agent context, remain the source of truth.
+Isolation is spent where it pays. A relayed question and its answer land in the
+main context either way, so isolating an interview would cost one worker per
+question and save nothing. Installation, generated code, repository checks,
+builds, and browser inspection are the opposite shape, so each of those
+segments gets its own worker. When a workflow's outcome completes, `flow` reads
+durable state again and routes onward. Project artifacts, not agent context,
+remain the source of truth.
 
 The internal skill names are not part of the user journey. Knowing and invoking
 `flow` is sufficient.

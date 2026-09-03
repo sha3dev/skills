@@ -1,6 +1,6 @@
 ---
 name: flow
-description: Inspect durable project state, select the appropriate installed workflow, and run it in an isolated subagent when supported. Use explicitly without arguments to enter or continue a project.
+description: Inspect durable project state, select the appropriate installed workflow, and run it while isolating its tool-heavy segments in subagents. Use explicitly without arguments to enter or continue a project.
 disable-model-invocation: true
 ---
 
@@ -23,8 +23,7 @@ Enter or continue the project's workflow. The skill takes no arguments.
    order or prerequisite. Never infer `complete` from artifacts, code, or
    checks when the canonical progress source does not record it.
 3. Match that outcome to an installed workflow skill using exposed descriptions.
-   Exclude this orchestrator. Do not load the selected `SKILL.md` or its working
-   artifacts into the main context.
+   Exclude this orchestrator.
 4. If several outcomes have equal priority, use clear conversation context to
    disambiguate. Otherwise state the minimum useful context, recommend one only
    when evidence supports it, and ask for the product choice needed to route.
@@ -39,33 +38,47 @@ workflow.
 
 ## Delegate
 
-Once the route is unambiguous, spawn exactly one execution subagent with no
-inherited conversation turns (`fork_turns: "none"` when supported). Do not run
-independent writers or permit nested delegation. Subagents share the worktree;
-this is context isolation, not filesystem isolation.
+Isolation is not free. Every worker costs a spawn and a full re-read of durable
+state, so spend it only where it removes context this conversation would
+otherwise carry.
 
-Give the worker only:
+Relayed questions and user replies land here either way, so isolating an
+interactive segment removes almost nothing and charges a worker for every
+answer. Isolate the opposite shape: segments that produce heavy tool output —
+installation, generated code, repository checks, builds, browser inspection —
+and need no user reply until they finish.
+
+So run the selected workflow in this context. Read its `SKILL.md` completely
+and follow it, including its approvals, scope, and stopping rules. Delegate the
+segments it marks as isolated, one worker per segment, with no inherited
+conversation turns.
+
+Give each worker only:
 
 - The repository root.
-- The selected skill's identifier or `SKILL.md` location.
-- The selected outcome or application.
-- The latest relevant user reply, including referenced attachments, only when
-  it is not durable yet.
+- The selected `SKILL.md` location and the marked segment.
+- The selected outcome or application, and the durable artifacts it must read.
+- The single objective for this segment.
 
-Tell it to read the selected `SKILL.md` completely, derive all other context
-from durable project artifacts, execute until that workflow's next stopping
-condition, and return only:
+Tell it to derive every other fact from durable project artifacts, execute the
+segment until its stopping condition, and return only:
 
-- `status`: `needs-input`, `complete`, or `blocked`.
+- `status`: `complete` or `blocked`.
 - `user_message`: the concise, standalone message the user needs next.
 
-On `needs-input`, relay the message and reuse that worker for the user's reply.
-On `blocked`, close it and relay the blocker. On `complete`, close it and
-re-read durable state. If state did not advance, report the inconsistency and
-stop. Otherwise continue an unambiguous next workflow in a fresh worker, or ask
-only for the product choice needed to continue. If clean subagents are
-unavailable, execute the selected workflow locally with the same context and
-communication limits.
+Never delegate a segment that must ask the user something. A worker that
+reaches an unsettled product decision returns `blocked` naming that decision;
+resolve it here and delegate a fresh worker. Do not run independent writers or
+permit nested delegation. Workers share the worktree; this is context
+isolation, not filesystem isolation.
+
+After each worker, re-read the durable artifacts it was told to write. If they
+did not advance, report the inconsistency and stop. Otherwise relay
+`user_message` and continue the workflow here. When the workflow reports its
+outcome complete, re-read durable state and route again: continue an
+unambiguous next workflow, or ask only for the product choice needed to
+continue. If clean subagents are unavailable, execute the marked segments here
+under the same context and communication limits.
 
 ## Boundaries
 
@@ -80,7 +93,7 @@ not bypass that workflow's approvals, prerequisites, scope, or stopping rules.
 
 Use the fewest words that make the current state, immediate objective, and any
 required decision clear. Do not send a separate routing report: combine useful
-context with the worker's first action or question. Relay `user_message`
+context with the workflow's first action or question. Relay `user_message`
 without adding routing details.
 
 Write naturally; do not force a template. Normally use at most three short
@@ -89,5 +102,5 @@ generic advice, and rationale that does not change the decision. Expand only
 for a blocker, material risk, or an explicit request for detail.
 
 Do not narrate routine inspection, routing, delegation, or skill loading. Keep
-this rule active throughout the delegated workflow, except where its required
+this rule active throughout the selected workflow, except where its required
 artifact, warning, result, or approval needs more detail.
