@@ -11,6 +11,7 @@
 		"moduleDetection": "force",
 		"moduleResolution": "Bundler",
 		"noEmit": true,
+		"skipLibCheck": true,
 		"noFallthroughCasesInSwitch": true,
 		"noImplicitOverride": true,
 		"noPropertyAccessFromIndexSignature": true,
