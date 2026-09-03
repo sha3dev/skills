@@ -59,9 +59,9 @@ try {
 	}
 	if (
 		!application.progress ||
-		!["pending", "in-progress"].includes(application.progress.surface)
+		!["pending", "in-progress"].includes(application.progress["web-surface"])
 	) {
-		fail(`${application.name} surface is not open for initialization`);
+		fail(`${application.name} web-surface is not open for initialization`);
 	}
 
 	const applicationRoot = resolve(root, application.path);

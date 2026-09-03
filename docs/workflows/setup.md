@@ -23,9 +23,12 @@ migration, or repair command.
 
 ## Prerequisites
 
-The current directory must be an otherwise empty Git repository without
-`AGENTS.md` or `PROJECT.md`. Common repository metadata, installed agent
-skills, and `skills-lock.json` are allowed.
+The current directory must be a Git repository that contains no application
+code and none of setup's own output. Repository metadata, documentation,
+editor and CI configuration, installed agent skills, `skills-lock.json`, and an
+existing `node_modules` are allowed; `AGENTS.md`, `CLAUDE.md`, `PROJECT.md`,
+`package.json`, a lockfile, `apps/`, `packages/`, `src/`, the generated tooling
+configuration, and top-level JavaScript or TypeScript sources are not.
 
 ## Generated foundation
 
@@ -48,9 +51,11 @@ turbo.json
 
 `PROJECT.md` owns the global product definition, confirmed project-specific
 domain terms, application names, types, paths, responsibilities, logical
-relationships, and phase progress. Every application starts with its `surface`
-phase set to `pending`. The generated progress tool permits only deterministic
-`pending` to `in-progress` to `complete` transitions. Its Language section
+relationships, and phase progress. Every application starts with a single
+phase named after its type — `web-surface`, `api-surface`, or `worker-surface`
+— set to `pending`, so the outcome names the workflow that can advance it. The
+generated progress tool permits only deterministic `pending` to `in-progress`
+to `complete` transitions. Its Language section
 defines canonical terms without requirements, implementation details, or
 general programming terminology. Setup declares application paths without
 creating empty directories.

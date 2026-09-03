@@ -1,5 +1,30 @@
 # sha3dev-skills
 
+## 0.7.0
+
+### Minor Changes
+
+- Name each application's progress phase after its type, `web-surface`,
+  `api-surface`, or `worker-surface`, so an outcome identifies the workflow that
+  can advance it. Route `flow` deterministically from a phase named `<phase>` to
+  the installed workflow skill named `to-<phase>` instead of matching skill
+  descriptions, treat a phase whose workflow is not installed as ineligible, and
+  name the missing workflow rather than routing into one that rejects the
+  application. Previously every application declared a single `surface` phase,
+  so `api` and `worker` applications produced an outcome no installed workflow
+  could accept.
+
+  Existing generated repositories must rename each `- \`surface\`:` progress
+  line in `PROJECT.md` to its application's typed phase before using the
+  progress tool again.
+
+- Detect setup readiness by rejecting only genuine conflicts instead of allowing
+  a fixed list of entries. A repository is ready when it contains no application
+  code, no `package.json` or lockfile, no `apps/`, `packages/` or `src/`, none of
+  the generated tooling configuration, and none of setup's own output.
+  Documentation, editor and CI configuration, an existing `node_modules`, and
+  other unrelated files no longer block initialization.
+
 ## 0.6.0
 
 ### Minor Changes
