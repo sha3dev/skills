@@ -28,10 +28,6 @@ the phase completes only after approval of the whole interface.
 
 ## Where it fits
 
-The specification interview and each increment review happen in the invoking
-conversation; workspace initialization and implementation increments run as
-isolated segments so their tool output stays out of it.
-
 `setup` defines applications and progress. `interview` supplies the reusable
 decision discipline. `to-web-surface` applies it to a web UI; other surface
 flows can apply the same toolkit to their own decision spaces and artifacts.

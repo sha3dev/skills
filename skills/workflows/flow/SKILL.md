@@ -1,6 +1,6 @@
 ---
 name: flow
-description: Inspect durable project state, select the appropriate installed workflow, and run it while isolating its tool-heavy segments in subagents. Use explicitly without arguments to enter or continue a project.
+description: Inspect durable project state, select the appropriate installed workflow, and run it in an isolated subagent when supported. Use explicitly without arguments to enter or continue a project.
 disable-model-invocation: true
 ---
 
@@ -23,7 +23,8 @@ Enter or continue the project's workflow. The skill takes no arguments.
    order or prerequisite. Never infer `complete` from artifacts, code, or
    checks when the canonical progress source does not record it.
 3. Match that outcome to an installed workflow skill using exposed descriptions.
-   Exclude this orchestrator.
+   Exclude this orchestrator. Do not load the selected `SKILL.md` or its working
+   artifacts into this context.
 4. If several outcomes have equal priority, use clear conversation context to
    disambiguate. Otherwise state the minimum useful context, recommend one only
    when evidence supports it, and ask for the product choice needed to route.
@@ -38,47 +39,47 @@ workflow.
 
 ## Delegate
 
-Isolation is not free. Every worker costs a spawn and a full re-read of durable
-state, so spend it only where it removes context this conversation would
-otherwise carry.
+The unit of delegation is one workflow run: one skill, one outcome, one
+application. Its end is the only natural place to drop context. An interface
+interview and its increments are worth nothing to the next application, and
+carrying them there anchors new decisions on old ones.
 
-Relayed questions and user replies land here either way, so isolating an
-interactive segment removes almost nothing and charges a worker for every
-answer. Isolate the opposite shape: segments that produce heavy tool output —
-installation, generated code, repository checks, builds, browser inspection —
-and need no user reply until they finish.
+Once the route is unambiguous, spawn exactly one worker for that run, with no
+inherited conversation turns. Reuse that same worker for every user reply
+inside the run. Never re-spawn it per question: that trades a warm context for
+a re-read of the skill, its artifacts, and the code already written, on every
+turn. If workers cannot stay alive across turns, run the workflow in this
+context instead, under the same communication limits — repeated cold spawns
+cost more than they isolate.
 
-So run the selected workflow in this context. Read its `SKILL.md` completely
-and follow it, including its approvals, scope, and stopping rules. Delegate the
-segments it marks as isolated, one worker per segment, with no inherited
-conversation turns.
-
-Give each worker only:
+Give the worker only:
 
 - The repository root.
-- The selected `SKILL.md` location and the marked segment.
-- The selected outcome or application, and the durable artifacts it must read.
-- The single objective for this segment.
+- The selected skill's identifier or `SKILL.md` location.
+- The selected outcome or application.
+- The latest relevant user reply, including referenced attachments, only when
+  it is not durable yet.
 
-Tell it to derive every other fact from durable project artifacts, execute the
-segment until its stopping condition, and return only:
+Tell it to read the selected `SKILL.md` completely, derive every other fact
+from durable project artifacts, execute until that workflow's next stopping
+condition, and return only:
 
-- `status`: `complete` or `blocked`.
+- `status`: `needs-input`, `complete`, or `blocked`.
 - `user_message`: the concise, standalone message the user needs next.
 
-Never delegate a segment that must ask the user something. A worker that
-reaches an unsettled product decision returns `blocked` naming that decision;
-resolve it here and delegate a fresh worker. Do not run independent writers or
-permit nested delegation. Workers share the worktree; this is context
-isolation, not filesystem isolation.
+On `needs-input`, relay the message and send the user's reply back to the same
+worker. On `blocked`, close it and relay the blocker. On `complete`, close it
+and re-read durable state.
 
-After each worker, re-read the durable artifacts it was told to write. If they
-did not advance, report the inconsistency and stop. Otherwise relay
-`user_message` and continue the workflow here. When the workflow reports its
-outcome complete, re-read durable state and route again: continue an
-unambiguous next workflow, or ask only for the product choice needed to
-continue. If clean subagents are unavailable, execute the marked segments here
-under the same context and communication limits.
+Closing a worker ends that run's context, which is the point. Do not carry its
+questions, answers, or intermediate results into the next routing decision;
+re-read `PROJECT.md` and the relevant workflow artifacts instead. If state did
+not advance, report the inconsistency and stop. Otherwise continue an
+unambiguous next workflow in a fresh worker, or ask only for the product choice
+needed to continue.
+
+Do not run independent writers or permit nested delegation. Workers share the
+worktree; this is context isolation, not filesystem isolation.
 
 ## Boundaries
 
@@ -93,7 +94,7 @@ not bypass that workflow's approvals, prerequisites, scope, or stopping rules.
 
 Use the fewest words that make the current state, immediate objective, and any
 required decision clear. Do not send a separate routing report: combine useful
-context with the workflow's first action or question. Relay `user_message`
+context with the worker's first action or question. Relay `user_message`
 without adding routing details.
 
 Write naturally; do not force a template. Normally use at most three short
@@ -102,5 +103,5 @@ generic advice, and rationale that does not change the decision. Expand only
 for a blocker, material risk, or an explicit request for detail.
 
 Do not narrate routine inspection, routing, delegation, or skill loading. Keep
-this rule active throughout the selected workflow, except where its required
+this rule active throughout the delegated workflow, except where its required
 artifact, warning, result, or approval needs more detail.

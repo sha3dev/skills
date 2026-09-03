@@ -13,12 +13,11 @@
 - Rename the workflow category from `flow` to `workflows`, avoiding ambiguity
   between the category and its `flow` orchestrator.
 
-- Delegate by context cost instead of by workflow boundary. Run the selected
-  workflow in the routing context and isolate only the segments it marks as
-  tool-heavy and non-interactive, because a relayed question and its answer
-  reach that context either way. Let `to-web-surface` declare its interview and
-  reviews as interactive and its initialization and implementation increments
-  as isolated segments.
+- Make one workflow run the unit of delegation. Keep a single worker alive for
+  a run's whole duration instead of re-spawning it per question, and fall back
+  to local execution where workers cannot persist. Drop that run's context at
+  its boundary so a new application starts from durable artifacts rather than
+  from the previous one's decisions.
 
 ## 0.5.0
 
