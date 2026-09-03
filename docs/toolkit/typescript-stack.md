@@ -47,11 +47,23 @@ Vite, and TypeScript uses `noEmit` only for static checking.
 No. The standard defines compatible minimums. Each repository pins its own
 resolved versions and verifies them against those minimums.
 
-## One gate
+### Why are there two check gates?
 
-`npm run check` already runs the toolchain verification, so a code change never
-verifies it separately. The workflow that owns the run checks the toolchain once
-on entry; every increment inside that run reaches it through `npm run check`.
+Because the two kinds of question have different answers mid-task. Formatting,
+lint, and types must hold after every edit, so `npm run check:code` runs in the
+iteration loop. Reachability must hold only once the work is wired up: a
+component written before the screen that renders it is legitimately unused, and
+Knip is right to report it and wrong to be obeyed at that moment. The full
+`npm run check` adds that analysis and runs at a task or phase boundary, so an
+unused-code report there is a real finding rather than a snapshot of unfinished
+work.
+
+## No third gate
+
+The two gates are the whole verification surface of a code change. `npm run
+check` already runs the toolchain verification, so a code change never verifies
+it separately. The workflow that owns the run checks the toolchain once on
+entry; every increment inside that run reaches it through `npm run check`.
 
 The verification separates an uninstalled `node_modules` from a broken
 toolchain: the first asks for `npm install`, the second is a configuration
@@ -59,8 +71,10 @@ problem to report rather than repair mid-change.
 
 ## It's working if
 
-Safe Biome fixes are limited to edited paths, and the complete repository
-`npm run check` gate is green without suppressions or weakened configuration.
+Safe Biome fixes are limited to edited paths, the iteration loop stays green on
+`npm run check:code` without deleting unfinished work, and the complete
+`npm run check` gate is green at the boundary without suppressions or weakened
+configuration.
 
 ## Where it fits
 

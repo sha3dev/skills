@@ -36,6 +36,22 @@
   its boundary so a new application starts from durable artifacts rather than
   from the previous one's decisions.
 
+- Separate the per-edit gate from the boundary gate. A new `check:code` script
+  runs Biome and type checking, the invariants that hold after every edit, and
+  is what `typescript-stack` and `to-web-surface` run between increments.
+  `npm run check` keeps its full meaning and adds Knip's unused-code analysis at
+  a task or phase boundary. Previously the increment loop ran the complete gate,
+  so a component written before the screen that renders it failed as an unused
+  file and the instruction to resolve diagnostics at their source pointed at
+  deleting correct work in progress.
+
+- Make the unused-code check silent when it has nothing to report. `knip.json`
+  no longer ignores `dist` and `.turbo`, which Knip already skips through the
+  `.gitignore` setup guarantees, and `check:knip` suppresses configuration
+  hints. Every run previously printed four hints asking to delete generated
+  rules, including the opaque-asset boundary that has no match until an
+  application ships one and that the repository must keep.
+
 ### Patch Changes
 
 - Verify the toolchain once per workflow run instead of once per code change.

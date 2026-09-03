@@ -78,6 +78,13 @@ never type-checked against the same globals. The root `typecheck` script runs
 `turbo run typecheck` across workspaces, which is a no-op until the first one
 exists.
 
+The generated scripts separate two gates. `npm run check:code` runs Biome and
+type checking, the invariants that must hold after every edit, and is what an
+incremental workflow runs between steps. `npm run check` is the complete gate:
+it adds the project-state check, the toolchain verifier, and Knip's unused-code
+analysis, and belongs at a task or phase boundary where unwired code is a real
+finding rather than work in progress.
+
 `.gitignore` is the one conditional output. Setup writes the template when the
 repository has none, and otherwise leaves an existing file untouched after
 checking that it already ignores `node_modules`, `dist`, `.turbo`, and
@@ -100,6 +107,13 @@ JavaScript that must be delivered without transformation is permitted only at
 `apps/<app>/surface/public/**/*.js`. Biome and Knip ignore that narrow asset
 boundary; other JavaScript module formats under `apps/` and `packages/` are
 rejected.
+
+That asset boundary and `.agents/` are the only paths `knip.json` names. Knip
+already skips whatever `.gitignore` covers, which setup guarantees includes
+`dist` and `.turbo`, so listing them again would be dead configuration. Knip
+runs with its configuration hints suppressed: a generated rule that matches
+nothing yet is expected, and the hint asking to delete it is advice the
+repository must not take.
 
 Biome checks `skills-lock.json` using the upstream skills installer's canonical
 two-space serialization. The lockfile remains tool-owned and committed for

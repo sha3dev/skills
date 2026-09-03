@@ -29,8 +29,10 @@ The operator can resume from `SURFACE.md`, receives one short UI decision at a
 time with a useful recommendation, and approves the specification before code
 is written. Each implementation turn produces a runnable, reviewed increment at
 the same preview URL, which one development server serves through hot module
-replacement for the whole workflow and releases when the workflow ends. The
-phase completes only after approval of the whole interface.
+replacement for the whole workflow and releases when the workflow ends. An
+increment may leave a component the interface does not render yet without the
+checks demanding its deletion. The phase completes only after approval of the
+whole interface and a green full `npm run check`.
 
 ## Where it fits
 

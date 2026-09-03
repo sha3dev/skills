@@ -273,14 +273,13 @@ async function buildFiles(input) {
 	]
 		.map((name) => `\t\t${JSON.stringify(name)}`)
 		.join(",\n");
+	// Knip already skips everything .gitignore covers, which setup guarantees
+	// includes dist and .turbo. Only tracked files it cannot resolve are listed.
+	// This literal is written in Biome's formatting, which keeps a short array
+	// on one line; `npm run check:biome` fails on the generated file otherwise.
 	const knip = `{
 \t"$schema": "https://unpkg.com/knip@${policy.minimumToolVersions.knip}/schema.json",
-\t"ignore": [
-\t\t".agents/**",
-\t\t"**/.turbo/**",
-\t\t"**/dist/**",
-\t\t"apps/*/surface/public/**/*.js"
-\t],
+\t"ignore": [".agents/**", "apps/*/surface/public/**/*.js"],
 \t"ignoreDependencies": [
 ${ignoredDependencies}
 \t]
