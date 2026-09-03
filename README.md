@@ -115,7 +115,7 @@ Reusable constraints, practices, and specialist guidance that support the workfl
 | [`shadcn`](./docs/toolkit/shadcn.md) | Automatic | Work with shadcn projects, registries, components, and presets using live project and CLI context. |
 
 `flow` is the only workflow entry point users need to know. It selects and
-continues the applicable installed workflow in an isolated subagent context
+continues the applicable installed workflow in an isolated worker context
 when supported. Each workflow gets one writer and durable artifacts remain
 canonical.
 Internally, `setup` runs once and `to-web-surface` handles a `web` application;

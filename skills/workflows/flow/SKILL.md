@@ -1,6 +1,6 @@
 ---
 name: flow
-description: Inspect durable project state, select the appropriate installed workflow, and run it in an isolated subagent when supported. Use explicitly without arguments to enter or continue a project.
+description: Inspect durable project state, select the appropriate installed workflow, and run it in an isolated worker context when supported. Use explicitly without arguments to enter or continue a project.
 disable-model-invocation: true
 ---
 
@@ -42,13 +42,15 @@ application. Its end is the only natural place to drop context. An interface
 interview and its increments are worth nothing to the next application, and
 carrying them there anchors new decisions on old ones.
 
-Once the route is unambiguous, spawn exactly one worker for that run, with no
-inherited conversation turns. Reuse that same worker for every user reply
-inside the run. Never re-spawn it per question: that trades a warm context for
-a re-read of the skill, its artifacts, and the code already written, on every
-turn. If workers cannot stay alive across turns, run the workflow in this
-context instead, under the same communication limits — repeated cold spawns
-cost more than they isolate.
+Once the route is unambiguous, spawn exactly one worker for that run. It must
+start from an empty context: inherit no conversation turns, and receive only
+the values listed below. If the delegation mechanism can only fork the current
+context, it is not clean; treat it as unavailable. Reuse that same worker for
+every user reply inside the run. Never re-spawn it per question: that trades a
+warm context for a re-read of the skill, its artifacts, and the code already
+written, on every turn. If no clean worker is available, or workers cannot stay
+alive across turns, run the workflow in this context instead, under the same
+communication limits — repeated cold spawns cost more than they isolate.
 
 Background processes a worker starts, such as a development server, belong to
 that worker and outlive it. Require it to stop them before returning `complete`
