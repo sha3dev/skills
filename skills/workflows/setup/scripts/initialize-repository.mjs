@@ -35,9 +35,6 @@ function text(value, path) {
 	}
 	const normalized = value.trim();
 	if (/\r|\n/.test(normalized)) fail(`${path} must be a single line`);
-	if (normalized.includes("{{") || normalized.includes("}}")) {
-		fail(`${path} contains a template delimiter`);
-	}
 	return normalized;
 }
 
@@ -163,20 +160,6 @@ function normalizeInput(raw) {
 	return { title, definition, terms, applications, relationships };
 }
 
-function render(template, replacements, path) {
-	let output = template;
-	for (const [placeholder, value] of Object.entries(replacements)) {
-		output = output.replaceAll(`{{${placeholder}}}`, value);
-	}
-	const remaining = output.match(/\{\{[A-Z0-9_]+\}\}/g);
-	if (remaining) {
-		fail(
-			`${path} has unresolved placeholders: ${[...new Set(remaining)].join(", ")}`,
-		);
-	}
-	return output.endsWith("\n") ? output : `${output}\n`;
-}
-
 async function loadAsset(name) {
 	return readFile(resolve(assetDirectory, name), "utf8");
 }
@@ -190,7 +173,6 @@ async function buildFiles(input) {
 		loadAsset("AGENTS.md"),
 		loadAsset("CLAUDE.md"),
 		loadAsset("gitignore"),
-		loadAsset("PROJECT.md"),
 		readFile(resolve(scriptDirectory, "repo-state.mjs"), "utf8"),
 		loadAsset("tooling/project-progress.mjs"),
 		loadAsset("tooling/biome.json"),
@@ -204,10 +186,9 @@ async function buildFiles(input) {
 		agents,
 		claude,
 		gitignore,
-		projectTemplate,
 		repoState,
 		projectProgress,
-		biome,
+		biomeBase,
 		tsconfig,
 		turbo,
 		policySource,
@@ -215,6 +196,10 @@ async function buildFiles(input) {
 		versionPolicy,
 	] = assets;
 	const policy = JSON.parse(policySource);
+	const biome = biomeBase.replace(
+		"{\n",
+		`{\n\t"$schema": "https://biomejs.dev/schemas/${policy.minimumToolVersions["@biomejs/biome"]}/schema.json",\n`,
+	);
 	const nodeVersion = process.versions.node;
 	const npmVersion = execFileSync("npm", ["--version"], {
 		encoding: "utf8",
@@ -226,28 +211,19 @@ async function buildFiles(input) {
 	);
 	assertMinimumVersion(npmVersion, policy.minimumRuntimeVersions.npm, "npm");
 
-	const applicationLines = input.applications.map(
-		(application) => `### ${application.name}
-
-- Type: \`${application.type}\`
-- Path: \`apps/${application.folder}/\`
-- Responsibility: ${application.responsibility}
-- Progress:
-  - \`${application.type}-surface\`: \`pending\``,
-	);
-	const relationshipSection = input.relationships.length
-		? `\n\n## Relationships\n\n${input.relationships
-				.map(
-					(relationship) =>
-						`- **${relationship.from}** → **${relationship.to}** — ${relationship.description}`,
-				)
-				.join("\n")}`
-		: "";
-	const languageSection = input.terms.length
-		? `## Language\n\n${input.terms
-				.map((entry) => `**${entry.term}**:\n${entry.definition}`)
-				.join("\n\n")}`
-		: "## Language";
+	const project = {
+		title: input.title,
+		definition: input.definition,
+		terms: input.terms,
+		applications: input.applications.map((application) => ({
+			name: application.name,
+			type: application.type,
+			path: `apps/${application.folder}/`,
+			responsibility: application.responsibility,
+			progress: { [`${application.type}-surface`]: "pending" },
+		})),
+		relationships: input.relationships,
+	};
 
 	const packageJson = formattedJson({
 		private: true,
@@ -279,7 +255,7 @@ async function buildFiles(input) {
 	// on one line; `npm run check:biome` fails on the generated file otherwise.
 	const knip = `{
 \t"$schema": "https://unpkg.com/knip@${policy.minimumToolVersions.knip}/schema.json",
-\t"ignore": [".agents/**", "apps/*/surface/public/**/*.js"],
+\t"ignore": [".flow/**", "apps/*/public/**/*.js"],
 \t"ignoreDependencies": [
 ${ignoredDependencies}
 \t]
@@ -289,44 +265,34 @@ ${ignoredDependencies}
 		{ path: "AGENTS.md", content: agents, copiedFrom: "assets/AGENTS.md" },
 		{ path: "CLAUDE.md", content: claude, copiedFrom: "assets/CLAUDE.md" },
 		{
-			path: "PROJECT.md",
-			content: render(
-				projectTemplate,
-				{
-					PROJECT_TITLE: input.title,
-					PROJECT_DEFINITION: input.definition,
-					LANGUAGE_SECTION: languageSection,
-					APPLICATIONS: applicationLines.join("\n\n"),
-					RELATIONSHIPS: relationshipSection,
-				},
-				"PROJECT.md",
-			),
+			path: ".flow/project.json",
+			content: formattedJson(project),
 		},
 		{
-			path: ".agents/tools/repo-state.mjs",
+			path: ".flow/tools/repo-state.mjs",
 			content: repoState,
 			copiedFrom: "scripts/repo-state.mjs",
 			mode: 0o755,
 		},
 		{
-			path: ".agents/tools/project-progress.mjs",
+			path: ".flow/tools/project-progress.mjs",
 			content: projectProgress,
 			copiedFrom: "assets/tooling/project-progress.mjs",
 			mode: 0o755,
 		},
 		{
-			path: ".agents/tools/verify-toolchain.mjs",
+			path: ".flow/tools/verify-toolchain.mjs",
 			content: toolchainVerifier,
 			copiedFrom: "assets/tooling/verify-toolchain.mjs",
 			mode: 0o755,
 		},
 		{
-			path: ".agents/tools/version-policy.mjs",
+			path: ".flow/tools/version-policy.mjs",
 			content: versionPolicy,
 			copiedFrom: "assets/tooling/version-policy.mjs",
 		},
 		{
-			path: ".agents/toolchain-policy.json",
+			path: ".flow/toolchain-policy.json",
 			content: policySource,
 			copiedFrom: "assets/tooling/toolchain-policy.json",
 		},
@@ -418,8 +384,8 @@ async function preflight(root, files) {
 }
 
 function preview(files) {
-	const project = files.find((file) => file.path === "PROJECT.md");
-	if (!project) fail("PROJECT.md is missing from setup output");
+	const project = files.find((file) => file.path === ".flow/project.json");
+	if (!project) fail(".flow/project.json is missing from setup output");
 	return project.content;
 }
 
@@ -439,8 +405,8 @@ async function writeFiles(root, files) {
 	const createdDirectories = [];
 
 	try {
-		await ensureDirectory(resolve(root, ".agents"), createdDirectories);
-		await ensureDirectory(resolve(root, ".agents/tools"), createdDirectories);
+		await ensureDirectory(resolve(root, ".flow"), createdDirectories);
+		await ensureDirectory(resolve(root, ".flow/tools"), createdDirectories);
 
 		const ordered = [...files].sort((left, right) =>
 			left.path.localeCompare(right.path),

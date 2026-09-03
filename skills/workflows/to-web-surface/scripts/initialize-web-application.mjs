@@ -2,9 +2,9 @@
 
 import { execFileSync } from "node:child_process";
 import { mkdir, readFile, rm, rmdir, stat, writeFile } from "node:fs/promises";
-import { basename, dirname, join, relative, resolve, sep } from "node:path";
+import { basename, join, relative, resolve, sep } from "node:path";
 
-const surfacePort = 4300;
+const previewPort = 4300;
 
 function fail(message) {
 	process.stderr.write(`${message}\n`);
@@ -47,7 +47,7 @@ try {
 	const args = process.argv.slice(2);
 	const root = resolve(option(args, "--root"));
 	const applicationName = option(args, "--app");
-	const progressTool = join(root, ".agents/tools/project-progress.mjs");
+	const progressTool = join(root, ".flow/tools/project-progress.mjs");
 	const result = JSON.parse(
 		execFileSync(
 			process.execPath,
@@ -71,19 +71,19 @@ try {
 	if (!/^apps\/[^/]+$/.test(repositoryPath)) {
 		fail(`Invalid application path: ${application.path}`);
 	}
-	const surfaceRoot = join(applicationRoot, "surface");
-	const surfacePath = `${repositoryPath}/surface/`;
-	const previewUrl = `http://localhost:${surfacePort}/`;
-	const packagePath = join(surfaceRoot, "package.json");
+	const workspacePath = `${repositoryPath}/`;
+	const sourceRoot = join(applicationRoot, "src");
+	const previewUrl = `http://localhost:${previewPort}/`;
+	const packagePath = join(applicationRoot, "package.json");
 	if (await exists(packagePath)) {
 		const existingPackage = JSON.parse(await readFile(packagePath, "utf8"));
 		process.stdout.write(
-			`${JSON.stringify({ status: "already-initialized", application: application.name, path: surfacePath, workspace: existingPackage.name, url: previewUrl })}\n`,
+			`${JSON.stringify({ status: "already-initialized", application: application.name, path: workspacePath, workspace: existingPackage.name, url: previewUrl })}\n`,
 		);
 		process.exit(0);
 	}
-	if (await exists(surfaceRoot)) {
-		fail(`Surface path already exists: ${surfacePath}`);
+	if (await exists(sourceRoot)) {
+		fail(`Application source path already exists: ${workspacePath}src/`);
 	}
 	const applicationRootExisted = await exists(applicationRoot);
 
@@ -92,7 +92,7 @@ try {
 	);
 	const slug = basename(applicationRoot);
 	const packageJson = {
-		name: `@project/${slug}-surface`,
+		name: `@apps/${slug}`,
 		private: true,
 		type: "module",
 		scripts: {
@@ -126,7 +126,7 @@ try {
 		},
 	};
 	const tsconfig = `{
-\t"extends": "../../../tsconfig.base.json",
+\t"extends": "../../tsconfig.base.json",
 \t"compilerOptions": {
 \t\t"jsx": "react-jsx",
 \t\t"lib": ["ES2024", "DOM", "DOM.Iterable"]
@@ -143,7 +143,7 @@ try {
 		],
 		[
 			"vite.config.ts",
-			`import react from "@vitejs/plugin-react";\nimport { defineConfig } from "vite";\n\nexport default defineConfig({\n\tplugins: [react()],\n\tserver: { port: ${surfacePort}, strictPort: true },\n});\n`,
+			`import react from "@vitejs/plugin-react";\nimport { defineConfig } from "vite";\n\nexport default defineConfig({\n\tplugins: [react()],\n\tserver: { port: ${previewPort}, strictPort: true },\n});\n`,
 		],
 		[
 			"src/App.tsx",
@@ -160,21 +160,34 @@ try {
 		["src/vite-env.d.ts", '/// <reference types="vite/client" />\n'],
 	]);
 
-	await mkdir(surfaceRoot, { recursive: true });
+	for (const path of files.keys()) {
+		if (await exists(join(applicationRoot, path))) {
+			fail(`Application file already exists: ${workspacePath}${path}`);
+		}
+	}
+
+	const createdFiles = [];
+	let sourceRootCreated = false;
+	await mkdir(applicationRoot, { recursive: true });
 	try {
+		await mkdir(sourceRoot);
+		sourceRootCreated = true;
 		for (const [path, content] of files) {
-			const target = join(surfaceRoot, path);
-			await mkdir(dirname(target), { recursive: true });
+			const target = join(applicationRoot, path);
 			await writeFile(target, content, { flag: "wx" });
+			createdFiles.push(target);
 		}
 	} catch (error) {
-		await rm(surfaceRoot, { recursive: true, force: true });
+		for (const path of createdFiles.reverse()) {
+			await rm(path, { force: true });
+		}
+		if (sourceRootCreated) await rmdir(sourceRoot).catch(() => {});
 		if (!applicationRootExisted) await rmdir(applicationRoot).catch(() => {});
 		throw error;
 	}
 
 	process.stdout.write(
-		`${JSON.stringify({ status: "initialized", application: application.name, path: surfacePath, workspace: packageJson.name, url: previewUrl })}\n`,
+		`${JSON.stringify({ status: "initialized", application: application.name, path: workspacePath, workspace: packageJson.name, url: previewUrl })}\n`,
 	);
 } catch (error) {
 	fail(error.message);

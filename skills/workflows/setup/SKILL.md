@@ -33,10 +33,14 @@ are outside setup.
 The generator derives a unique kebab-case path under `apps/` from each
 application name and initializes one progress phase named after its type,
 `<type>-surface`, as `pending`.
-`PROJECT.md` is the sole persistent source for these values, paths, and progress.
-It keeps an empty Language section when there are no terms and omits
-Relationships when there are none. Setup configures npm workspaces and Turborepo
-but does not create empty application directories.
+`.flow/project.json` is the sole persistent source for these values, paths, and
+progress.
+It keeps empty `terms` and `relationships` arrays when there are none. Setup
+configures npm workspaces and Turborepo
+so each declared `apps/<app>/` path becomes a workspace when materialized, but
+does not create empty application directories. Application source belongs under
+that workspace's `src/` directory. Name application workspaces `@apps/<slug>`
+and reusable package workspaces `@packages/<slug>`.
 
 ## Process
 
@@ -46,7 +50,7 @@ but does not create empty application directories.
    definition and ask for confirmation. Ask what each application interacts with
    and propose missing applications for confirmation.
 3. Write the agreed JSON to a temporary file outside the repository. Run the bundled `scripts/initialize-repository.mjs` with `--root .`, `--input <temporary-file>`, and `--dry-run`.
-4. Present the generated `PROJECT.md` for approval. Do not manually create or edit any output.
+4. Present the generated `.flow/project.json` for approval. Do not manually create or edit any output.
 5. After approval, run the same command with the same input using `--write`, then run `npm install` and `npm run check`. Report the results, remove the temporary input, and stop. Do not start another workflow stage.
 
 The scripts own validation, rendering, collision detection, writing, and

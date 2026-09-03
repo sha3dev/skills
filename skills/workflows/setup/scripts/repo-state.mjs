@@ -48,15 +48,18 @@ export async function getRepositoryState(rootInput = ".") {
 	}
 
 	const entries = await readdir(root);
-	const markers = ["PROJECT.md"].filter((entry) => entries.includes(entry));
+	const projectMarker = ".flow/project.json";
+	const markers = (await exists(resolve(root, projectMarker)))
+		? [projectMarker]
+		: [];
 
 	if (markers.length > 0) {
-		const progressTool = resolve(root, ".agents/tools/project-progress.mjs");
+		const progressTool = resolve(root, ".flow/tools/project-progress.mjs");
 		if (!(await exists(progressTool))) {
 			return {
 				state: "invalid_project",
 				markers,
-				error: ".agents/tools/project-progress.mjs is missing",
+				error: ".flow/tools/project-progress.mjs is missing",
 			};
 		}
 		const progress = spawnSync(
@@ -68,7 +71,7 @@ export async function getRepositoryState(rootInput = ".") {
 			return {
 				state: "invalid_project",
 				markers,
-				error: progress.stderr.trim() || "PROJECT.md could not be parsed",
+				error: progress.stderr.trim() || ".flow/project.json could not be parsed",
 			};
 		}
 		return {
@@ -81,7 +84,7 @@ export async function getRepositoryState(rootInput = ".") {
 	const reservedOutputs = [
 		"AGENTS.md",
 		"CLAUDE.md",
-		".agents/tools/repo-state.mjs",
+		".flow/tools/repo-state.mjs",
 	];
 	const conflicts = [];
 

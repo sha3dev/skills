@@ -1,5 +1,39 @@
 # sha3dev-skills
 
+## 0.8.0
+
+### Added
+
+- Add one end-to-end setup smoke test and run it in CI. The test initializes a
+  generated repository, installs it, checks it, initializes its web application,
+  and builds it.
+
+### Changed
+
+- Keep durable workflow state and its project-owned tools together under
+  `.flow/`: the project contract is `.flow/project.json`, and application
+  specifications use `.flow/applications/<application-slug>/surface.md`.
+
+- Replace the generated Markdown project contract with structured JSON so
+  project values cannot break parsing and progress updates do not depend on
+  document formatting.
+
+- Make the toolchain policy the only dependency-version source. Root development
+  dependencies are no longer duplicated, and generated Biome and Knip schemas
+  both derive their versions from the policy.
+
+- Make each declared `apps/<app>/` path the application workspace and reserve
+  its `src/` directory for application source. Keep `surface` as workflow and
+  phase terminology instead of also using it as the workspace directory name.
+  Opaque JavaScript assets now belong under `apps/<app>/public/`. Application
+  workspace names use `@apps/<slug>` and reusable package names use
+  `@packages/<slug>`.
+
+- Clarify workflow gates and completion: increments run `check:code`, phase
+  boundaries run the complete `check`, web surfaces must build before being
+  marked complete, and unavailable browser tooling leaves visual verification
+  pending for explicit desktop and mobile confirmation.
+
 ## 0.7.0
 
 ### Minor Changes

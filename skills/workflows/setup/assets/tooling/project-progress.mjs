@@ -4,6 +4,7 @@ import { readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 
 const statuses = ["pending", "in-progress", "complete"];
+const applicationTypes = ["web", "api", "worker"];
 
 function fail(message) {
 	process.stderr.write(`${message}\n`);
@@ -15,62 +16,63 @@ function option(args, name) {
 	return index === -1 ? undefined : args[index + 1];
 }
 
-function parseApplications(source) {
-	const heading = "## Applications\n";
-	const start = source.indexOf(heading);
-	if (start === -1) fail("PROJECT.md has no Applications section");
-	const contentStart = start + heading.length;
-	const end = source.indexOf("\n## ", contentStart);
-	const section = source.slice(contentStart, end === -1 ? source.length : end);
-	const pattern =
-		/^### (.+)\n\n- Type: `(web|api|worker)`\n- Path: `([^`]+)`\n- Responsibility: ([^\n]+)\n- Progress:\n((?: {2}- `[^`]+`: `(?:pending|in-progress|complete)`\n)+)/gm;
-	const applications = [];
-	let cursor = 0;
-
-	for (const match of section.matchAll(pattern)) {
-		if (section.slice(cursor, match.index).trim()) {
-			fail("PROJECT.md contains an invalid application");
-		}
-		const progress = {};
-		for (const phase of match[5].matchAll(
-			/^ {2}- `([^`]+)`: `(pending|in-progress|complete)`$/gm,
-		)) {
-			if (progress[phase[1]])
-				fail(`Duplicate phase in ${match[1]}: ${phase[1]}`);
-			progress[phase[1]] = phase[2];
-		}
-		const surfacePhase = `${match[2]}-surface`;
-		if (!progress[surfacePhase]) {
-			fail(`${match[1]} has no ${surfacePhase} phase`);
-		}
-		applications.push({
-			name: match[1],
-			type: match[2],
-			path: match[3],
-			responsibility: match[4],
-			progress,
-			start: contentStart + match.index,
-			end: contentStart + match.index + match[0].length,
-		});
-		cursor = match.index + match[0].length;
+function nonEmptyString(value, path) {
+	if (typeof value !== "string" || !value.trim()) {
+		fail(`${path} must be a non-empty string`);
 	}
-
-	if (applications.length === 0) fail("PROJECT.md has no valid applications");
-	if (section.slice(cursor).trim()) {
-		fail("PROJECT.md contains an invalid application");
-	}
-	const names = new Set();
-	for (const application of applications) {
-		const name = application.name.toLocaleLowerCase("en");
-		if (names.has(name)) fail(`Duplicate application: ${application.name}`);
-		names.add(name);
-	}
-	return applications;
+	return value;
 }
 
-function publicApplication(application) {
-	const { start: _start, end: _end, ...result } = application;
-	return result;
+function parseApplications(project) {
+	if (!project || typeof project !== "object" || Array.isArray(project)) {
+		fail(".flow/project.json must contain an object");
+	}
+	if (!Array.isArray(project.applications) || project.applications.length === 0) {
+		fail(".flow/project.json has no valid applications");
+	}
+
+	const names = new Set();
+	const paths = new Set();
+	return project.applications.map((application, index) => {
+		const label = `applications[${index}]`;
+		if (!application || typeof application !== "object" || Array.isArray(application)) {
+			fail(`${label} must be an object`);
+		}
+		const name = nonEmptyString(application.name, `${label}.name`);
+		const normalizedName = name.toLocaleLowerCase("en");
+		if (names.has(normalizedName)) fail(`Duplicate application: ${name}`);
+		names.add(normalizedName);
+
+		const type = nonEmptyString(application.type, `${label}.type`);
+		if (!applicationTypes.includes(type)) {
+			fail(`${label}.type must be web, api, or worker`);
+		}
+		const path = nonEmptyString(application.path, `${label}.path`);
+		if (!/^apps\/[^/]+\/$/.test(path)) {
+			fail(`${label}.path must match apps/<app>/`);
+		}
+		if (paths.has(path)) fail(`Duplicate application path: ${path}`);
+		paths.add(path);
+
+		nonEmptyString(application.responsibility, `${label}.responsibility`);
+		if (
+			!application.progress ||
+			typeof application.progress !== "object" ||
+			Array.isArray(application.progress)
+		) {
+			fail(`${label}.progress must be an object`);
+		}
+		for (const [phase, status] of Object.entries(application.progress)) {
+			if (!phase || !statuses.includes(status)) {
+				fail(`${label}.progress contains an invalid phase or status`);
+			}
+		}
+		const surfacePhase = `${type}-surface`;
+		if (!application.progress[surfacePhase]) {
+			fail(`${name} has no ${surfacePhase} phase`);
+		}
+		return application;
+	});
 }
 
 try {
@@ -81,7 +83,7 @@ try {
 	const phase = option(args, "--phase");
 	const nextStatus = option(args, "--set");
 	const reopen = args.includes("--reopen");
-	if (type && !["web", "api", "worker"].includes(type)) {
+	if (type && !applicationTypes.includes(type)) {
 		fail("--type must be web, api, or worker");
 	}
 	if (nextStatus && !statuses.includes(nextStatus)) {
@@ -91,9 +93,9 @@ try {
 		fail("--set requires --app and --phase");
 	}
 
-	const projectPath = join(root, "PROJECT.md");
-	const source = await readFile(projectPath, "utf8");
-	let applications = parseApplications(source);
+	const projectPath = join(root, ".flow/project.json");
+	const project = JSON.parse(await readFile(projectPath, "utf8"));
+	let applications = parseApplications(project);
 	if (type) {
 		applications = applications.filter(
 			(application) => application.type === type,
@@ -124,32 +126,19 @@ try {
 			fail(`Invalid ${phase} transition: ${current} -> ${nextStatus}`);
 		}
 		if (current !== nextStatus) {
-			const before = `  - \`${phase}\`: \`${current}\``;
-			const after = `  - \`${phase}\`: \`${nextStatus}\``;
-			const applicationSource = source.slice(
-				application.start,
-				application.end,
-			);
-			if (!applicationSource.includes(before)) {
-				fail(`Cannot locate ${phase} status`);
-			}
-			const updated = `${source.slice(0, application.start)}${applicationSource.replace(
-				before,
-				after,
-			)}${source.slice(application.end)}`;
+			application.progress[phase] = nextStatus;
 			const temporaryPath = join(
 				dirname(projectPath),
-				`.PROJECT.md.${process.pid}.tmp`,
+				`.project.json.${process.pid}.tmp`,
 			);
-			await writeFile(temporaryPath, updated, { flag: "wx" });
+			await writeFile(temporaryPath, `${JSON.stringify(project, null, "\t")}\n`, {
+				flag: "wx",
+			});
 			await rename(temporaryPath, projectPath);
-			application.progress[phase] = nextStatus;
 		}
 	}
 
-	process.stdout.write(
-		`${JSON.stringify({ applications: applications.map(publicApplication) }, null, 2)}\n`,
-	);
+	process.stdout.write(`${JSON.stringify({ applications }, null, 2)}\n`);
 } catch (error) {
 	fail(error.message);
 }

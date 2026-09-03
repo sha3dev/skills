@@ -24,11 +24,12 @@ versions. Each repository chooses its concrete platform and tool versions; its
 `.node-version`, `packageManager`, and `package-lock.json` make those choices
 reproducible.
 
-Application TypeScript lives under application surfaces in `apps/` or shared
-packages in `packages/`. JavaScript delivered without transformation is allowed
-only under `apps/<app>/surface/public/`. Biome owns formatting, imports, and
-recommended lint rules; TypeScript owns type correctness without emitting
-JavaScript; Knip owns unused files, exports, and dependencies.
+Each `apps/<app>/` directory is an independently runnable workspace, with its
+application TypeScript under `src/`. Shared TypeScript lives in `packages/`.
+JavaScript delivered without transformation is allowed only under
+`apps/<app>/public/`. Biome owns formatting, imports, and recommended lint
+rules; TypeScript owns type correctness without emitting JavaScript; Knip owns
+unused files, exports, and dependencies.
 
 ## Semantic decisions
 
@@ -60,10 +61,10 @@ work.
 
 ## No third gate
 
-The two gates are the whole verification surface of a code change. `npm run
-check` already runs the toolchain verification, so a code change never verifies
-it separately. The workflow that owns the run checks the toolchain once on
-entry; every increment inside that run reaches it through `npm run check`.
+The two gates are the whole verification surface of a code change. A workflow
+may run `npm run check:toolchain` once on entry before implementation. Each
+increment then uses `npm run check:code`; the final `npm run check` includes
+toolchain verification, so no additional standalone pass is needed.
 
 The verification separates an uninstalled `node_modules` from a broken
 toolchain: the first asks for `npm install`, the second is a configuration

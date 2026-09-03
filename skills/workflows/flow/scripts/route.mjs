@@ -63,7 +63,7 @@ async function installation(skill) {
 }
 
 function readState(root) {
-	const tool = resolve(root, ".agents/tools/repo-state.mjs");
+	const tool = resolve(root, ".flow/tools/repo-state.mjs");
 	const result = spawnSync(process.execPath, [tool, "--root", root], {
 		encoding: "utf8",
 	});
@@ -87,8 +87,8 @@ function ruleFor(routes, application, phase) {
 }
 
 async function decide(root, routes) {
-	const stateTool = resolve(root, ".agents/tools/repo-state.mjs");
-	const projectFile = resolve(root, "PROJECT.md");
+	const stateTool = resolve(root, ".flow/tools/repo-state.mjs");
+	const projectFile = resolve(root, ".flow/project.json");
 	const hasStateTool = await exists(stateTool);
 
 	if (!hasStateTool) {
@@ -97,7 +97,7 @@ async function decide(root, routes) {
 				decision: "blocked",
 				reason: "invalid-project",
 				detail:
-					"PROJECT.md exists but .agents/tools/repo-state.mjs is missing; the project foundation is incomplete.",
+						".flow/project.json exists but .flow/tools/repo-state.mjs is missing; the project foundation is incomplete.",
 			};
 		}
 		const skill = routes.initialize.skill;

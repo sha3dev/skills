@@ -7,9 +7,9 @@ description: "Write application code on the fixed Node.js/tsx, React/Vite, and F
 
 Use the repository-provided platform. Server `.ts` runs through the `tsx`
 runtime without precompilation; `tsx` and the `.tsx` JSX extension are
-unrelated. Opaque `.js` stays untouched by code tooling and is allowed only
-under `apps/<app>/surface/public/`; all other application source uses TypeScript
-or TSX inside `apps/` or `packages/`.
+unrelated. Each `apps/<app>/` directory is a workspace whose application source
+belongs under `src/`. Opaque `.js` stays untouched by code tooling and is
+allowed only under `apps/<app>/public/`; shared source belongs in `packages/`.
 
 Biome owns formatting, imports, naming, and lint rules. TypeScript with
 `noEmit` owns type correctness. Knip owns unused files, exports, and
@@ -24,10 +24,11 @@ dependencies. Do not reproduce their rules in prose or subjective review.
 3. Run `npm run check` before handing the work back, and again before any
    workflow records a phase as complete.
 
-These two gates are the only verification a code change performs. `npm run
-check` already verifies the toolchain, so never add a separate verification
-pass before or beside them. When it reports that dependencies are not
-installed, run `npm install` and retry. When it reports a toolchain
+These two gates are the only verification a code change performs. A workflow
+may run `npm run check:toolchain` once on entry before implementation. Do not
+repeat that standalone check during implementation because the final `npm run
+check` already includes it. When verification reports that dependencies are
+not installed, run `npm install` and retry. When it reports a toolchain
 configuration problem, report that problem and stop; do not initialize or
 migrate tooling during a code change.
 

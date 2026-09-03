@@ -4,9 +4,10 @@
 
 `to-web-surface` turns a fuzzy UI into an agreed specification and then a
 disconnected React/Vite interface for one `web` application. It maintains the
-resumable specification at `<application.path>/SURFACE.md` and builds the
-confirmed interface in `<application.path>/surface/`, one visible increment at
-a time. `PROJECT.md` remains the progress tracker.
+resumable specification at `.flow/applications/<application-slug>/surface.md`
+and builds the confirmed interface in the application workspace, with source
+under `<application.path>/src/`, one visible increment at a time.
+`.flow/project.json` remains the progress tracker.
 
 ## When to reach for it
 
@@ -15,24 +16,28 @@ application. Invoke it on a completed surface only when explicitly revising it.
 
 ## Prerequisites
 
-`setup` must have generated a valid `PROJECT.md` and toolchain, the application
-must declare a `web-surface` phase, and the `interview` toolkit skill must be
-available.
+`setup` must have generated a valid `.flow/project.json` and toolchain, the
+application must declare a `web-surface` phase, and the `interview` toolkit
+skill must be available.
 
 The workflow verifies the toolchain once on entry and installs dependencies when
-they are missing, so a fresh clone does not read as a broken repository. After
-that, increments reach the toolchain through `npm run check`.
+they are missing, so a fresh clone does not read as a broken repository.
+Increments use `npm run check:code`; the final `npm run check` repeats toolchain
+verification as part of the complete gate.
 
 ## It's working if
 
-The operator can resume from `SURFACE.md`, receives one short UI decision at a
+The operator can resume from `surface.md`, receives one short UI decision at a
 time with a useful recommendation, and approves the specification before code
 is written. Each implementation turn produces a runnable, reviewed increment at
 the same preview URL, which one development server serves through hot module
 replacement for the whole workflow and releases when the workflow ends. An
 increment may leave a component the interface does not render yet without the
-checks demanding its deletion. The phase completes only after approval of the
-whole interface and a green full `npm run check`.
+checks demanding its deletion. If browser tooling is unavailable, visual
+verification remains pending until the user confirms desktop and mobile
+behavior from the preview URL. The phase completes only after approval of the
+whole interface, a green full `npm run check`, and a successful production
+build of its workspace.
 
 ## Where it fits
 

@@ -22,14 +22,14 @@
 		"turbo": "2.10.12",
 		"typescript": "7.0.2"
 	},
-	"requiredWorkspaces": ["apps/*/surface", "packages/*"],
+	"requiredWorkspaces": ["apps/*", "packages/*"],
 	"requiredScripts": {
 		"build": "turbo run build",
 		"dev": "turbo run dev",
 		"format": "biome format --write .",
 		"fix": "biome check --write",
-		"check:toolchain": "node .agents/tools/verify-toolchain.mjs",
-		"check:project": "node .agents/tools/repo-state.mjs --root . --expect already_initialized",
+		"check:toolchain": "node .flow/tools/verify-toolchain.mjs",
+		"check:project": "node .flow/tools/repo-state.mjs --root . --expect already_initialized",
 		"check:biome": "biome check .",
 		"typecheck": "turbo run typecheck",
 		"check:code": "npm run check:biome && npm run typecheck",

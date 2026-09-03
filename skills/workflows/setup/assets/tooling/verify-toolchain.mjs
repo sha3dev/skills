@@ -32,7 +32,7 @@ function isCompetingDependency(name) {
 
 async function findRepositoryViolations(root) {
 	const ignored = new Set([
-		".agents",
+		".flow",
 		".git",
 		".turbo",
 		"coverage",
@@ -48,27 +48,34 @@ async function findRepositoryViolations(root) {
 				if (!ignored.has(entry.name)) await visit(path);
 			} else {
 				const repositoryPath = relative(root, path).split(sep).join("/");
-				const insideApplication =
-					/^apps\/[^/]+\/surface\//.test(repositoryPath) ||
-					/^packages\/[^/]+\//.test(repositoryPath);
-				if (/\.tsx?$/.test(entry.name) && !insideApplication) {
+				const insideApplication = /^apps\/[^/]+\//.test(repositoryPath);
+				const insidePackage = /^packages\/[^/]+\//.test(repositoryPath);
+				const insideApplicationSource = /^apps\/[^/]+\/src\//.test(
+					repositoryPath,
+				);
+				const applicationConfig = /^apps\/[^/]+\/[^/]+\.config\.ts$/.test(
+					repositoryPath,
+				);
+				const allowedTypeScript =
+					insideApplicationSource || insidePackage || applicationConfig;
+				if (/\.tsx?$/.test(entry.name) && !allowedTypeScript) {
 					violations.push(
-						`TypeScript must stay under apps/<app>/surface/ or packages/<package>/: ${repositoryPath}`,
+						`TypeScript must stay under apps/<app>/src/, packages/<package>/, or a direct application *.config.ts file: ${repositoryPath}`,
 					);
 				} else if (
 					/\.(?:cjs|jsx|mjs)$/.test(entry.name) &&
-					insideApplication
+					(insideApplication || insidePackage)
 				) {
 					violations.push(
-						`Unsupported JavaScript extension under apps/<app>/surface/ or packages/<package>/: ${repositoryPath}`,
+						`Unsupported JavaScript extension under apps/<app>/ or packages/<package>/: ${repositoryPath}`,
 					);
 				} else if (
 					entry.name.endsWith(".js") &&
-					insideApplication &&
-					!/^apps\/[^/]+\/surface\/public\/.+\.js$/.test(repositoryPath)
+					(insideApplication || insidePackage) &&
+					!/^apps\/[^/]+\/public\/.+\.js$/.test(repositoryPath)
 				) {
 					violations.push(
-						`Opaque JavaScript must stay under apps/<app>/surface/public/: ${repositoryPath}`,
+						`Opaque JavaScript must stay under apps/<app>/public/: ${repositoryPath}`,
 					);
 				}
 			}
@@ -82,8 +89,8 @@ async function findRepositoryViolations(root) {
 try {
 	const root = process.cwd();
 	const policy = await readJson(
-		join(root, ".agents/toolchain-policy.json"),
-		".agents/toolchain-policy.json",
+		join(root, ".flow/toolchain-policy.json"),
+		".flow/toolchain-policy.json",
 	);
 	const packageJson = await readJson(
 		join(root, "package.json"),

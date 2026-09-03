@@ -33,16 +33,20 @@ $flow
 In a new repository it starts the setup flow and asks for the rough product
 idea. It will agree the product definition and domain language, identify `web`,
 `api`, and `worker` applications, and discover their logical relationships. It
-shows the generated `PROJECT.md` and waits for approval before writing anything.
+shows the generated `.flow/project.json` and waits for approval before writing
+anything.
 
 The generated foundation includes:
 
 ```text
 AGENTS.md
 CLAUDE.md
-PROJECT.md
-.agents/
+.flow/
+├── project.json
+├── toolchain-policy.json
+└── tools/
 .gitignore
+.node-version
 biome.json
 knip.json
 package.json
@@ -67,7 +71,7 @@ npm run check:toolchain
 Before setup, the repository may contain metadata, documentation, editor and
 CI configuration, installed agent skills, and `skills-lock.json`. It must not
 already contain application code, a `package.json` or lockfile, `apps/`,
-`packages/`, `src/`, `AGENTS.md`, `CLAUDE.md`, or `PROJECT.md`.
+`packages/`, `src/`, `AGENTS.md`, `CLAUDE.md`, or `.flow/project.json`.
 
 ## Installation
 
@@ -139,3 +143,5 @@ npx skills@latest update
 ```
 
 Review and commit the resulting skill files and `skills-lock.json` changes.
+This does not rewrite the project-owned `.flow/tools/` snapshot created by
+`setup`.

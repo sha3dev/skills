@@ -8,35 +8,39 @@ argument-hint: "[web application]"
 # To Web Surface
 
 Create only the selected application's disconnected React/Vite interface inside
-`<application.path>/surface/`. Maintain its durable interface specification at
-`<application.path>/SURFACE.md`; it is the source of truth for the intended UI,
-while `PROJECT.md` remains the sole progress tracker.
+`<application.path>/`, with application source under `src/`. Maintain its
+durable interface specification at `.flow/applications/<application-slug>/surface.md`,
+where `<application-slug>` is the final directory in `<application.path>`. It is
+the source of truth for the intended UI, while `.flow/project.json` remains the
+sole progress tracker.
 
 ## Workflow
 
-1. Run `node .agents/tools/repo-state.mjs --root . --expect already_initialized`
+1. Run `node .flow/tools/repo-state.mjs --root . --expect already_initialized`
    and stop on failure. Use its `applications` to select the named `web`
    application, or ask the user when the choice is ambiguous. Then run
    `npm run check:toolchain` once, as this workflow's entry check: run
    `npm install` and retry when it reports that dependencies are not installed,
    and stop on any other failure. Later steps reach the toolchain through
-   `npm run check` and never repeat this entry check.
-2. Read the relevant `PROJECT.md` definition, language, application, and
-   relationship entries. Read `<application.path>/SURFACE.md` first when it
-   exists, then inspect `<application.path>/surface/` when implementation already
-   exists. Create `SURFACE.md` if absent, seeded only with facts from those
-   sources and the user's request. If `web-surface` is `pending`, change it to
+   the final `npm run check`; do not repeat this standalone entry check between
+   increments.
+2. Read the relevant `.flow/project.json` definition, terms, application, and
+   relationship entries. Read
+   `.flow/applications/<application-slug>/surface.md` first when it exists, then
+   inspect `<application.path>/src/` when implementation already exists. Create
+   `surface.md` at that path if absent, seeded only with facts from those sources
+   and the user's request. If `web-surface` is `pending`, change it to
    `in-progress` with
-   `node .agents/tools/project-progress.mjs --root . --app <name> --phase web-surface --set in-progress`.
+   `node .flow/tools/project-progress.mjs --root . --app <name> --phase web-surface --set in-progress`.
 3. Use `$interview` before implementation, using
-   `SURFACE.md` as its durable artifact. Its subject-specific lens is the UI's
+   `surface.md` as its durable artifact. Its subject-specific lens is the UI's
    purpose and audience, journeys, information architecture, screens, states,
    interactions, content and data assumptions, visual direction, responsive
    behavior, and accessibility. Follow only branches that are relevant to this
    interface; do not turn the lens into a questionnaire. Write technical prose
    in English while preserving the established language of interface copy.
 4. The interview is complete when an implementer could build the interface
-   without inventing a product decision. Mark `SURFACE.md` as awaiting
+   without inventing a product decision. Mark `surface.md` as awaiting
    confirmation and present it. After the user confirms it, record that status
    before writing interface code.
 5. If the workspace does not exist, run the bundled
@@ -65,11 +69,15 @@ while `PROJECT.md` remains the sole progress tracker.
    correctly at both widths, and remains reasonably coherent with the existing
    interface. Adjust or redesign what is needed to reach that threshold, then
    stop refining once the result is good enough for user review. Give the user
-   the preview URL. Use `$interview` again when review reveals a product
-   decision, and record that decision in `SURFACE.md` before changing the code.
-8. Only after the user explicitly approves the whole interface and the full
-   `npm run check` passes, including its unused-code check, run
-   `node .agents/tools/project-progress.mjs --root . --app <name> --phase web-surface --set complete`.
+   the preview URL. If browser tooling is unavailable, state that visual
+   verification is pending and do not treat the increment as reviewed until
+   the user confirms its desktop and mobile behavior. Use `$interview` again
+   when review reveals a product decision, and record that decision in
+   `surface.md` before changing the code.
+8. Only after the user explicitly approves the whole interface, the full
+   `npm run check` passes, including its unused-code check, and
+   `npm run build --workspace <workspace-name>` succeeds, run
+   `node .flow/tools/project-progress.mjs --root . --app <name> --phase web-surface --set complete`.
    Stop the development server and stop without starting another phase.
 
 The development server belongs to this workflow. Leave it running while the
@@ -85,7 +93,7 @@ change another application's progress or code.
 ## Run boundary
 
 This workflow is one run for one application: it starts at step 1 and ends at
-step 8, at a blocker, or when it needs a user decision. Everything it needs to
-resume is durable in `PROJECT.md` and `SURFACE.md`, so a run carries no state
-between applications. Do not begin another application's surface inside this
-run, and do not reuse this run's interview or increments for one.
+step 8 or at a blocker. Everything it needs to resume is durable in
+`.flow/project.json` and the application's `surface.md`, so a run carries no
+state between applications. Do not begin another application's surface inside
+this run, and do not reuse this run's interview or increments for one.
