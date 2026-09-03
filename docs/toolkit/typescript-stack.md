@@ -58,12 +58,23 @@ Knip is right to report it and wrong to be obeyed at that moment. The full
 unused-code report there is a real finding rather than a snapshot of unfinished
 work.
 
+## No third gate
+
+The two gates are the whole verification surface of a code change. `npm run
+check` already runs the toolchain verification, so a code change never verifies
+it separately. The workflow that owns the run checks the toolchain once on
+entry; every increment inside that run reaches it through `npm run check`.
+
+The verification separates an uninstalled `node_modules` from a broken
+toolchain: the first asks for `npm install`, the second is a configuration
+problem to report rather than repair mid-change.
+
 ## It's working if
 
-The read-only toolchain check passes before editing, safe Biome fixes are
-limited to edited paths, the iteration loop stays green on `npm run check:code`
-without deleting unfinished work, and the complete `npm run check` gate is green
-at the boundary without suppressions or weakened configuration.
+Safe Biome fixes are limited to edited paths, the iteration loop stays green on
+`npm run check:code` without deleting unfinished work, and the complete
+`npm run check` gate is green at the boundary without suppressions or weakened
+configuration.
 
 ## Where it fits
 

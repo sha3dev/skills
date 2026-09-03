@@ -54,6 +54,19 @@
 
 ### Patch Changes
 
+- Verify the toolchain once per workflow run instead of once per code change.
+  `typescript-stack` re-ran `check:toolchain` before every increment even though
+  the `npm run check` that closes the increment already contains it, so each
+  increment paid for two full verifications. The rule it protected — never
+  initialize or migrate tooling during a code change — stays.
+
+- Distinguish an uninstalled `node_modules` from a broken toolchain. The
+  verifier reported a fresh clone as `installed fastify is missing or
+  unreadable: ENOENT`, which reads as a configuration failure and stopped the
+  workflow instead of installing. It now names the missing packages, asks for
+  `npm install`, and exits `3`, leaving exit `1` for genuine misconfiguration.
+  `to-web-surface` installs and retries on that outcome.
+
 - Describe `flow` delegation in terms of the guarantee it needs — a worker that
   starts from an empty context — instead of a named parameter of one agent
   harness. A mechanism that can only fork the current context does not satisfy

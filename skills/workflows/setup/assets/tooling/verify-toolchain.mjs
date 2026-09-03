@@ -166,6 +166,10 @@ try {
 		}
 	}
 
+	// An empty or partial node_modules is an install away from correct, not a
+	// broken toolchain. Report it separately so callers run npm install instead
+	// of trying to repair configuration that is already valid.
+	const uninstalled = [];
 	for (const [group, minimumVersions] of [
 		["dependencies", policy.minimumDependencyVersions],
 		["devDependencies", policy.minimumPlatformDevDependencyVersions],
@@ -173,12 +177,23 @@ try {
 	]) {
 		for (const [name, minimum] of Object.entries(minimumVersions)) {
 			if (!packageJson[group]?.[name]) fail(`Missing ${group} entry ${name}`);
-			const installedPackage = await readJson(
-				join(root, "node_modules", name, "package.json"),
-				`installed ${name}`,
-			);
+			let installedPackage;
+			try {
+				installedPackage = JSON.parse(
+					await readFile(join(root, "node_modules", name, "package.json"), "utf8"),
+				);
+			} catch {
+				uninstalled.push(name);
+				continue;
+			}
 			assertMinimumVersion(installedPackage.version, minimum, name);
 		}
+	}
+	if (uninstalled.length > 0) {
+		process.stderr.write(
+			`Dependencies are not installed; run npm install. Missing: ${uninstalled.join(", ")}\n`,
+		);
+		process.exit(3);
 	}
 
 	process.stdout.write(
