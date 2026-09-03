@@ -36,9 +36,11 @@ sole progress tracker.
    `surface.md` as its durable artifact. Its subject-specific lens is the UI's
    purpose and audience, journeys, information architecture, screens, states,
    interactions, content and data assumptions, visual direction, responsive
-   behavior, and accessibility. Follow only branches that are relevant to this
-   interface; do not turn the lens into a questionnaire. Write technical prose
-   in English while preserving the established language of interface copy.
+   behavior, and accessibility. Record required domain entities and meaningful
+   data states without duplicating concrete fixture records in `surface.md`.
+   Follow only branches that are relevant to this interface; do not turn the
+   lens into a questionnaire. Write technical prose in English while preserving
+   the established language of interface copy.
 4. The interview is complete when an implementer could build the interface
    without inventing a product decision. Mark `surface.md` as awaiting
    confirmation and present it. After the user confirms it, record that status
@@ -47,8 +49,12 @@ sole progress tracker.
    `scripts/initialize-web-application.mjs --root . --app <name>` relative to
    this `SKILL.md`, then `npm install`. Implement one small, coherent increment
    at a time, starting with the shell and global navigation unless the
-   specification implies a better order. Use local fixtures and client state;
-   do not add APIs, server code, persistence, authentication, or infrastructure.
+   specification implies a better order. Use `$fixtures` to create or extend
+   the shared records under `.flow/fixtures/`. Access them through a replaceable
+   local repository or equivalent data-source boundary so components and domain
+   logic use production-facing names and do not import fixtures directly. Keep
+   visual state in the application; do not add APIs, server code, persistence,
+   authentication, or infrastructure.
 6. Keep exactly one development server running for this application:
    `npm run dev --workspace <workspace-name>` in the background, at the fixed
    preview URL its `vite.config.ts` pins. Start it once, before the first
@@ -58,9 +64,11 @@ sole progress tracker.
    port is strict and only one surface runs at a time, a port conflict means an
    abandoned server owns it: stop that process and start again on the same
    port. Never fall back to another port.
-7. After each increment, apply the repository's TypeScript workflow through
-   `npm run check:code`. An increment may leave interface code that nothing
-   renders yet; that is not a defect to fix, so do not run the unused-code
+7. After an increment that changes `.flow/fixtures/`, apply `$fixtures`'
+   validation procedure. After every increment, apply the repository's
+   TypeScript workflow through `npm run check:code`. An increment may leave
+   interface code that nothing renders yet; that is not a defect to fix, so do
+   not run the unused-code
    check between increments and never delete unwired work to satisfy one.
    Before presenting the increment, use available browser tooling to inspect it at
    representative desktop and mobile widths and exercise the changed

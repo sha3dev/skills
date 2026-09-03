@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -58,6 +58,28 @@ test("setup produces a valid buildable web repository", async () => {
 		]);
 		run("npm", ["install", "--no-audit", "--no-fund"], targetRoot);
 		run("npm", ["run", "check"], targetRoot);
+		const fixtureDirectory = join(targetRoot, ".flow/fixtures");
+		const usersFixture = join(fixtureDirectory, "users.json");
+		await mkdir(fixtureDirectory);
+		await writeFile(
+			usersFixture,
+			`${JSON.stringify([{ id: "user-ana", name: "Ana García" }], null, "\t")}\n`,
+		);
+		run("npm", ["run", "check:fixtures"], targetRoot);
+		await writeFile(
+			usersFixture,
+			`${JSON.stringify([{ id: "user-ana" }, { id: "user-ana" }], null, "\t")}\n`,
+		);
+		assert.throws(() =>
+			execFileSync("npm", ["run", "check:fixtures"], {
+				cwd: targetRoot,
+				stdio: "pipe",
+			}),
+		);
+		await writeFile(
+			usersFixture,
+			`${JSON.stringify([{ id: "user-ana", name: "Ana García" }], null, "\t")}\n`,
+		);
 		const decision = JSON.parse(
 			execFileSync(process.execPath, [route, "--root", targetRoot], {
 				encoding: "utf8",
@@ -90,7 +112,35 @@ test("setup produces a valid buildable web repository", async () => {
 			"--app",
 			"Viewer Web",
 		]);
+		await writeFile(
+			join(targetRoot, "apps/viewer-web/src/user-repository.ts"),
+			`import users from "../../../.flow/fixtures/users.json";
+
+export type User = {
+	id: string;
+	name: string;
+};
+
+export function listUsers(): User[] {
+	return users;
+}
+`,
+		);
+		await writeFile(
+			join(targetRoot, "apps/viewer-web/src/App.tsx"),
+			`import { listUsers } from "./user-repository";
+
+export function App() {
+	return (
+		<main>
+			<h1>{listUsers()[0]?.name}</h1>
+		</main>
+	);
+}
+`,
+		);
 		run("npm", ["install", "--no-audit", "--no-fund"], targetRoot);
+		run("npm", ["run", "check"], targetRoot);
 		run("npm", ["run", "build"], targetRoot);
 	} finally {
 		await rm(temporaryRoot, { recursive: true, force: true });

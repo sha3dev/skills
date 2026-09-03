@@ -35,6 +35,9 @@ application name and initializes one progress phase named after its type,
 `<type>-surface`, as `pending`.
 `.flow/project.json` is the sole persistent source for these values, paths, and
 progress.
+Later surface workflows may create shared deterministic domain records under
+`.flow/fixtures/`; setup reserves that location and installs its validator but
+does not create an empty fixture directory or choose product data.
 It keeps empty `terms` and `relationships` arrays when there are none. Setup
 configures npm workspaces and Turborepo
 so each declared `apps/<app>/` path becomes a workspace when materialized, but

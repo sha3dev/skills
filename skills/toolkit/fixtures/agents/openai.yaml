@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fixtures"
+  short_description: "Evolve shared cross-surface example data"
+  default_prompt: "Use $fixtures to create or extend reusable project fixture data."

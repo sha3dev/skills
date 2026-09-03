@@ -179,6 +179,7 @@ async function buildFiles(input) {
 		loadAsset("tooling/tsconfig.base.json"),
 		loadAsset("tooling/turbo.json"),
 		loadAsset("tooling/toolchain-policy.json"),
+		loadAsset("tooling/validate-fixtures.mjs"),
 		loadAsset("tooling/verify-toolchain.mjs"),
 		loadAsset("tooling/version-policy.mjs"),
 	]);
@@ -192,6 +193,7 @@ async function buildFiles(input) {
 		tsconfig,
 		turbo,
 		policySource,
+		fixtureValidator,
 		toolchainVerifier,
 		versionPolicy,
 	] = assets;
@@ -278,6 +280,12 @@ ${ignoredDependencies}
 			path: ".flow/tools/project-progress.mjs",
 			content: projectProgress,
 			copiedFrom: "assets/tooling/project-progress.mjs",
+			mode: 0o755,
+		},
+		{
+			path: ".flow/tools/validate-fixtures.mjs",
+			content: fixtureValidator,
+			copiedFrom: "assets/tooling/validate-fixtures.mjs",
 			mode: 0o755,
 		},
 		{

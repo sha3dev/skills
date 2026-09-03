@@ -19,7 +19,7 @@ git init
 npx skills@latest add sha3dev/skills
 ```
 
-Choose a project-scoped installation, select your agent, and install all ten
+Choose a project-scoped installation, select your agent, and install all eleven
 skills. Project-scoped installations create `skills-lock.json`; commit it so
 the installed sources and content hashes remain reproducible.
 
@@ -111,6 +111,7 @@ Reusable constraints, practices, and specialist guidance that support the workfl
 | Skill | Invocation | Purpose |
 | --- | --- | --- |
 | [`interview`](./docs/toolkit/interview.md) | Automatic | Resolve dependent decisions one question at a time while maintaining a durable, resumable artifact. |
+| [`fixtures`](./docs/toolkit/fixtures.md) | Automatic | Maintain deterministic domain records that disconnected application surfaces can reuse and extend. |
 | [`lazy`](./docs/toolkit/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
 | [`typescript-stack`](./docs/toolkit/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
 | [`frontend-design`](./docs/toolkit/frontend-design.md) | Automatic | Give new or substantially reshaped interfaces a distinctive, subject-specific visual direction. |
@@ -124,6 +125,7 @@ when supported. Each workflow gets one writer and durable artifacts remain
 canonical.
 Internally, `setup` runs once and `to-web-surface` handles a `web` application;
 it uses `interview` to resolve the UI specification one question at a time,
+uses `fixtures` to evolve shared example data behind a replaceable repository,
 then iterates on the resulting live interface until approval. `typescript-stack`
 is selected automatically whenever the agent writes application TypeScript or TSX.
 Invoke `lazy` explicitly when simplicity is the main constraint for a task.

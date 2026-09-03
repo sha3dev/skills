@@ -16,6 +16,7 @@
 		"noPropertyAccessFromIndexSignature": true,
 		"noUncheckedIndexedAccess": true,
 		"noUncheckedSideEffectImports": true,
+		"resolveJsonModule": true,
 		"strict": true,
 		"target": "ES2024",
 		"useDefineForClassFields": true,

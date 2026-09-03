@@ -42,6 +42,7 @@ CLAUDE.md
 └── tools/
     ├── project-progress.mjs
     ├── repo-state.mjs
+    ├── validate-fixtures.mjs
     ├── verify-toolchain.mjs
     └── version-policy.mjs
 .gitignore
@@ -67,6 +68,11 @@ The repository-state tool reports initialization state and, for initialized
 repositories, every application's type, path, responsibility, and phase
 progress. The progress tool remains the only writer for phase transitions.
 
+Surface workflows may create shared domain records under `.flow/fixtures/`.
+Setup leaves that directory absent until data is needed and installs
+`validate-fixtures.mjs`; `npm run check:fixtures` validates the JSON collection
+shape and record identifiers as part of the complete repository gate.
+
 Each application path is an architectural boundary under `apps/` and becomes an
 independently runnable npm workspace when a later workflow materializes it. Its
 application source belongs under `src/`, while reusable packages live under
@@ -85,9 +91,9 @@ exists.
 The generated scripts separate two gates. `npm run check:code` runs Biome and
 type checking, the invariants that must hold after every edit, and is what an
 incremental workflow runs between steps. `npm run check` is the complete gate:
-it adds the project-state check, the toolchain verifier, and Knip's unused-code
-analysis, and belongs at a task or phase boundary where unwired code is a real
-finding rather than work in progress.
+it adds the project-state check, the toolchain and fixture validators, and
+Knip's unused-code analysis, and belongs at a task or phase boundary where
+unwired code is a real finding rather than work in progress.
 
 `.gitignore` is the one conditional output. Setup writes the template when the
 repository has none, and otherwise leaves an existing file untouched after

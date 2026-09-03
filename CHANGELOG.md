@@ -1,5 +1,27 @@
 # sha3dev-skills
 
+## 0.9.0
+
+### Added
+
+- Add the model-invoked `fixtures` toolkit skill and reserve
+  `.flow/fixtures/` for deterministic domain records that disconnected
+  application surfaces reuse and extend.
+
+- Install a fixture validator in generated repositories and include it in the
+  complete repository gate. Fixture collections use kebab-case JSON files with
+  stable, unique string identifiers.
+
+### Changed
+
+- Make `to-web-surface` record data scenarios in its specification, evolve the
+  shared fixtures during implementation, and keep them behind a replaceable
+  data-access boundary. Application domain types and repositories use their
+  production-facing names rather than mock-prefixed alternatives.
+
+- Require shared fixtures to contain only fictional, non-sensitive values that
+  are safe for client-side exposure.
+
 ## 0.8.0
 
 ### Added
