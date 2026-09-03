@@ -30,7 +30,18 @@
   no installed workflow is reported explicitly rather than retried, and adding a
   workflow is a rule change instead of a prompt change.
 
+- Make one workflow run the unit of delegation. Keep a single worker alive for
+  a run's whole duration instead of re-spawning it per question, and fall back
+  to local execution where workers cannot persist. Drop that run's context at
+  its boundary so a new application starts from durable artifacts rather than
+  from the previous one's decisions.
+
 ### Patch Changes
+
+- Describe `flow` delegation in terms of the guarantee it needs — a worker that
+  starts from an empty context — instead of a named parameter of one agent
+  harness. A mechanism that can only fork the current context does not satisfy
+  it and counts as unavailable.
 
 - Keep a freshly initialized repository green. `setup` previously wrote a single
   root `tsconfig.json` whose `include` patterns matched nothing until the first
@@ -70,12 +81,6 @@
 
 - Rename the workflow category from `flow` to `workflows`, avoiding ambiguity
   between the category and its `flow` orchestrator.
-
-- Make one workflow run the unit of delegation. Keep a single worker alive for
-  a run's whole duration instead of re-spawning it per question, and fall back
-  to local execution where workers cannot persist. Drop that run's context at
-  its boundary so a new application starts from durable artifacts rather than
-  from the previous one's decisions.
 
 ## 0.5.0
 
