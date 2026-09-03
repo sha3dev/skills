@@ -28,6 +28,9 @@ production persistence design.
   current time.
 - Add only the records, variants, and fields needed by a confirmed surface or
   meaningful state. Keep relationships explicit through stable identifiers.
+- Treat fixture files as immutable initial state at runtime. Applications may
+  clone records into memory, but application requests and interactions never
+  write changes back to `.flow/fixtures/`.
 
 ## Application boundary
 
@@ -38,9 +41,11 @@ components and domain logic must not read `.flow/fixtures/` directly.
 
 A disconnected web surface can implement a domain repository with fixture data.
 A later API surface reads and extends the same records, mapping them into its
-own response contract. Connecting the web surface replaces its local repository
-composition with the HTTP implementation without renaming domain types or
-rewriting components.
+own response contract. Both applications may implement required writes in
+memory for the lifetime of their process, initialized from the same fixture
+records and reset on restart or reload. Connecting the web surface replaces its
+local repository composition with the HTTP implementation without renaming
+domain types or rewriting components.
 
 ## Validation
 

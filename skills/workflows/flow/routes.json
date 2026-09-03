@@ -7,6 +7,17 @@
 			"phase": "web-surface",
 			"applicationTypes": ["web"],
 			"skill": "to-web-surface"
+		},
+		{
+			"phase": "api-surface",
+			"applicationTypes": ["api"],
+			"skill": "to-api-surface",
+			"requiresCompletedIncoming": [
+				{
+					"applicationTypes": ["web"],
+					"phase": "web-surface"
+				}
+			]
 		}
 	]
 }

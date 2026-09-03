@@ -19,7 +19,7 @@ git init
 npx skills@latest add sha3dev/skills
 ```
 
-Choose a project-scoped installation, select your agent, and install all eleven
+Choose a project-scoped installation, select your agent, and install all thirteen
 skills. Project-scoped installations create `skills-lock.json`; commit it so
 the installed sources and content hashes remain reproducible.
 
@@ -103,6 +103,7 @@ End-to-end development stages with an explicit start, progression, and finish.
 | [`flow`](./docs/workflows/flow.md) | Explicit | Select and run the appropriate workflow in an isolated worker context. |
 | [`setup`](./docs/workflows/setup.md) | Explicit | Initialize an empty repository, define typed applications and relationships, and materialize the fixed toolchain. |
 | [`to-web-surface`](./docs/workflows/to-web-surface.md) | Explicit | Specify one web interface through a persistent design interview, then build it incrementally with the user. |
+| [`to-api-surface`](./docs/workflows/to-api-surface.md) | Explicit | Specify an API contract from confirmed consumer needs, then build a fixture-backed Fastify implementation incrementally. |
 
 ### Toolkit
 
@@ -112,6 +113,7 @@ Reusable constraints, practices, and specialist guidance that support the workfl
 | --- | --- | --- |
 | [`interview`](./docs/toolkit/interview.md) | Automatic | Resolve dependent decisions one question at a time while maintaining a durable, resumable artifact. |
 | [`fixtures`](./docs/toolkit/fixtures.md) | Automatic | Maintain deterministic domain records that disconnected application surfaces can reuse and extend. |
+| [`fastify-best-practices`](./docs/toolkit/fastify-best-practices.md) | Automatic | Apply upstream Fastify guidance for plugins, schemas, routes, lifecycle, security, and testing. |
 | [`lazy`](./docs/toolkit/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
 | [`typescript-stack`](./docs/toolkit/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
 | [`frontend-design`](./docs/toolkit/frontend-design.md) | Automatic | Give new or substantially reshaped interfaces a distinctive, subject-specific visual direction. |
@@ -123,18 +125,20 @@ Reusable constraints, practices, and specialist guidance that support the workfl
 continues the applicable installed workflow in an isolated worker context
 when supported. Each workflow gets one writer and durable artifacts remain
 canonical.
-Internally, `setup` runs once and `to-web-surface` handles a `web` application;
-it uses `interview` to resolve the UI specification one question at a time,
-uses `fixtures` to evolve shared example data behind a replaceable repository,
-then iterates on the resulting live interface until approval. `typescript-stack`
-is selected automatically whenever the agent writes application TypeScript or TSX.
+Internally, `setup` runs once, `to-web-surface` handles a `web` application, and
+`to-api-surface` handles an `api` application after its related web consumers
+are complete. Both use `interview` to resolve their surface one question at a
+time and `fixtures` to evolve shared example data behind replaceable
+repositories. API implementation also applies `fastify-best-practices` and
+generates OpenAPI from route schemas. `typescript-stack` is selected
+automatically whenever the agent writes application TypeScript or TSX.
 Invoke `lazy` explicitly when simplicity is the main constraint for a task.
 `frontend-design`, `composition-patterns`, and `fixing-accessibility` activate
 only for their respective UI concerns. `shadcn` activates for projects that
 already contain `components.json` or when shadcn is explicitly requested; it
 does not introduce shadcn into every React application.
 
-API and worker surface workflows are planned but are not included yet.
+The worker surface workflow is planned but is not included yet.
 
 ## Updating
 

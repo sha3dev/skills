@@ -11,8 +11,8 @@ so later agents can avoid broad codebase exploration.
 It creates one canonical `AGENTS.md`; `CLAUDE.md` imports it so agent harnesses
 share the same instructions without duplication.
 
-It also installs npm workspaces, Turborepo, React/Vite, Fastify, the `tsx`
-runtime, Biome, TypeScript, Knip, minimum-version policy,
+It also installs npm workspaces, Turborepo, React/Vite, Fastify with OpenAPI
+generation, the `tsx` runtime, Biome, TypeScript, Knip, minimum-version policy,
 repository-specific runtime pins, and a read-only toolchain verifier.
 
 ## When to reach for it

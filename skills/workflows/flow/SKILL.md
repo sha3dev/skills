@@ -23,7 +23,7 @@ the repository yourself.
   continue with that candidate's `skill`.
 - `done` — no phase is open. Say so and stop.
 - `blocked` — report the concrete blocker from `reason` with `detail`, `state`,
-  or `unroutable`. Never invent a workflow to work around it.
+  `unroutable`, or `waiting`. Never invent a workflow to work around it.
 
 A non-empty `unroutable` list is not itself a blocker while a route exists;
 mention it only when the user needs to know that some work has no installed

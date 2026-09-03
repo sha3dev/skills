@@ -9,7 +9,9 @@ and builds the confirmed interface in the application workspace, with source
 under `<application.path>/src/`, one visible increment at a time.
 `.flow/project.json` remains the progress tracker.
 Shared deterministic domain records live under `.flow/fixtures/` and reach the
-interface through a replaceable local data-access boundary.
+interface through a replaceable local data-access boundary. Confirmed writes
+change an in-memory copy for the current page lifetime without modifying the
+fixture files.
 
 ## When to reach for it
 

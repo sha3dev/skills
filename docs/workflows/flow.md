@@ -18,6 +18,9 @@ change.
 Work explicitly recorded as in progress is resumed before anything pending. An
 open phase that no installed workflow can advance is reported as such rather
 than retried, so a gap in the installed workflows is visible instead of silent.
+Declarative routing prerequisites can also hold back a surface until related
+applications provide the confirmed input it needs; an API consumed by a web
+application therefore waits for that web surface to complete.
 
 One worker covers one workflow run — one skill, one outcome, one application —
 and stays alive for its whole duration, so an interview continues across turns

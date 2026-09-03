@@ -3,8 +3,8 @@ import { execFileSync } from "node:child_process";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
 const setup = join(
@@ -15,16 +15,19 @@ const initializeWeb = join(
 	repositoryRoot,
 	"skills/workflows/to-web-surface/scripts/initialize-web-application.mjs",
 );
-const route = join(
+const initializeApi = join(
 	repositoryRoot,
-	"skills/workflows/flow/scripts/route.mjs",
+	"skills/workflows/to-api-surface/scripts/initialize-api-application.mjs",
 );
+const route = join(repositoryRoot, "skills/workflows/flow/scripts/route.mjs");
 
 function run(command, args, cwd = repositoryRoot) {
-	execFileSync(command, args, { cwd, stdio: "inherit" });
+	const environment = { ...process.env };
+	delete environment.NODE_TEST_CONTEXT;
+	execFileSync(command, args, { cwd, env: environment, stdio: "inherit" });
 }
 
-test("setup produces a valid buildable web repository", async () => {
+test("setup produces valid web and API surfaces in dependency order", async () => {
 	const temporaryRoot = await mkdtemp(join(tmpdir(), "sha3dev-skills-"));
 	const targetRoot = join(temporaryRoot, "repository");
 	const inputPath = join(temporaryRoot, "input.json");
@@ -35,7 +38,7 @@ test("setup produces a valid buildable web repository", async () => {
 			inputPath,
 			JSON.stringify({
 				title: "Example Project",
-					definition: "A minimal setup smoke test.",
+				definition: "A minimal setup smoke test.",
 				terms: [],
 				applications: [
 					{
@@ -43,8 +46,19 @@ test("setup produces a valid buildable web repository", async () => {
 						responsibility: "Provide the viewer interface.",
 						type: "web",
 					},
+					{
+						name: "Viewer API",
+						responsibility: "Provide viewer data over HTTP.",
+						type: "api",
+					},
 				],
-				relationships: [],
+				relationships: [
+					{
+						from: "Viewer Web",
+						to: "Viewer API",
+						description: "Load viewer data over HTTP.",
+					},
+				],
 			}),
 		);
 
@@ -142,6 +156,46 @@ export function App() {
 		run("npm", ["install", "--no-audit", "--no-fund"], targetRoot);
 		run("npm", ["run", "check"], targetRoot);
 		run("npm", ["run", "build"], targetRoot);
+		run(process.execPath, [
+			join(targetRoot, ".flow/tools/project-progress.mjs"),
+			"--root",
+			targetRoot,
+			"--app",
+			"Viewer Web",
+			"--phase",
+			"web-surface",
+			"--set",
+			"complete",
+		]);
+		const apiDecision = JSON.parse(
+			execFileSync(process.execPath, [route, "--root", targetRoot], {
+				encoding: "utf8",
+			}),
+		);
+		assert.equal(apiDecision.decision, "run");
+		assert.equal(apiDecision.skill, "to-api-surface");
+		assert.equal(apiDecision.application, "Viewer API");
+		run(process.execPath, [
+			join(targetRoot, ".flow/tools/project-progress.mjs"),
+			"--root",
+			targetRoot,
+			"--app",
+			"Viewer API",
+			"--phase",
+			"api-surface",
+			"--set",
+			"in-progress",
+		]);
+		run(process.execPath, [
+			initializeApi,
+			"--root",
+			targetRoot,
+			"--app",
+			"Viewer API",
+		]);
+		run("npm", ["install", "--no-audit", "--no-fund"], targetRoot);
+		run("npm", ["run", "test", "--workspace", "@apps/viewer-api"], targetRoot);
+		run("npm", ["run", "check"], targetRoot);
 	} finally {
 		await rm(temporaryRoot, { recursive: true, force: true });
 	}

@@ -1,5 +1,32 @@
 # sha3dev-skills
 
+## 0.10.0
+
+### Added
+
+- Add the explicit `to-api-surface` workflow for interviewing and implementing
+  a runnable Fastify API from confirmed consumer needs. Route schemas generate
+  the exposed OpenAPI contract, and HTTP behavior is verified through Fastify
+  injection and a live server.
+
+- Include Matteo Collina's `fastify-best-practices` skill unchanged under its
+  MIT license as an automatically selected toolkit skill.
+
+- Add an API workspace initializer and extend the setup smoke test through the
+  web-to-API routing and workspace initialization sequence.
+
+### Changed
+
+- Route API surfaces only after related incoming web surfaces are complete, so
+  the API contract starts from confirmed consumer journeys and data needs.
+
+- Define fixture files as immutable runtime seed data. Web and API surfaces
+  implement only required writes in memory, where they remain observable until
+  page reload or server restart without modifying shared fixtures.
+
+- Add `@fastify/swagger` to the fixed platform so API route schemas can produce
+  one generated OpenAPI document without a separate handwritten contract.
+
 ## 0.9.0
 
 ### Added

@@ -50,6 +50,19 @@ async function loadRoutes() {
 		) {
 			fail(`routes.json phases[${index}] is incomplete`);
 		}
+		for (const [requirementIndex, requirement] of (
+			rule.requiresCompletedIncoming ?? []
+		).entries()) {
+			if (
+				!Array.isArray(requirement?.applicationTypes) ||
+				requirement.applicationTypes.length === 0 ||
+				typeof requirement?.phase !== "string"
+			) {
+				fail(
+					`routes.json phases[${index}].requiresCompletedIncoming[${requirementIndex}] is incomplete`,
+				);
+			}
+		}
 	}
 	return routes;
 }
@@ -86,6 +99,37 @@ function ruleFor(routes, application, phase) {
 	);
 }
 
+function incompleteIncoming(rule, application, project) {
+	const requirements = rule.requiresCompletedIncoming ?? [];
+	if (requirements.length === 0) return [];
+	const applications = new Map(
+		(project.applications ?? []).map((candidate) => [
+			candidate.name,
+			candidate,
+		]),
+	);
+	const incoming = (project.relationships ?? [])
+		.filter((relationship) => relationship.to === application.name)
+		.map((relationship) => applications.get(relationship.from))
+		.filter(Boolean);
+	const blockers = [];
+	for (const requirement of requirements) {
+		for (const source of incoming) {
+			if (
+				requirement.applicationTypes.includes(source.type) &&
+				source.progress?.[requirement.phase] !== "complete"
+			) {
+				blockers.push({
+					application: source.name,
+					phase: requirement.phase,
+					status: source.progress?.[requirement.phase],
+				});
+			}
+		}
+	}
+	return blockers;
+}
+
 async function decide(root, routes) {
 	const stateTool = resolve(root, ".flow/tools/repo-state.mjs");
 	const projectFile = resolve(root, ".flow/project.json");
@@ -97,7 +141,7 @@ async function decide(root, routes) {
 				decision: "blocked",
 				reason: "invalid-project",
 				detail:
-						".flow/project.json exists but .flow/tools/repo-state.mjs is missing; the project foundation is incomplete.",
+					".flow/project.json exists but .flow/tools/repo-state.mjs is missing; the project foundation is incomplete.",
 			};
 		}
 		const skill = routes.initialize.skill;
@@ -125,8 +169,19 @@ async function decide(root, routes) {
 		}
 		return { decision: "blocked", reason: "invalid-state", state };
 	}
+	let project;
+	try {
+		project = JSON.parse(await readFile(projectFile, "utf8"));
+	} catch (error) {
+		return {
+			decision: "blocked",
+			reason: "invalid-project",
+			detail: `.flow/project.json is unreadable: ${error.message}`,
+		};
+	}
 
 	const open = [];
+	const waiting = [];
 	const unroutable = [];
 	for (const application of state.applications ?? []) {
 		for (const [phase, status] of Object.entries(application.progress ?? {})) {
@@ -139,8 +194,14 @@ async function decide(root, routes) {
 				phase,
 				status,
 			};
-			if (rule) open.push({ ...entry, skill: rule.skill });
-			else unroutable.push(entry);
+			const blockers = rule
+				? incompleteIncoming(rule, application, project)
+				: [];
+			if (rule && blockers.length === 0) {
+				open.push({ ...entry, skill: rule.skill });
+			} else if (rule) {
+				waiting.push({ ...entry, skill: rule.skill, blockers });
+			} else unroutable.push(entry);
 		}
 	}
 
@@ -174,6 +235,13 @@ async function decide(root, routes) {
 			decision: "blocked",
 			reason: "no-installed-workflow",
 			unroutable,
+		};
+	}
+	if (waiting.length > 0) {
+		return {
+			decision: "blocked",
+			reason: "workflow-prerequisites",
+			waiting,
 		};
 	}
 	return { decision: "done", reason: "no-open-phase" };
