@@ -46,6 +46,11 @@ inherited conversation turns (`fork_turns: "none"` when supported). Do not run
 independent writers or permit nested delegation. Subagents share the worktree;
 this is context isolation, not filesystem isolation.
 
+Background processes a worker starts, such as a development server, belong to
+that worker and outlive it. Require it to stop them before returning `complete`
+or `blocked`, and to leave them running on `needs-input` because that worker
+continues.
+
 Give the worker only:
 
 - The repository root.

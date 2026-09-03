@@ -46,6 +46,13 @@
   untouched and require only that it covers those paths, reporting the missing
   entries rather than merging into a file setup does not own.
 
+- Give each generated web surface a strict, fixed development port and report
+  its preview URL, and make `to-web-surface` own exactly one background
+  development server: started once, kept across increments through hot module
+  replacement, recovered from an abandoned server holding the port, and stopped
+  before the workflow ends. Make `flow` require its workers to release
+  background processes on a terminal status.
+
 ## 0.6.0
 
 ### Minor Changes

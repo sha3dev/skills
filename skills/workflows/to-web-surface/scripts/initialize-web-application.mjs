@@ -4,6 +4,8 @@ import { execFileSync } from "node:child_process";
 import { mkdir, readFile, rm, rmdir, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 
+const surfacePort = 4300;
+
 function fail(message) {
 	process.stderr.write(`${message}\n`);
 	process.exit(1);
@@ -71,11 +73,12 @@ try {
 	}
 	const surfaceRoot = join(applicationRoot, "surface");
 	const surfacePath = `${repositoryPath}/surface/`;
+	const previewUrl = `http://localhost:${surfacePort}/`;
 	const packagePath = join(surfaceRoot, "package.json");
 	if (await exists(packagePath)) {
 		const existingPackage = JSON.parse(await readFile(packagePath, "utf8"));
 		process.stdout.write(
-			`${JSON.stringify({ status: "already-initialized", application: application.name, path: surfacePath, workspace: existingPackage.name })}\n`,
+			`${JSON.stringify({ status: "already-initialized", application: application.name, path: surfacePath, workspace: existingPackage.name, url: previewUrl })}\n`,
 		);
 		process.exit(0);
 	}
@@ -140,7 +143,7 @@ try {
 		],
 		[
 			"vite.config.ts",
-			`import react from "@vitejs/plugin-react";\nimport { defineConfig } from "vite";\n\nexport default defineConfig({ plugins: [react()] });\n`,
+			`import react from "@vitejs/plugin-react";\nimport { defineConfig } from "vite";\n\nexport default defineConfig({\n\tplugins: [react()],\n\tserver: { port: ${surfacePort}, strictPort: true },\n});\n`,
 		],
 		[
 			"src/App.tsx",
@@ -171,7 +174,7 @@ try {
 	}
 
 	process.stdout.write(
-		`${JSON.stringify({ status: "initialized", application: application.name, path: surfacePath, workspace: packageJson.name })}\n`,
+		`${JSON.stringify({ status: "initialized", application: application.name, path: surfacePath, workspace: packageJson.name, url: previewUrl })}\n`,
 	);
 } catch (error) {
 	fail(error.message);
