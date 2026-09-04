@@ -1,5 +1,23 @@
 # sha3dev-skills
 
+## 0.13.0
+
+### Added
+
+- Add a document-style visual review surface to generated API applications. It
+  reads the live `/openapi.json` contract, presents aligned endpoint and
+  operation indexes, expands request and response fields without interaction,
+  and provides responsive screen and A4 print layouts from the same Fastify
+  server.
+
+### Changed
+
+- Make browser automation a prerequisite of interface workflows and centralize
+  that requirement in `workflow-run`, so web surfaces, API contract documents,
+  and API connections receive consistent rendered verification.
+- Extend `to-api-surface` review to cover the generated contract document at
+  desktop, mobile, and print widths before the API phase can complete.
+
 ## 0.12.0
 
 ### Added
