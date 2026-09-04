@@ -6,7 +6,10 @@
 an agreed HTTP contract and a runnable Fastify application. It maintains the
 resumable functional specification at
 `.flow/applications/<application-slug>/surface.md`, implements the contract
-vertically, and exposes generated OpenAPI JSON from the route schemas.
+vertically, and exposes generated OpenAPI JSON from the route schemas. The API
+also serves a domain-specific visual review surface at its fixed URL. That
+interface makes the contract easy to scan and reads its operations and
+technical details directly from OpenAPI instead of maintaining another catalog.
 
 Shared fixtures provide deterministic initial domain state through replaceable
 repositories. Required writes operate in memory for the lifetime of the server
@@ -27,18 +30,26 @@ installed alongside this one: its bundled workspace initializer is shared with
 `to-web-surface`. Related incoming web surfaces
 must be complete. The `workflow-run`, `interview`, `fixtures`,
 `typescript-stack`, `rest-api-design`, and `fastify-best-practices` toolkit
-skills must be available.
+skills must be available. `frontend-design` must also be available to shape the
+review interface around the API's real subject and audience.
 
 ## It's working if
 
 The functional decisions remain resumable from `surface.md`; route schemas
 validate and serialize the confirmed contract; OpenAPI describes those same
 operations; and tests exercise requests through Fastify's injection boundary.
-The running server exposes each reviewed increment to an external HTTP client.
-Reads begin from stable shared fixtures, required writes are observable during
-the process, and restarting restores the initial data. The phase completes only
-after whole-surface approval, passing workspace tests, complete generated
-OpenAPI, and a green repository gate.
+The running server exposes each reviewed increment to an external HTTP client
+and presents it through the same fixed review URL. The interface reads like a
+continuous contract document: a concise overview of resources, methods, paths,
+reads, and mutations is followed by every operation's already-expanded request,
+response, error, and schema information. Review never depends on opening tabs,
+accordions, or detail panels, and the full surface has a coherent print/PDF
+layout. Contract facts come from `/openapi.json`, while the model may tailor
+grouping, hierarchy, and visualization to the domain. Reads begin from stable
+shared fixtures, required writes are observable during the process, and
+restarting restores the initial data. The phase completes only after browser
+verification, whole-surface visual approval, passing workspace tests, complete
+generated OpenAPI, and a green repository gate.
 
 ## Where it fits
 

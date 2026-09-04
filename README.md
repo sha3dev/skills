@@ -121,7 +121,7 @@ End-to-end development stages with an explicit start, progression, and finish.
 | [`flow`](./docs/workflows/flow.md) | Explicit | Select and run the appropriate workflow in an isolated worker context. |
 | [`setup`](./docs/workflows/setup.md) | Explicit | Initialize an empty repository, define typed applications and relationships, and materialize the fixed toolchain. |
 | [`to-web-surface`](./docs/workflows/to-web-surface.md) | Explicit | Specify one web interface through a persistent design interview, then build it incrementally with the user. |
-| [`to-api-surface`](./docs/workflows/to-api-surface.md) | Explicit | Specify an API contract from confirmed consumer needs, then build a fixture-backed Fastify implementation incrementally. |
+| [`to-api-surface`](./docs/workflows/to-api-surface.md) | Explicit | Specify an API contract, then iterate on its visual review surface and fixture-backed Fastify implementation. |
 | [`connect-to-api`](./docs/workflows/connect-to-api.md) | Explicit | Connect a completed application surface to its APIs; currently supports web consumers. |
 
 ### Toolkit
@@ -157,7 +157,9 @@ ownership, completion gate, revision rule, and run boundary to `workflow-run`,
 so no phase reaches `complete` without an explicit user approval. API
 contracts apply `rest-api-design` while the interview shapes them, API
 implementation and integration apply `fastify-best-practices` where they change
-Fastify code, and APIs generate OpenAPI from route schemas. `typescript-stack`
+Fastify code, and APIs generate OpenAPI from route schemas. Each API also serves
+a model-designed, printable contract document that reads that OpenAPI at runtime
+so the user can scan and approve the evolving API visually. `typescript-stack`
 is selected automatically whenever the agent writes application TypeScript or
 TSX.
 Invoke `lazy` explicitly when simplicity is the main constraint for a task.

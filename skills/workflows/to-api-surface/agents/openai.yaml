@@ -1,6 +1,6 @@
 interface:
   display_name: "To API Surface"
-  short_description: "Specify and build a Fastify API surface"
-  default_prompt: "Use $to-api-surface to interview me about and build an API application surface."
+  short_description: "Build an API and its visual review surface"
+  default_prompt: "Use $to-api-surface to design and build an API with a visual review surface."
 policy:
   allow_implicit_invocation: false

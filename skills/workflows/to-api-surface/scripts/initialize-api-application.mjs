@@ -2,10 +2,24 @@
 
 // Workspace shape, validation and write semantics are shared with the web
 // initializer; see the module for why it lives in `setup`.
+import { readFileSync } from "node:fs";
 import {
 	fail,
 	scaffoldApplication,
 } from "../../setup/scripts/application-scaffold.mjs";
+
+const referenceHtml = readFileSync(
+	new URL("../assets/reference/index.html", import.meta.url),
+	"utf8",
+);
+const referenceCss = readFileSync(
+	new URL("../assets/reference/reference.css", import.meta.url),
+	"utf8",
+);
+const referenceJs = readFileSync(
+	new URL("../assets/reference/reference.js", import.meta.url),
+	"utf8",
+);
 
 function files({ application, dependency, previewPort, workspaceName }) {
 	const packageJson = {
@@ -42,20 +56,59 @@ function files({ application, dependency, previewPort, workspaceName }) {
 		["tsconfig.json", tsconfig],
 		[
 			"src/app.ts",
-			`import swagger from "@fastify/swagger";
+			`import { readFile } from "node:fs/promises";
+import swagger from "@fastify/swagger";
 import Fastify from "fastify";
 
 export async function buildApp() {
 \tconst app = Fastify({ logger: false });
+\tconst [referenceDocument, referenceStyles, referenceScript] =
+\t\tawait Promise.all([
+\t\t\treadFile(
+\t\t\t\tnew URL("../public/reference/index.html", import.meta.url),
+\t\t\t\t"utf8",
+\t\t\t),
+\t\t\treadFile(
+\t\t\t\tnew URL("../public/reference/reference.css", import.meta.url),
+\t\t\t\t"utf8",
+\t\t\t),
+\t\t\treadFile(
+\t\t\t\tnew URL("../public/reference/reference.js", import.meta.url),
+\t\t\t\t"utf8",
+\t\t\t),
+\t\t]);
 
 \tawait app.register(swagger, {
 \t\topenapi: {
 \t\t\tinfo: {
 \t\t\t\ttitle: ${JSON.stringify(application.name)},
+\t\t\t\tdescription: ${JSON.stringify(application.responsibility)},
 \t\t\t\tversion: "0.1.0",
 \t\t\t},
 \t\t},
 \t});
+
+\tapp.get("/", { schema: { hide: true } }, async (_request, reply) =>
+\t\treply.type("text/html; charset=utf-8").send(referenceDocument),
+\t);
+
+\tapp.get("/reference", { schema: { hide: true } }, async (_request, reply) =>
+\t\treply.type("text/html; charset=utf-8").send(referenceDocument),
+\t);
+
+\tapp.get(
+\t\t"/reference.css",
+\t\t{ schema: { hide: true } },
+\t\tasync (_request, reply) =>
+\t\t\treply.type("text/css; charset=utf-8").send(referenceStyles),
+\t);
+
+\tapp.get(
+\t\t"/reference.js",
+\t\t{ schema: { hide: true } },
+\t\tasync (_request, reply) =>
+\t\t\treply.type("text/javascript; charset=utf-8").send(referenceScript),
+\t);
 
 \tapp.get(
 \t\t"/health",
@@ -86,6 +139,9 @@ export async function buildApp() {
 }
 `,
 		],
+		["public/reference/index.html", referenceHtml],
+		["public/reference/reference.css", referenceCss],
+		["public/reference/reference.js", referenceJs],
 		[
 			"src/server.ts",
 			`import { buildApp } from "./app";
@@ -100,7 +156,7 @@ await app.listen({ host: "127.0.0.1", port: ${previewPort} });
 import test from "node:test";
 import { buildApp } from "../app";
 
-test("exposes health and OpenAPI contracts", async (context) => {
+test("exposes health, OpenAPI, and the visual contract", async (context) => {
 \tconst app = await buildApp();
 \tcontext.after(async () => app.close());
 
@@ -111,6 +167,18 @@ test("exposes health and OpenAPI contracts", async (context) => {
 \tconst openapi = await app.inject({ method: "GET", url: "/openapi.json" });
 \tassert.equal(openapi.statusCode, 200);
 \tassert.ok(openapi.json().paths["/health"]);
+
+\tconst reference = await app.inject({ method: "GET", url: "/" });
+\tassert.equal(reference.statusCode, 200);
+\tassert.match(reference.headers["content-type"] ?? "", /^text\\/html/);
+\tassert.match(reference.body, /id="reference"/);
+
+\tconst referenceScript = await app.inject({
+\t\tmethod: "GET",
+\t\turl: "/reference.js",
+\t});
+\tassert.equal(referenceScript.statusCode, 200);
+\tassert.match(referenceScript.body, /fetch\\("\\/openapi.json"\\)/);
 });
 `,
 		],
