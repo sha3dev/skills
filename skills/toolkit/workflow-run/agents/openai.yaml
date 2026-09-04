@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workflow Run"
+  short_description: "Share the application workflows' run discipline"
+  default_prompt: "Use $workflow-run to apply the shared entry check, development server, revision, and run boundary rules."

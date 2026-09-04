@@ -97,8 +97,7 @@ async function installation(skill) {
 		: "unverified";
 }
 
-function readState(root) {
-	const tool = resolve(root, ".flow/tools/repo-state.mjs");
+function readState(root, tool) {
 	const result = spawnSync(process.execPath, [tool, "--root", root], {
 		encoding: "utf8",
 	});
@@ -121,30 +120,43 @@ function ruleFor(routes, application, phase) {
 	);
 }
 
-function incompleteIncoming(rule, application, project) {
-	const requirements = rule.requiresCompletedIncoming ?? [];
+// Incoming and outgoing prerequisites differ only in which end of the
+// relationship names this application and which end is inspected.
+const relationshipDirections = {
+	incoming: {
+		requirements: "requiresCompletedIncoming",
+		self: "to",
+		other: "from",
+	},
+	outgoing: {
+		requirements: "requiresCompletedOutgoing",
+		self: "from",
+		other: "to",
+	},
+};
+
+function incompleteRelated(rule, application, state, direction) {
+	const { requirements: key, self, other } = relationshipDirections[direction];
+	const requirements = rule[key] ?? [];
 	if (requirements.length === 0) return [];
 	const applications = new Map(
-		(project.applications ?? []).map((candidate) => [
-			candidate.name,
-			candidate,
-		]),
+		(state.applications ?? []).map((candidate) => [candidate.name, candidate]),
 	);
-	const incoming = (project.relationships ?? [])
-		.filter((relationship) => relationship.to === application.name)
-		.map((relationship) => applications.get(relationship.from))
+	const related = (state.relationships ?? [])
+		.filter((relationship) => relationship[self] === application.name)
+		.map((relationship) => applications.get(relationship[other]))
 		.filter(Boolean);
 	const blockers = [];
 	for (const requirement of requirements) {
-		for (const source of incoming) {
+		for (const candidate of related) {
 			if (
-				requirement.applicationTypes.includes(source.type) &&
-				source.progress?.[requirement.phase] !== "complete"
+				requirement.applicationTypes.includes(candidate.type) &&
+				candidate.progress?.[requirement.phase] !== "complete"
 			) {
 				blockers.push({
-					application: source.name,
+					application: candidate.name,
 					phase: requirement.phase,
-					status: source.progress?.[requirement.phase],
+					status: candidate.progress?.[requirement.phase],
 				});
 			}
 		}
@@ -160,37 +172,6 @@ function incompleteSelf(rule, application) {
 			phase,
 			status: application.progress?.[phase],
 		}));
-}
-
-function incompleteOutgoing(rule, application, project) {
-	const requirements = rule.requiresCompletedOutgoing ?? [];
-	if (requirements.length === 0) return [];
-	const applications = new Map(
-		(project.applications ?? []).map((candidate) => [
-			candidate.name,
-			candidate,
-		]),
-	);
-	const outgoing = (project.relationships ?? [])
-		.filter((relationship) => relationship.from === application.name)
-		.map((relationship) => applications.get(relationship.to))
-		.filter(Boolean);
-	const blockers = [];
-	for (const requirement of requirements) {
-		for (const target of outgoing) {
-			if (
-				requirement.applicationTypes.includes(target.type) &&
-				target.progress?.[requirement.phase] !== "complete"
-			) {
-				blockers.push({
-					application: target.name,
-					phase: requirement.phase,
-					status: target.progress?.[requirement.phase],
-				});
-			}
-		}
-	}
-	return blockers;
 }
 
 async function decide(root, routes) {
@@ -216,7 +197,7 @@ async function decide(root, routes) {
 		};
 	}
 
-	const { state, error } = readState(root);
+	const { state, error } = readState(root, stateTool);
 	if (error)
 		return { decision: "blocked", reason: "state-check-failed", detail: error };
 
@@ -232,17 +213,6 @@ async function decide(root, routes) {
 		}
 		return { decision: "blocked", reason: "invalid-state", state };
 	}
-	let project;
-	try {
-		project = JSON.parse(await readFile(projectFile, "utf8"));
-	} catch (error) {
-		return {
-			decision: "blocked",
-			reason: "invalid-project",
-			detail: `.flow/project.json is unreadable: ${error.message}`,
-		};
-	}
-
 	const open = [];
 	const waiting = [];
 	const unroutable = [];
@@ -260,8 +230,8 @@ async function decide(root, routes) {
 			const blockers = rule
 				? [
 						...incompleteSelf(rule, application),
-						...incompleteIncoming(rule, application, project),
-						...incompleteOutgoing(rule, application, project),
+						...incompleteRelated(rule, application, state, "incoming"),
+						...incompleteRelated(rule, application, state, "outgoing"),
 					]
 				: [];
 			if (rule && blockers.length === 0) {

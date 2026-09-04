@@ -26,8 +26,15 @@ async function readJson(path, label) {
 	}
 }
 
+const competingDependencies = new Set([
+	"eslint",
+	"prettier",
+	"oxlint",
+	"dprint",
+]);
+
 function isCompetingDependency(name) {
-	return new Set(["eslint", "prettier", "oxlint", "dprint"]).has(name);
+	return competingDependencies.has(name);
 }
 
 async function findRepositoryViolations(root) {

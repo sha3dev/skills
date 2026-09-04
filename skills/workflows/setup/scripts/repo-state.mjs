@@ -74,11 +74,10 @@ export async function getRepositoryState(rootInput = ".") {
 				error: progress.stderr.trim() || ".flow/project.json could not be parsed",
 			};
 		}
-		return {
-			state: "already_initialized",
-			markers,
-			applications: JSON.parse(progress.stdout).applications,
-		};
+		// The progress tool is the single parser and validator of project.json;
+		// callers read applications and relationships from this state.
+		const { applications, relationships } = JSON.parse(progress.stdout);
+		return { state: "already_initialized", markers, applications, relationships };
 	}
 
 	const reservedOutputs = [

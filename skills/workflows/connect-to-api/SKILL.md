@@ -21,9 +21,7 @@ tracker. Do not create another specification artifact for this phase.
 1. Run `node .flow/tools/repo-state.mjs --root . --expect already_initialized`
    and stop on failure. Use its `applications` to select the named `web`
    application with an open `api-connection` phase, or ask the user when the
-   choice is ambiguous. Run `npm run check:toolchain` once as the entry check:
-   run `npm install` and retry when it reports that dependencies are not
-   installed, and stop on any other failure.
+   choice is ambiguous. Then apply `$workflow-run`'s entry check.
 2. Read the relevant `.flow/project.json` application and relationship entries.
    Select every outgoing relationship from this web application to an `api`
    application. Require the web's `web-surface` and every related API's
@@ -64,9 +62,8 @@ tracker. Do not create another specification artifact for this phase.
    are no longer used. Do not copy fixtures into application source, keep a
    hidden fixture fallback, change `.flow/fixtures/`, introduce `Mock`-prefixed
    application names, or add persistence or infrastructure.
-9. Start exactly one development server for the web and one for each related
-   API at their fixed URLs. Use the existing watch processes; restart one only
-   when it stops or its configuration or dependencies change. Exercise each
+9. Run the web and every related API at their fixed URLs under
+   `$workflow-run`'s development process rules. Exercise each
    changed API operation as an external HTTP client, including CORS where it
    applies. Then use available browser tooling at representative desktop and
    mobile widths to verify that reads, confirmed writes, loading, empty, and
@@ -80,18 +77,14 @@ tracker. Do not create another specification artifact for this phase.
     it no longer consumes `.flow/fixtures/` directly. Then run
     `node .flow/tools/project-progress.mjs --root . --app <name> --phase api-connection --set complete`.
 
-The development processes belong to this workflow. Stop all of them before the
-workflow ends for any reason: completion, a blocker, or abandoning the work.
+## Run discipline
 
-When revising a completed connection, require an explicit user request and use
-the same progress command with `--set in-progress --reopen` before editing. The
-progress tool automatically returns a completed connection to `pending` when
+Apply `$workflow-run` for the entry check, development process ownership,
+revising a completed connection, and the run boundary. This run is one `web`
+application and all of its declared API dependencies: it starts at step 1 and
+ends at step 10 or at a blocker, and its inputs are durable in
+`.flow/project.json`, the confirmed surface specifications, OpenAPI or route
+schemas, and application code; no interview context carries into it. Do not
+begin a surface revision inside this run. Beyond an explicitly requested
+reopen, the progress tool also returns a completed connection to `pending` when
 its web surface or any related API surface is reopened.
-
-## Run boundary
-
-This workflow is one run for one web application and all of its declared API
-dependencies. Do not connect another web application or begin a surface
-revision inside this run. Its inputs are durable in `.flow/project.json`, the
-confirmed surface specifications, OpenAPI or route schemas, and application
-code; no interview context carries into it.

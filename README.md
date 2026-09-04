@@ -19,7 +19,7 @@ git init
 npx skills@latest add sha3dev/skills
 ```
 
-Choose a project-scoped installation, select your agent, and install all fourteen
+Choose a project-scoped installation, select your agent, and install all fifteen
 skills. Project-scoped installations create `skills-lock.json`; commit it so
 the installed sources and content hashes remain reproducible.
 
@@ -31,8 +31,8 @@ $flow
 ```
 
 In a new repository it starts the setup flow and asks for the rough product
-idea. It will agree the product definition and domain language, identify `web`,
-`api`, and `worker` applications, and discover their logical relationships. It
+idea. It will agree the product definition and domain language, identify `web`
+and `api` applications, and discover their logical relationships. It
 shows the generated `.flow/project.json` and waits for approval before writing
 anything.
 
@@ -112,6 +112,7 @@ Reusable constraints, practices, and specialist guidance that support the workfl
 
 | Skill | Invocation | Purpose |
 | --- | --- | --- |
+| [`workflow-run`](./docs/toolkit/workflow-run.md) | Automatic | Share the application workflows' entry check, development server ownership, revision rule, and run boundary. |
 | [`interview`](./docs/toolkit/interview.md) | Automatic | Resolve dependent decisions one question at a time while maintaining a durable, resumable artifact. |
 | [`fixtures`](./docs/toolkit/fixtures.md) | Automatic | Maintain deterministic domain records that disconnected application surfaces can reuse and extend. |
 | [`fastify-best-practices`](./docs/toolkit/fastify-best-practices.md) | Automatic | Apply upstream Fastify guidance for plugins, schemas, routes, lifecycle, security, and testing. |
@@ -131,7 +132,9 @@ Internally, `setup` runs once, `to-web-surface` handles a `web` application, and
 are complete. `connect-to-api` then replaces each web's local repositories
 with HTTP adapters after all its related API surfaces are complete. Both surface
 workflows use `interview` to resolve their contract one question at a time and
-`fixtures` to evolve shared example data behind replaceable repositories. API
+`fixtures` to evolve shared example data behind replaceable repositories. All
+three application workflows defer their entry check, development server
+ownership, revision rule, and run boundary to `workflow-run`. API
 implementation and integration apply `fastify-best-practices` where they change
 Fastify code, and APIs generate OpenAPI from route schemas. `typescript-stack`
 is selected automatically whenever the agent writes application TypeScript or
@@ -141,8 +144,6 @@ Invoke `lazy` explicitly when simplicity is the main constraint for a task.
 only for their respective UI concerns. `shadcn` activates for projects that
 already contain `components.json` or when shadcn is explicitly requested; it
 does not introduce shadcn into every React application.
-
-The worker surface workflow is planned but is not included yet.
 
 ## Updating
 

@@ -20,7 +20,7 @@ Use technical English. Agree these values:
   `definition`. Term names are unique ignoring case. Exclude implementation and
   general programming terminology.
 - One or more `applications`, each with a `name` unique ignoring case, a
-  one-sentence `responsibility`, and one `type`: `web`, `api`, or `worker`.
+  one-sentence `responsibility`, and one `type`: `web` or `api`.
 - Zero or more directed `relationships`, each with `from`, `to`, and a
   one-sentence `description`. References exactly match two different application
   names, and each directed pair appears at most once. Direction follows runtime

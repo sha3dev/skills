@@ -4,16 +4,18 @@ import { readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 
 const statuses = ["pending", "in-progress", "complete"];
-const applicationTypes = ["web", "api", "worker"];
+const applicationTypes = ["web", "api"];
 
 function fail(message) {
 	process.stderr.write(`${message}\n`);
 	process.exit(1);
 }
 
-function option(args, name) {
+function option(args, name, fallback) {
 	const index = args.indexOf(name);
-	return index === -1 ? undefined : args[index + 1];
+	if (index === -1) return fallback;
+	if (!args[index + 1]) fail(`Missing ${name}`);
+	return args[index + 1];
 }
 
 function nonEmptyString(value, path) {
@@ -52,7 +54,7 @@ function parseApplications(project) {
 
 		const type = nonEmptyString(application.type, `${label}.type`);
 		if (!applicationTypes.includes(type)) {
-			fail(`${label}.type must be web, api, or worker`);
+			fail(`${label}.type must be web or api`);
 		}
 		const path = nonEmptyString(application.path, `${label}.path`);
 		if (!/^apps\/[^/]+\/$/.test(path)) {
@@ -148,14 +150,14 @@ function invalidateApiConnections(project, application, phase) {
 
 try {
 	const args = process.argv.slice(2);
-	const root = resolve(option(args, "--root") ?? ".");
+	const root = resolve(option(args, "--root", "."));
 	const applicationName = option(args, "--app");
 	const type = option(args, "--type");
 	const phase = option(args, "--phase");
 	const nextStatus = option(args, "--set");
 	const reopen = args.includes("--reopen");
 	if (type && !applicationTypes.includes(type)) {
-		fail("--type must be web, api, or worker");
+		fail("--type must be web or api");
 	}
 	if (nextStatus && !statuses.includes(nextStatus)) {
 		fail("--set must be pending, in-progress, or complete");
@@ -209,15 +211,14 @@ try {
 			await writeFile(
 				temporaryPath,
 				`${JSON.stringify(project, null, "\t")}\n`,
-				{
-					flag: "wx",
-				},
 			);
 			await rename(temporaryPath, projectPath);
 		}
 	}
 
-	process.stdout.write(`${JSON.stringify({ applications }, null, 2)}\n`);
+	process.stdout.write(
+		`${JSON.stringify({ applications, relationships: project.relationships }, null, 2)}\n`,
+	);
 } catch (error) {
 	fail(error.message);
 }
