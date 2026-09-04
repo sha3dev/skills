@@ -22,9 +22,12 @@ completed API surface only when explicitly revising it.
 ## Prerequisites
 
 `setup` must have generated a valid `.flow/project.json` and toolchain, and the
-application must declare an `api-surface` phase. Related incoming web surfaces
-must be complete. The `interview`, `fixtures`, `typescript-stack`, and
-`fastify-best-practices` toolkit skills must be available.
+application must declare an `api-surface` phase. The `setup` skill must remain
+installed alongside this one: its bundled workspace initializer is shared with
+`to-web-surface`. Related incoming web surfaces
+must be complete. The `workflow-run`, `interview`, `fixtures`,
+`typescript-stack`, and `fastify-best-practices` toolkit skills must be
+available.
 
 ## It's working if
 

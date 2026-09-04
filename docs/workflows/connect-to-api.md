@@ -24,8 +24,8 @@ infrastructure.
 
 `setup` must have created the web application's `api-connection` phase. Its
 `web-surface` and every related `api-surface` must be complete. The
-`typescript-stack` and `fastify-best-practices` toolkit skills must be
-available.
+`workflow-run`, `typescript-stack`, and `fastify-best-practices` toolkit skills
+must be available.
 
 ## It's working if
 

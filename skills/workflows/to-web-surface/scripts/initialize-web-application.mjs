@@ -1,39 +1,11 @@
 #!/usr/bin/env node
 
-import { execFileSync } from "node:child_process";
-import { mkdir, readFile, rm, rmdir, stat, writeFile } from "node:fs/promises";
-import { basename, join, relative, resolve, sep } from "node:path";
-
-const firstPreviewPort = 4300;
-
-function fail(message) {
-	process.stderr.write(`${message}\n`);
-	process.exit(1);
-}
-
-function option(args, name) {
-	const index = args.indexOf(name);
-	if (index === -1 || !args[index + 1]) fail(`Missing ${name}`);
-	return args[index + 1];
-}
-
-async function exists(path) {
-	try {
-		await stat(path);
-		return true;
-	} catch (error) {
-		if (error.code === "ENOENT") return false;
-		throw error;
-	}
-}
-
-function dependency(packageJson, group, name) {
-	const version = packageJson[group]?.[name];
-	if (typeof version !== "string" || !version) {
-		fail(`Root package.json has no ${group} entry for ${name}`);
-	}
-	return version;
-}
+// Workspace shape, validation and write semantics are shared with the API
+// initializer; see the module for why it lives in `setup`.
+import {
+	fail,
+	scaffoldApplication,
+} from "../../setup/scripts/application-scaffold.mjs";
 
 function html(value) {
 	return value
@@ -43,65 +15,9 @@ function html(value) {
 		.replaceAll('"', "&quot;");
 }
 
-try {
-	const args = process.argv.slice(2);
-	const root = resolve(option(args, "--root"));
-	const applicationName = option(args, "--app");
-	const progressTool = join(root, ".flow/tools/project-progress.mjs");
-	const result = JSON.parse(
-		execFileSync(
-			process.execPath,
-			[progressTool, "--root", root, "--app", applicationName],
-			{ encoding: "utf8" },
-		),
-	);
-	const application = result.applications?.[0];
-	if (application?.type !== "web") {
-		fail(`${applicationName} is not a web application`);
-	}
-	if (
-		!application.progress ||
-		!["pending", "in-progress"].includes(application.progress["web-surface"])
-	) {
-		fail(`${application.name} web-surface is not open for initialization`);
-	}
-
-	const applicationRoot = resolve(root, application.path);
-	const repositoryPath = relative(root, applicationRoot).split(sep).join("/");
-	if (!/^apps\/[^/]+$/.test(repositoryPath)) {
-		fail(`Invalid application path: ${application.path}`);
-	}
-	const workspacePath = `${repositoryPath}/`;
-	const sourceRoot = join(applicationRoot, "src");
-	const project = JSON.parse(
-		await readFile(join(root, ".flow/project.json"), "utf8"),
-	);
-	const applicationIndex = project.applications
-		.filter((candidate) => candidate.type === "web")
-		.findIndex((candidate) => candidate.name === application.name);
-	if (applicationIndex < 0)
-		fail(`${application.name} is missing from the project`);
-	const previewPort = firstPreviewPort + applicationIndex;
-	const previewUrl = `http://localhost:${previewPort}/`;
-	const packagePath = join(applicationRoot, "package.json");
-	if (await exists(packagePath)) {
-		const existingPackage = JSON.parse(await readFile(packagePath, "utf8"));
-		process.stdout.write(
-			`${JSON.stringify({ status: "already-initialized", application: application.name, path: workspacePath, workspace: existingPackage.name, url: previewUrl })}\n`,
-		);
-		process.exit(0);
-	}
-	if (await exists(sourceRoot)) {
-		fail(`Application source path already exists: ${workspacePath}src/`);
-	}
-	const applicationRootExisted = await exists(applicationRoot);
-
-	const rootPackage = JSON.parse(
-		await readFile(join(root, "package.json"), "utf8"),
-	);
-	const slug = basename(applicationRoot);
+function files({ application, dependency, previewPort, workspaceName }) {
 	const packageJson = {
-		name: `@apps/${slug}`,
+		name: workspaceName,
 		private: true,
 		type: "module",
 		scripts: {
@@ -111,27 +27,18 @@ try {
 			typecheck: "tsc --noEmit --project tsconfig.json",
 		},
 		dependencies: {
-			react: dependency(rootPackage, "dependencies", "react"),
-			"react-dom": dependency(rootPackage, "dependencies", "react-dom"),
+			react: dependency("dependencies", "react"),
+			"react-dom": dependency("dependencies", "react-dom"),
 		},
 		devDependencies: {
-			typescript: dependency(rootPackage, "devDependencies", "typescript"),
-			"@types/react": dependency(
-				rootPackage,
-				"devDependencies",
-				"@types/react",
-			),
-			"@types/react-dom": dependency(
-				rootPackage,
-				"devDependencies",
-				"@types/react-dom",
-			),
+			typescript: dependency("devDependencies", "typescript"),
+			"@types/react": dependency("devDependencies", "@types/react"),
+			"@types/react-dom": dependency("devDependencies", "@types/react-dom"),
 			"@vitejs/plugin-react": dependency(
-				rootPackage,
 				"devDependencies",
 				"@vitejs/plugin-react",
 			),
-			vite: dependency(rootPackage, "devDependencies", "vite"),
+			vite: dependency("devDependencies", "vite"),
 		},
 	};
 	const tsconfig = `{
@@ -143,7 +50,7 @@ try {
 \t"include": ["src", "vite.config.ts"]
 }
 `;
-	const files = new Map([
+	return new Map([
 		["package.json", `${JSON.stringify(packageJson, null, "\t")}\n`],
 		["tsconfig.json", tsconfig],
 		[
@@ -168,36 +75,20 @@ try {
 		],
 		["src/vite-env.d.ts", '/// <reference types="vite/client" />\n'],
 	]);
+}
 
-	for (const path of files.keys()) {
-		if (await exists(join(applicationRoot, path))) {
-			fail(`Application file already exists: ${workspacePath}${path}`);
-		}
-	}
-
-	const createdFiles = [];
-	let sourceRootCreated = false;
-	await mkdir(applicationRoot, { recursive: true });
-	try {
-		await mkdir(sourceRoot);
-		sourceRootCreated = true;
-		for (const [path, content] of files) {
-			const target = join(applicationRoot, path);
-			await writeFile(target, content, { flag: "wx" });
-			createdFiles.push(target);
-		}
-	} catch (error) {
-		for (const path of createdFiles.reverse()) {
-			await rm(path, { force: true });
-		}
-		if (sourceRootCreated) await rmdir(sourceRoot).catch(() => {});
-		if (!applicationRootExisted) await rmdir(applicationRoot).catch(() => {});
-		throw error;
-	}
-
-	process.stdout.write(
-		`${JSON.stringify({ status: "initialized", application: application.name, path: workspacePath, workspace: packageJson.name, url: previewUrl })}\n`,
-	);
+try {
+	await scaffoldApplication({
+		type: "web",
+		typeLabel: "a web application",
+		phase: "web-surface",
+		firstPreviewPort: 4300,
+		portSource: {
+			path: "vite.config.ts",
+			pattern: /server:\s*{[^}]*\bport:\s*(\d+)/,
+		},
+		files,
+	});
 } catch (error) {
 	fail(error.message);
 }

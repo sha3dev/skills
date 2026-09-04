@@ -80,4 +80,4 @@ configuration.
 ## Where it fits
 
 `setup` materializes the platform once. `typescript-stack` then governs every
-application-code change made by later web, API, and worker workflows.
+application-code change made by later web and API workflows.

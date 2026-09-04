@@ -18,12 +18,8 @@ sole progress tracker.
 
 1. Run `node .flow/tools/repo-state.mjs --root . --expect already_initialized`
    and stop on failure. Use its `applications` to select the named `web`
-   application, or ask the user when the choice is ambiguous. Then run
-   `npm run check:toolchain` once, as this workflow's entry check: run
-   `npm install` and retry when it reports that dependencies are not installed,
-   and stop on any other failure. Later steps reach the toolchain through
-   the final `npm run check`; do not repeat this standalone entry check between
-   increments.
+   application, or ask the user when the choice is ambiguous. Then apply
+   `$workflow-run`'s entry check.
 2. Read the relevant `.flow/project.json` definition, terms, application, and
    relationship entries. Read
    `.flow/applications/<application-slug>/surface.md` first when it exists, then
@@ -61,15 +57,9 @@ sole progress tracker.
 	page reloads; never write them back to `.flow/fixtures/`. Keep visual state in
 	the application; do not add APIs, server code, persistence, authentication,
 	or infrastructure.
-6. Keep exactly one development server running for this application:
-   `npm run dev --workspace <workspace-name>` in the background, at the fixed
-   preview URL its `vite.config.ts` pins. Start it once, before the first
-   increment. Later increments reach the browser through hot module
-   replacement, so never restart it for a code change; restart it only when it
-   has stopped or its Vite configuration or dependencies changed. Because the
-   port is strict and only one surface runs at a time, a port conflict means an
-   abandoned server owns it: stop that process and start again on the same
-   port. Never fall back to another port.
+6. Serve this application with `npm run dev --workspace <workspace-name>` in
+   the background, at the fixed preview URL its `vite.config.ts` pins, under
+   `$workflow-run`'s development process rules.
 7. After an increment that changes `.flow/fixtures/`, apply `$fixtures`'
    validation procedure. After every increment, apply the repository's
    TypeScript workflow through `npm run check:code`. An increment may leave
@@ -94,20 +84,9 @@ sole progress tracker.
    `node .flow/tools/project-progress.mjs --root . --app <name> --phase web-surface --set complete`.
    Stop the development server and stop without starting another phase.
 
-The development server belongs to this workflow. Leave it running while the
-workflow is active, including while the user reviews an increment. Stop it
-before this workflow ends for any reason: completion, a blocker, or abandoning
-the work. An abandoned server keeps answering the fixed preview URL, later with
-another application's interface.
+## Run discipline
 
-When revising an approved surface, require an explicit user request and use the
-same progress command with `--set in-progress --reopen` before editing. Never
-change another application's progress or code.
-
-## Run boundary
-
-This workflow is one run for one application: it starts at step 1 and ends at
-step 8 or at a blocker. Everything it needs to resume is durable in
-`.flow/project.json` and the application's `surface.md`, so a run carries no
-state between applications. Do not begin another application's surface inside
-this run, and do not reuse this run's interview or increments for one.
+Apply `$workflow-run` for the entry check, development process ownership,
+revising an approved surface, and the run boundary. This run is one `web`
+application's surface: it starts at step 1 and ends at step 8 or at a blocker,
+and it resumes from `.flow/project.json` and the application's `surface.md`.

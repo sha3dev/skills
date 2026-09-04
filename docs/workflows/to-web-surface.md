@@ -23,8 +23,10 @@ application. Invoke it on a completed surface only when explicitly revising it.
 ## Prerequisites
 
 `setup` must have generated a valid `.flow/project.json` and toolchain, the
-application must declare a `web-surface` phase, and the `interview` and
-`fixtures` toolkit skills must be available.
+application must declare a `web-surface` phase, and the `workflow-run`,
+`interview`, and `fixtures` toolkit skills must be available. The `setup` skill
+must remain installed alongside this one: its bundled workspace initializer is
+shared with `to-api-surface`.
 
 The workflow verifies the toolchain once on entry and installs dependencies when
 they are missing, so a fresh clone does not read as a broken repository.

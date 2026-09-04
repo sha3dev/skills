@@ -1,99 +1,15 @@
 #!/usr/bin/env node
 
-import { execFileSync } from "node:child_process";
-import { mkdir, readFile, rm, rmdir, stat, writeFile } from "node:fs/promises";
-import { basename, join, relative, resolve, sep } from "node:path";
+// Workspace shape, validation and write semantics are shared with the web
+// initializer; see the module for why it lives in `setup`.
+import {
+	fail,
+	scaffoldApplication,
+} from "../../setup/scripts/application-scaffold.mjs";
 
-const firstPreviewPort = 4400;
-
-function fail(message) {
-	process.stderr.write(`${message}\n`);
-	process.exit(1);
-}
-
-function option(args, name) {
-	const index = args.indexOf(name);
-	if (index === -1 || !args[index + 1]) fail(`Missing ${name}`);
-	return args[index + 1];
-}
-
-async function exists(path) {
-	try {
-		await stat(path);
-		return true;
-	} catch (error) {
-		if (error.code === "ENOENT") return false;
-		throw error;
-	}
-}
-
-function dependency(packageJson, group, name) {
-	const version = packageJson[group]?.[name];
-	if (typeof version !== "string" || !version) {
-		fail(`Root package.json has no ${group} entry for ${name}`);
-	}
-	return version;
-}
-
-try {
-	const args = process.argv.slice(2);
-	const root = resolve(option(args, "--root"));
-	const applicationName = option(args, "--app");
-	const progressTool = join(root, ".flow/tools/project-progress.mjs");
-	const result = JSON.parse(
-		execFileSync(
-			process.execPath,
-			[progressTool, "--root", root, "--app", applicationName],
-			{ encoding: "utf8" },
-		),
-	);
-	const application = result.applications?.[0];
-	if (application?.type !== "api") {
-		fail(`${applicationName} is not an API application`);
-	}
-	if (
-		!application.progress ||
-		!["pending", "in-progress"].includes(application.progress["api-surface"])
-	) {
-		fail(`${application.name} api-surface is not open for initialization`);
-	}
-
-	const applicationRoot = resolve(root, application.path);
-	const repositoryPath = relative(root, applicationRoot).split(sep).join("/");
-	if (!/^apps\/[^/]+$/.test(repositoryPath)) {
-		fail(`Invalid application path: ${application.path}`);
-	}
-	const workspacePath = `${repositoryPath}/`;
-	const sourceRoot = join(applicationRoot, "src");
-	const project = JSON.parse(
-		await readFile(join(root, ".flow/project.json"), "utf8"),
-	);
-	const applicationIndex = project.applications
-		.filter((candidate) => candidate.type === "api")
-		.findIndex((candidate) => candidate.name === application.name);
-	if (applicationIndex < 0)
-		fail(`${application.name} is missing from the project`);
-	const previewPort = firstPreviewPort + applicationIndex;
-	const previewUrl = `http://localhost:${previewPort}/`;
-	const packagePath = join(applicationRoot, "package.json");
-	if (await exists(packagePath)) {
-		const existingPackage = JSON.parse(await readFile(packagePath, "utf8"));
-		process.stdout.write(
-			`${JSON.stringify({ status: "already-initialized", application: application.name, path: workspacePath, workspace: existingPackage.name, url: previewUrl })}\n`,
-		);
-		process.exit(0);
-	}
-	if (await exists(sourceRoot)) {
-		fail(`Application source path already exists: ${workspacePath}src/`);
-	}
-	const applicationRootExisted = await exists(applicationRoot);
-
-	const rootPackage = JSON.parse(
-		await readFile(join(root, "package.json"), "utf8"),
-	);
-	const slug = basename(applicationRoot);
+function files({ application, dependency, previewPort, workspaceName }) {
 	const packageJson = {
-		name: `@apps/${slug}`,
+		name: workspaceName,
 		private: true,
 		type: "module",
 		scripts: {
@@ -103,17 +19,13 @@ try {
 			typecheck: "tsc --noEmit --project tsconfig.json",
 		},
 		dependencies: {
-			"@fastify/swagger": dependency(
-				rootPackage,
-				"dependencies",
-				"@fastify/swagger",
-			),
-			fastify: dependency(rootPackage, "dependencies", "fastify"),
+			"@fastify/swagger": dependency("dependencies", "@fastify/swagger"),
+			fastify: dependency("dependencies", "fastify"),
 		},
 		devDependencies: {
-			"@types/node": dependency(rootPackage, "devDependencies", "@types/node"),
-			tsx: dependency(rootPackage, "devDependencies", "tsx"),
-			typescript: dependency(rootPackage, "devDependencies", "typescript"),
+			"@types/node": dependency("devDependencies", "@types/node"),
+			tsx: dependency("devDependencies", "tsx"),
+			typescript: dependency("devDependencies", "typescript"),
 		},
 	};
 	const tsconfig = `{
@@ -125,7 +37,7 @@ try {
 \t"include": ["src"]
 }
 `;
-	const files = new Map([
+	return new Map([
 		["package.json", `${JSON.stringify(packageJson, null, "\t")}\n`],
 		["tsconfig.json", tsconfig],
 		[
@@ -203,38 +115,17 @@ test("exposes health and OpenAPI contracts", async (context) => {
 `,
 		],
 	]);
+}
 
-	for (const path of files.keys()) {
-		if (await exists(join(applicationRoot, path))) {
-			fail(`Application file already exists: ${workspacePath}${path}`);
-		}
-	}
-
-	const createdFiles = [];
-	let sourceRootCreated = false;
-	await mkdir(applicationRoot, { recursive: true });
-	try {
-		await mkdir(sourceRoot);
-		sourceRootCreated = true;
-		await mkdir(join(sourceRoot, "tests"));
-		for (const [path, content] of files) {
-			const target = join(applicationRoot, path);
-			await writeFile(target, content, { flag: "wx" });
-			createdFiles.push(target);
-		}
-	} catch (error) {
-		for (const path of createdFiles.reverse()) {
-			await rm(path, { force: true });
-		}
-		await rmdir(join(sourceRoot, "tests")).catch(() => {});
-		if (sourceRootCreated) await rmdir(sourceRoot).catch(() => {});
-		if (!applicationRootExisted) await rmdir(applicationRoot).catch(() => {});
-		throw error;
-	}
-
-	process.stdout.write(
-		`${JSON.stringify({ status: "initialized", application: application.name, path: workspacePath, workspace: packageJson.name, url: previewUrl })}\n`,
-	);
+try {
+	await scaffoldApplication({
+		type: "api",
+		typeLabel: "an API application",
+		phase: "api-surface",
+		firstPreviewPort: 4400,
+		portSource: { path: "src/server.ts", pattern: /\bport:\s*(\d+)/ },
+		files,
+	});
 } catch (error) {
 	fail(error.message);
 }

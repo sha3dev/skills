@@ -57,9 +57,9 @@ turbo.json
 `.flow/project.json` owns the global product definition, confirmed
 project-specific domain terms, application names, types, paths, responsibilities, logical
 relationships, and phase progress. Every application starts with a phase named
-after its type — `web-surface`, `api-surface`, or `worker-surface` — set to
-`pending`. A web application that declares an outgoing relationship to an API
-also starts with `api-connection: pending`. The generated progress tool permits
+after its type — `web-surface` or `api-surface` — set to `pending`. A web
+application that declares an outgoing relationship to an API also starts with
+`api-connection: pending`. The generated progress tool permits
 only deterministic `pending` to `in-progress` to `complete` transitions and
 invalidates completed connections when either surface is reopened. Its `terms`
 entries define canonical language without requirements, implementation details,

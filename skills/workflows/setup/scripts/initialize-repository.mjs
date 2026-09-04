@@ -18,6 +18,7 @@ import { getRepositoryState } from "./repo-state.mjs";
 
 const assetDirectory = fileURLToPath(new URL("../assets/", import.meta.url));
 const scriptDirectory = fileURLToPath(new URL("./", import.meta.url));
+const applicationTypes = new Set(["web", "api"]);
 
 function fail(message) {
 	throw new Error(message);
@@ -107,8 +108,8 @@ function normalizeInput(raw) {
 		names.add(normalizedName);
 
 		const type = text(application.type, `${path}.type`);
-		if (!new Set(["web", "api", "worker"]).has(type)) {
-			fail(`${path}.type must be web, api, or worker`);
+		if (!applicationTypes.has(type)) {
+			fail(`${path}.type must be web or api`);
 		}
 
 		const folder = applicationFolder(name, path);
@@ -379,12 +380,8 @@ function requiredIgnoreEntries(template) {
 	return required;
 }
 
+// main has already refused any repository that is not ready for setup.
 async function preflight(root, files) {
-	const state = await getRepositoryState(root);
-	if (state.state !== "ready_for_setup") {
-		fail(`Repository state is ${JSON.stringify(state)}`);
-	}
-
 	const pending = [];
 
 	for (const file of files) {
