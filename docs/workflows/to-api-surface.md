@@ -26,8 +26,8 @@ application must declare an `api-surface` phase. The `setup` skill must remain
 installed alongside this one: its bundled workspace initializer is shared with
 `to-web-surface`. Related incoming web surfaces
 must be complete. The `workflow-run`, `interview`, `fixtures`,
-`typescript-stack`, and `fastify-best-practices` toolkit skills must be
-available.
+`typescript-stack`, `rest-api-design`, and `fastify-best-practices` toolkit
+skills must be available.
 
 ## It's working if
 
@@ -43,7 +43,7 @@ OpenAPI, and a green repository gate.
 ## Where it fits
 
 `setup` defines the API and its relationships. Completed web surfaces provide
-consumer requirements, `interview` resolves the API contract, `fixtures` owns
-shared example records, and `fastify-best-practices` guides the framework-level
-implementation. `connect-to-api` later replaces the web's local repository
+consumer requirements, `interview` resolves the API contract, `rest-api-design`
+shapes its HTTP form, `fixtures` owns shared example records, and
+`fastify-best-practices` guides the framework-level implementation. `connect-to-api` later replaces the web's local repository
 with an HTTP adapter against this API without changing its domain components.

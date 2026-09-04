@@ -3,8 +3,9 @@
 ## What it does
 
 `workflow-run` holds the rules the application workflows share: the toolchain
-entry check, ownership of development processes at fixed URLs, how an approved
-phase is reopened, and where one run starts and ends. `to-web-surface`,
+entry check, ownership of development processes at fixed URLs, what a phase
+needs before it can be marked complete, how an approved phase is reopened, and
+where one run starts and ends. `to-web-surface`,
 `to-api-surface`, and `connect-to-api` state only what is specific to their
 phase and defer to this skill for the rest, so the three behave identically at
 their edges and a change to those rules happens in one place.
@@ -12,17 +13,19 @@ their edges and a change to those rules happens in one place.
 ## When to reach for it
 
 It is selected automatically by the workflow that is running: on entry, when
-starting or restarting a development server, when the user asks to revise a
-completed phase, and when deciding whether work belongs to the current run. It
+starting or restarting a development server, when a phase is ready to be marked
+complete, when the user asks to revise a completed phase, and when deciding
+whether work belongs to the current run. It
 is not a task workflow and never decides what to build.
 
 ## It's working if
 
 Each workflow verifies the toolchain once on entry instead of between
 increments, one development process per application answers its fixed URL and
-is stopped when the workflow ends, a completed phase moves back only through an
-explicit request and `--set in-progress --reopen`, and a run never drifts into a
-second application's phase.
+is stopped when the workflow ends, no phase reaches `complete` without the user
+explicitly approving it, a completed phase moves back only through an explicit
+request and `--set in-progress --reopen`, and a run never drifts into a second
+application's phase.
 
 ## Where it fits
 

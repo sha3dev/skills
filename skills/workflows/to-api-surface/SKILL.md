@@ -31,7 +31,8 @@ technical contract and `.flow/project.json` remains the sole progress tracker.
    user's request. If `api-surface` is `pending`, change it to `in-progress`
    with `node .flow/tools/project-progress.mjs --root . --app <name> --phase api-surface --set in-progress`.
 3. Use `$interview` before implementation, with `surface.md` as its durable
-   artifact. Its subject-specific lens is the API's consumers and use cases,
+   artifact, and `$rest-api-design` to shape the HTTP form of each confirmed
+   decision. Its subject-specific lens is the API's consumers and use cases,
    resources, operations, methods and paths, request parameters and bodies,
    response representations, status codes, errors, state transitions,
    filtering, ordering, pagination, concurrency, and security expectations.
@@ -73,16 +74,16 @@ technical contract and `.flow/project.json` remains the sole progress tracker.
    concise request and response examples for review. Use `$interview` again
    when review reveals a product decision, and record it in `surface.md` before
    changing code.
-9. Only after the user explicitly approves the whole API surface, its workspace
-   tests pass, the generated OpenAPI describes every confirmed operation, and
-   the full `npm run check` passes, run
+9. Complete `api-surface` under `$workflow-run`'s completion rule. What the
+   user approves is the whole API surface. Its phase-specific preconditions are
+   passing workspace tests and a generated OpenAPI that describes every
+   confirmed operation. Then run
    `node .flow/tools/project-progress.mjs --root . --app <name> --phase api-surface --set complete`.
-   Stop the development server and stop without starting another phase.
 
 ## Run discipline
 
 Apply `$workflow-run` for the entry check, development process ownership,
-revising an approved surface, and the run boundary. This run is one `api`
-application's surface: it starts at step 1 and ends at step 9 or at a blocker,
-and it resumes from `.flow/project.json`, the related completed surfaces, and
-the API's `surface.md`.
+completing a phase, revising an approved surface, and the run boundary. This
+run is one `api` application's surface: it starts at step 1 and ends at step 9
+or at a blocker, and it resumes from `.flow/project.json`, the related
+completed surfaces, and the API's `surface.md`.

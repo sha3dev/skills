@@ -1,5 +1,32 @@
 # sha3dev-skills
 
+## 0.12.0
+
+### Added
+
+- Include AJ Geddes' `rest-api-design` skill as an automatically selected
+  toolkit skill for shaping resource names, methods, representations, status
+  codes, and collection conventions, and apply it while `to-api-surface`
+  interviews the contract. Its Express.js example, handwritten OpenAPI
+  template, validation script stub, and authentication and rate-limiting
+  guidance are omitted as incompatible with the fixed Fastify platform and
+  with the surface workflow's scope.
+
+### Changed
+
+- Require an explicit user approval before any phase reaches `complete`, and
+  state that gate once in `workflow-run` instead of in each workflow.
+  `connect-to-api` no longer completes `api-connection` on green checks alone.
+- Accept `--root` in `verify-toolchain.mjs` instead of always inspecting the
+  current working directory, matching every other generated tool, and run
+  `check:toolchain` with `--root .` like the sibling check scripts.
+- Drop `typecheck.dependsOn: ["^typecheck"]` from the generated `turbo.json`.
+  With `noEmit` and no project references there is no build output to wait for,
+  so the dependency only serialized the graph.
+- Verify the dependency versions declared in `package.json` against the
+  toolchain policy, not only the installed ones, so a range or a downgraded pin
+  fails `check:toolchain` before `npm install` can hide it.
+
 ## 0.11.0
 
 ### Added

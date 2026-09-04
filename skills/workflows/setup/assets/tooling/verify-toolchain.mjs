@@ -2,12 +2,19 @@
 
 import { execFileSync } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
-import { join, relative, sep } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 import { assertMinimumVersion } from "./version-policy.mjs";
 
 function fail(message) {
 	process.stderr.write(`${message}\n`);
 	process.exit(1);
+}
+
+function option(args, name, fallback) {
+	const index = args.indexOf(name);
+	if (index === -1) return fallback;
+	if (!args[index + 1]) fail(`Missing ${name}`);
+	return args[index + 1];
 }
 
 async function readText(path, label) {
@@ -94,7 +101,7 @@ async function findRepositoryViolations(root) {
 }
 
 try {
-	const root = process.cwd();
+	const root = resolve(option(process.argv.slice(2), "--root", "."));
 	const policy = await readJson(
 		join(root, ".flow/toolchain-policy.json"),
 		".flow/toolchain-policy.json",
@@ -190,7 +197,9 @@ try {
 		["devDependencies", policy.minimumToolVersions],
 	]) {
 		for (const [name, minimum] of Object.entries(minimumVersions)) {
-			if (!packageJson[group]?.[name]) fail(`Missing ${group} entry ${name}`);
+			const declared = packageJson[group]?.[name];
+			if (!declared) fail(`Missing ${group} entry ${name}`);
+			assertMinimumVersion(declared, minimum, `${group} pin ${name}`);
 			let installedPackage;
 			try {
 				installedPackage = JSON.parse(

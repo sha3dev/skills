@@ -1,6 +1,6 @@
 ---
 name: workflow-run
-description: Apply the shared run discipline of the application workflows when one of them starts, runs its development servers, revises a completed phase, or ends. Covers the toolchain entry check, single development process ownership at fixed URLs, reopening an approved phase, and the run boundary.
+description: Apply the shared run discipline of the application workflows when one of them starts, runs its development servers, revises a completed phase, or ends. Covers the toolchain entry check, single development process ownership at fixed URLs, the user approval a phase needs before it is marked complete, reopening an approved phase, and the run boundary.
 ---
 
 # Workflow Run
@@ -39,6 +39,15 @@ These processes belong to the run. Leave them running while the workflow is
 active, including while the user reviews an increment, and stop all of them
 before the workflow ends for any reason: completion, a blocker, or abandoning
 the work.
+
+## Completing a phase
+
+A phase moves to `complete` only after the user explicitly approves that
+phase's work and the full `npm run check` passes. Present the finished work for
+review and wait for that approval; green checks are a precondition, never a
+substitute for it. Then set the phase with the workflow's own progress command,
+stop the run's development processes, and end the run without starting another
+phase.
 
 ## Revising a completed phase
 

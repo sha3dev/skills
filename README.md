@@ -19,7 +19,7 @@ git init
 npx skills@latest add sha3dev/skills
 ```
 
-Choose a project-scoped installation, select your agent, and install all fifteen
+Choose a project-scoped installation, select your agent, and install all sixteen
 skills. Project-scoped installations create `skills-lock.json`; commit it so
 the installed sources and content hashes remain reproducible.
 
@@ -112,9 +112,10 @@ Reusable constraints, practices, and specialist guidance that support the workfl
 
 | Skill | Invocation | Purpose |
 | --- | --- | --- |
-| [`workflow-run`](./docs/toolkit/workflow-run.md) | Automatic | Share the application workflows' entry check, development server ownership, revision rule, and run boundary. |
+| [`workflow-run`](./docs/toolkit/workflow-run.md) | Automatic | Share the application workflows' entry check, development server ownership, completion gate, revision rule, and run boundary. |
 | [`interview`](./docs/toolkit/interview.md) | Automatic | Resolve dependent decisions one question at a time while maintaining a durable, resumable artifact. |
 | [`fixtures`](./docs/toolkit/fixtures.md) | Automatic | Maintain deterministic domain records that disconnected application surfaces can reuse and extend. |
+| [`rest-api-design`](./docs/toolkit/rest-api-design.md) | Automatic | Shape resource names, methods, representations, status codes, and collection conventions for an HTTP contract. |
 | [`fastify-best-practices`](./docs/toolkit/fastify-best-practices.md) | Automatic | Apply upstream Fastify guidance for plugins, schemas, routes, lifecycle, security, and testing. |
 | [`lazy`](./docs/toolkit/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
 | [`typescript-stack`](./docs/toolkit/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
@@ -134,7 +135,9 @@ with HTTP adapters after all its related API surfaces are complete. Both surface
 workflows use `interview` to resolve their contract one question at a time and
 `fixtures` to evolve shared example data behind replaceable repositories. All
 three application workflows defer their entry check, development server
-ownership, revision rule, and run boundary to `workflow-run`. API
+ownership, completion gate, revision rule, and run boundary to `workflow-run`,
+so no phase reaches `complete` without an explicit user approval. API
+contracts apply `rest-api-design` while the interview shapes them, API
 implementation and integration apply `fastify-best-practices` where they change
 Fastify code, and APIs generate OpenAPI from route schemas. `typescript-stack`
 is selected automatically whenever the agent writes application TypeScript or

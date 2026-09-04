@@ -33,8 +33,9 @@ The web preserves its domain-facing repository contracts and visible behavior
 while its network requests reach the declared APIs. API-only fields remain at
 the transport boundary, CORS preserves every declared web consumer origin for
 shared APIs, shared fixtures are loaded only by API repositories, and the
-integrated browser flow, tests, builds, and repository gate pass. Reopening
-either surface returns the connection to `pending` so stale integration is
+integrated browser flow, tests, builds, and repository gate pass. The
+connection reaches `complete` only after you approve the integrated behavior,
+and reopening either surface returns it to `pending` so stale integration is
 never reported as complete.
 
 ## Where it fits

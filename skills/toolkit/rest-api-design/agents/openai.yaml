@@ -1,0 +1,4 @@
+interface:
+  display_name: "REST API Design"
+  short_description: "Shape a consistent resource-oriented HTTP contract"
+  default_prompt: "Use $rest-api-design to shape this HTTP contract before implementing it."

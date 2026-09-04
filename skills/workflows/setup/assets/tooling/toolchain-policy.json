@@ -30,7 +30,7 @@
 		"dev": "turbo run dev",
 		"format": "biome format --write .",
 		"fix": "biome check --write",
-		"check:toolchain": "node .flow/tools/verify-toolchain.mjs",
+		"check:toolchain": "node .flow/tools/verify-toolchain.mjs --root .",
 		"check:project": "node .flow/tools/repo-state.mjs --root . --expect already_initialized",
 		"check:fixtures": "node .flow/tools/validate-fixtures.mjs --root .",
 		"check:biome": "biome check .",

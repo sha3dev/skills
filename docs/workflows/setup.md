@@ -132,6 +132,11 @@ Biome checks `skills-lock.json` using the upstream skills installer's canonical
 two-space serialization. The lockfile remains tool-owned and committed for
 reproducible project-scoped skill installations.
 
+`toolchain-policy.json` declares minimum versions, never pins. The generated
+repository turns each minimum into an exact version, and the verifier checks
+that both the declared version and the installed one still satisfy it, so the
+project can move above a minimum but never below it and never behind a range.
+
 The toolchain verifier requires the fixed platform at compatible minimum
 versions, rejects direct ESLint, Prettier, oxlint, and dprint dependencies, and
 requires native ESM through an exact `"type": "module"` declaration in

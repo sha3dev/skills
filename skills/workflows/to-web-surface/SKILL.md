@@ -78,15 +78,16 @@ sole progress tracker.
    the user confirms its desktop and mobile behavior. Use `$interview` again
    when review reveals a product decision, and record that decision in
    `surface.md` before changing the code.
-8. Only after the user explicitly approves the whole interface, the full
-   `npm run check` passes, including its unused-code check, and
-   `npm run build --workspace <workspace-name>` succeeds, run
+8. Complete `web-surface` under `$workflow-run`'s completion rule. What the
+   user approves is the whole interface. Its phase-specific preconditions are
+   a passing unused-code check within the full `npm run check` and a successful
+   `npm run build --workspace <workspace-name>`. Then run
    `node .flow/tools/project-progress.mjs --root . --app <name> --phase web-surface --set complete`.
-   Stop the development server and stop without starting another phase.
 
 ## Run discipline
 
 Apply `$workflow-run` for the entry check, development process ownership,
-revising an approved surface, and the run boundary. This run is one `web`
-application's surface: it starts at step 1 and ends at step 8 or at a blocker,
-and it resumes from `.flow/project.json` and the application's `surface.md`.
+completing a phase, revising an approved surface, and the run boundary. This
+run is one `web` application's surface: it starts at step 1 and ends at step 8
+or at a blocker, and it resumes from `.flow/project.json` and the
+application's `surface.md`.

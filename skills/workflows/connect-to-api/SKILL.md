@@ -71,18 +71,20 @@ tracker. Do not create another specification artifact for this phase.
    tooling is unavailable, state that integrated browser verification is
    pending and do not complete the phase.
 10. Run affected workspace tests and `npm run check:code` while integrating.
-    Before completion, require related API tests, successful production builds
-    for the web and related APIs where they define a build, and a green full
-    `npm run check`. Confirm from the built web inputs or network behavior that
-    it no longer consumes `.flow/fixtures/` directly. Then run
+    Then complete `api-connection` under `$workflow-run`'s completion rule.
+    What the user approves is the integrated behavior verified in step 9. Its
+    phase-specific preconditions are passing related API tests, successful
+    production builds for the web and related APIs where they define a build,
+    and confirmation from the built web inputs or network behavior that it no
+    longer consumes `.flow/fixtures/` directly. Then run
     `node .flow/tools/project-progress.mjs --root . --app <name> --phase api-connection --set complete`.
 
 ## Run discipline
 
 Apply `$workflow-run` for the entry check, development process ownership,
-revising a completed connection, and the run boundary. This run is one `web`
-application and all of its declared API dependencies: it starts at step 1 and
-ends at step 10 or at a blocker, and its inputs are durable in
+completing a phase, revising a completed connection, and the run boundary. This
+run is one `web` application and all of its declared API dependencies: it starts
+at step 1 and ends at step 10 or at a blocker, and its inputs are durable in
 `.flow/project.json`, the confirmed surface specifications, OpenAPI or route
 schemas, and application code; no interview context carries into it. Do not
 begin a surface revision inside this run. Beyond an explicitly requested

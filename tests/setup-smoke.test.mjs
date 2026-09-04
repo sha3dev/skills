@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import {
+	copyFile,
+	mkdir,
+	mkdtemp,
+	readdir,
+	readFile,
+	rm,
+	writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -23,6 +31,8 @@ const route = join(repositoryRoot, "skills/workflows/flow/scripts/route.mjs");
 
 function run(command, args, cwd = repositoryRoot) {
 	const environment = { ...process.env };
+	// The generated projects run their own `node --test`, which refuses to start
+	// when it inherits the test context of this runner.
 	delete environment.NODE_TEST_CONTEXT;
 	execFileSync(command, args, { cwd, env: environment, stdio: "inherit" });
 }
@@ -322,20 +332,6 @@ test("setup derives connection phases and unique application ports", async () =>
 				"http://localhost:4401/",
 			],
 		);
-		await writeFile(
-			join(targetRoot, "apps/dashboard-web/.env.example"),
-			"VITE_ACCOUNTS_API_BASE_URL=http://localhost:4400/\n",
-		);
-		const gitStatus = execFileSync(
-			"git",
-			["status", "--short", "--untracked-files=all"],
-			{
-				cwd: targetRoot,
-				encoding: "utf8",
-			},
-		);
-		assert.match(gitStatus, /apps\/dashboard-web\/\.env\.example/);
-
 		for (const [application, phase] of [
 			["Dashboard Web", "web-surface"],
 			["Static Web", "web-surface"],
@@ -357,4 +353,68 @@ test("setup derives connection phases and unique application ports", async () =>
 	} finally {
 		await rm(temporaryRoot, { recursive: true, force: true });
 	}
+});
+
+test("the generated gitignore keeps .env.example tracked", async (t) => {
+	const temporaryRoot = await mkdtemp(join(tmpdir(), "sha3dev-skills-"));
+	t.after(() => rm(temporaryRoot, { recursive: true, force: true }));
+
+	run("git", ["init", "--quiet", temporaryRoot], tmpdir());
+	await copyFile(
+		join(repositoryRoot, "skills/workflows/setup/assets/gitignore"),
+		join(temporaryRoot, ".gitignore"),
+	);
+	await writeFile(join(temporaryRoot, ".env.example"), "");
+	await writeFile(join(temporaryRoot, ".env.local"), "");
+
+	const status = execFileSync(
+		"git",
+		["status", "--short", "--untracked-files=all"],
+		{ cwd: temporaryRoot, encoding: "utf8" },
+	);
+	assert.match(status, /\.env\.example/);
+	assert.doesNotMatch(status, /\.env\.local/);
+});
+
+test("setup rejects an invalid project without writing anything", async (t) => {
+	const temporaryRoot = await mkdtemp(join(tmpdir(), "sha3dev-skills-"));
+	t.after(() => rm(temporaryRoot, { recursive: true, force: true }));
+	const targetRoot = join(temporaryRoot, "repository");
+	const inputPath = join(temporaryRoot, "input.json");
+
+	run("git", ["init", "--quiet", targetRoot], temporaryRoot);
+	await writeFile(
+		inputPath,
+		JSON.stringify({
+			title: "Dangling Relationship",
+			definition: "Reference an application that does not exist.",
+			terms: [],
+			applications: [
+				{
+					name: "Viewer Web",
+					responsibility: "Provide the viewer interface.",
+					type: "web",
+				},
+			],
+			relationships: [
+				{
+					from: "Viewer Web",
+					to: "Missing API",
+					description: "Load viewer data over HTTP.",
+				},
+			],
+		}),
+	);
+
+	assert.throws(() =>
+		execFileSync(
+			process.execPath,
+			[setup, "--root", targetRoot, "--input", inputPath, "--write"],
+			{ stdio: "pipe" },
+		),
+	);
+	assert.deepEqual(
+		(await readdir(targetRoot)).filter((entry) => entry !== ".git"),
+		[],
+	);
 });
