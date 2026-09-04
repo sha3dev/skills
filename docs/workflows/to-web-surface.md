@@ -11,7 +11,9 @@ under `<application.path>/src/`, one visible increment at a time.
 Shared deterministic domain records live under `.flow/fixtures/` and reach the
 interface through a replaceable local data-access boundary. Confirmed writes
 change an in-memory copy for the current page lifetime without modifying the
-fixture files.
+fixture files. Repository operations that may later cross into an API are
+asynchronous from the start, so integration can replace the adapter without
+reshaping its consumers.
 
 ## When to reach for it
 
@@ -49,5 +51,6 @@ build of its workspace.
 
 `setup` defines applications and progress. `interview` supplies the reusable
 decision discipline, and `fixtures` owns the shared example-data contract.
-`to-web-surface` applies both to a web UI; other surface flows can apply the same
-toolkit skills to their own decision spaces and artifacts.
+`to-web-surface` applies both toolkit skills to a web UI. After its related API
+surfaces are complete, `connect-to-api` replaces the local data adapter and
+verifies the integrated applications.

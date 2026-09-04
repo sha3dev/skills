@@ -19,7 +19,7 @@ git init
 npx skills@latest add sha3dev/skills
 ```
 
-Choose a project-scoped installation, select your agent, and install all thirteen
+Choose a project-scoped installation, select your agent, and install all fourteen
 skills. Project-scoped installations create `skills-lock.json`; commit it so
 the installed sources and content hashes remain reproducible.
 
@@ -104,6 +104,7 @@ End-to-end development stages with an explicit start, progression, and finish.
 | [`setup`](./docs/workflows/setup.md) | Explicit | Initialize an empty repository, define typed applications and relationships, and materialize the fixed toolchain. |
 | [`to-web-surface`](./docs/workflows/to-web-surface.md) | Explicit | Specify one web interface through a persistent design interview, then build it incrementally with the user. |
 | [`to-api-surface`](./docs/workflows/to-api-surface.md) | Explicit | Specify an API contract from confirmed consumer needs, then build a fixture-backed Fastify implementation incrementally. |
+| [`connect-to-api`](./docs/workflows/connect-to-api.md) | Explicit | Connect a completed application surface to its APIs; currently supports web consumers. |
 
 ### Toolkit
 
@@ -127,11 +128,14 @@ when supported. Each workflow gets one writer and durable artifacts remain
 canonical.
 Internally, `setup` runs once, `to-web-surface` handles a `web` application, and
 `to-api-surface` handles an `api` application after its related web consumers
-are complete. Both use `interview` to resolve their surface one question at a
-time and `fixtures` to evolve shared example data behind replaceable
-repositories. API implementation also applies `fastify-best-practices` and
-generates OpenAPI from route schemas. `typescript-stack` is selected
-automatically whenever the agent writes application TypeScript or TSX.
+are complete. `connect-to-api` then replaces each web's local repositories
+with HTTP adapters after all its related API surfaces are complete. Both surface
+workflows use `interview` to resolve their contract one question at a time and
+`fixtures` to evolve shared example data behind replaceable repositories. API
+implementation and integration apply `fastify-best-practices` where they change
+Fastify code, and APIs generate OpenAPI from route schemas. `typescript-stack`
+is selected automatically whenever the agent writes application TypeScript or
+TSX.
 Invoke `lazy` explicitly when simplicity is the main constraint for a task.
 `frontend-design`, `composition-patterns`, and `fixing-accessibility` activate
 only for their respective UI concerns. `shadcn` activates for projects that

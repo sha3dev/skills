@@ -18,6 +18,18 @@
 					"phase": "web-surface"
 				}
 			]
+		},
+		{
+			"phase": "api-connection",
+			"applicationTypes": ["web"],
+			"skill": "connect-to-api",
+			"requiresCompletedSelf": ["web-surface"],
+			"requiresCompletedOutgoing": [
+				{
+					"applicationTypes": ["api"],
+					"phase": "api-surface"
+				}
+			]
 		}
 	]
 }

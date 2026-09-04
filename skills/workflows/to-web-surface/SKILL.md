@@ -51,13 +51,16 @@ sole progress tracker.
    at a time, starting with the shell and global navigation unless the
    specification implies a better order. Use `$fixtures` to create or extend
    the shared records under `.flow/fixtures/`. Access them through a replaceable
-   local repository or equivalent data-source boundary so components and domain
-   logic use production-facing names and do not import fixtures directly. Treat
-   fixture files as immutable initial state. When confirmed interactions require
-   writes, clone the records into application memory and make changes observable
-   until the page reloads; never write them back to `.flow/fixtures/`. Keep
-   visual state in the application; do not add APIs, server code, persistence,
-   authentication, or infrastructure.
+	local repository or equivalent data-source boundary so components and domain
+	logic use production-facing names and do not import fixtures directly. Model
+	repository operations that can cross an application boundary as asynchronous
+	from the start, even though the local implementation resolves immediately, so
+	a later HTTP adapter does not reshape its consumers. Treat fixture files as
+	immutable initial state. When confirmed interactions require writes, clone
+	the records into application memory and make changes observable until the
+	page reloads; never write them back to `.flow/fixtures/`. Keep visual state in
+	the application; do not add APIs, server code, persistence, authentication,
+	or infrastructure.
 6. Keep exactly one development server running for this application:
    `npm run dev --workspace <workspace-name>` in the background, at the fixed
    preview URL its `vite.config.ts` pins. Start it once, before the first

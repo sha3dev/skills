@@ -27,7 +27,10 @@ function parseApplications(project) {
 	if (!project || typeof project !== "object" || Array.isArray(project)) {
 		fail(".flow/project.json must contain an object");
 	}
-	if (!Array.isArray(project.applications) || project.applications.length === 0) {
+	if (
+		!Array.isArray(project.applications) ||
+		project.applications.length === 0
+	) {
 		fail(".flow/project.json has no valid applications");
 	}
 
@@ -35,7 +38,11 @@ function parseApplications(project) {
 	const paths = new Set();
 	return project.applications.map((application, index) => {
 		const label = `applications[${index}]`;
-		if (!application || typeof application !== "object" || Array.isArray(application)) {
+		if (
+			!application ||
+			typeof application !== "object" ||
+			Array.isArray(application)
+		) {
 			fail(`${label} must be an object`);
 		}
 		const name = nonEmptyString(application.name, `${label}.name`);
@@ -75,6 +82,70 @@ function parseApplications(project) {
 	});
 }
 
+function validateApiConnectionProgress(project, applications) {
+	if (!Array.isArray(project.relationships)) {
+		fail(".flow/project.json relationships must be an array");
+	}
+	const applicationsByName = new Map(
+		applications.map((application) => [application.name, application]),
+	);
+	const connectedWebs = new Set();
+	for (const [index, relationship] of project.relationships.entries()) {
+		if (
+			!relationship ||
+			typeof relationship !== "object" ||
+			Array.isArray(relationship)
+		) {
+			fail(`relationships[${index}] must be an object`);
+		}
+		const from = applicationsByName.get(relationship.from);
+		const to = applicationsByName.get(relationship.to);
+		if (!from || !to) {
+			fail(`relationships[${index}] references an unknown application`);
+		}
+		if (from.type === "web" && to.type === "api") {
+			connectedWebs.add(from.name);
+		}
+	}
+
+	for (const application of applications) {
+		const hasConnection = application.progress["api-connection"] !== undefined;
+		const needsConnection = connectedWebs.has(application.name);
+		if (needsConnection && !hasConnection) {
+			fail(`${application.name} has no api-connection phase`);
+		}
+		if (!needsConnection && hasConnection) {
+			fail(
+				`${application.name} has an api-connection phase without an API relationship`,
+			);
+		}
+	}
+}
+
+function invalidateApiConnections(project, application, phase) {
+	if (phase === "web-surface" && application.type === "web") {
+		if (application.progress["api-connection"] !== undefined) {
+			application.progress["api-connection"] = "pending";
+		}
+		return;
+	}
+	if (phase !== "api-surface" || application.type !== "api") return;
+
+	const applicationsByName = new Map(
+		project.applications.map((candidate) => [candidate.name, candidate]),
+	);
+	for (const relationship of project.relationships) {
+		if (relationship.to !== application.name) continue;
+		const consumer = applicationsByName.get(relationship.from);
+		if (
+			consumer?.type === "web" &&
+			consumer.progress["api-connection"] !== undefined
+		) {
+			consumer.progress["api-connection"] = "pending";
+		}
+	}
+}
+
 try {
 	const args = process.argv.slice(2);
 	const root = resolve(option(args, "--root") ?? ".");
@@ -96,6 +167,7 @@ try {
 	const projectPath = join(root, ".flow/project.json");
 	const project = JSON.parse(await readFile(projectPath, "utf8"));
 	let applications = parseApplications(project);
+	validateApiConnectionProgress(project, applications);
 	if (type) {
 		applications = applications.filter(
 			(application) => application.type === type,
@@ -127,13 +199,20 @@ try {
 		}
 		if (current !== nextStatus) {
 			application.progress[phase] = nextStatus;
+			if (reopenTransition) {
+				invalidateApiConnections(project, application, phase);
+			}
 			const temporaryPath = join(
 				dirname(projectPath),
 				`.project.json.${process.pid}.tmp`,
 			);
-			await writeFile(temporaryPath, `${JSON.stringify(project, null, "\t")}\n`, {
-				flag: "wx",
-			});
+			await writeFile(
+				temporaryPath,
+				`${JSON.stringify(project, null, "\t")}\n`,
+				{
+					flag: "wx",
+				},
+			);
 			await rename(temporaryPath, projectPath);
 		}
 	}

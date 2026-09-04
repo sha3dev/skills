@@ -1,5 +1,30 @@
 # sha3dev-skills
 
+## 0.11.0
+
+### Added
+
+- Add the explicit `connect-to-api` workflow and durable `api-connection`
+  phase for replacing a completed web surface's local fixture repository with
+  HTTP adapters to its completed API surfaces.
+
+- Add `@fastify/cors` to the fixed platform for browser-to-API connections,
+  preserving every declared consumer origin for shared APIs while delegating
+  framework implementation to the imported Fastify guidance.
+
+### Changed
+
+- Route web-to-API connection only after the web surface and all related API
+  surfaces are complete. Reopening either endpoint automatically returns the
+  connection to `pending`.
+
+- Assign deterministic, distinct development ports to multiple web and API
+  applications so related surfaces can run together during integration.
+
+- Make disconnected web repository operations asynchronous when they may later
+  cross an application boundary, preserving consumers when the HTTP adapter is
+  introduced.
+
 ## 0.10.0
 
 ### Added

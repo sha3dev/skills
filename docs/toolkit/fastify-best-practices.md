@@ -23,9 +23,10 @@ calls.
 ## Where it fits
 
 `to-api-surface` owns the product interview, durable contract, fixture-backed
-runtime, increments, and approval boundary. `fastify-best-practices` supplies
-the framework expertise within those increments. The skill is an unchanged copy
-of Matteo Collina's
+runtime, increments, and approval boundary. `connect-to-api` owns the later
+integration scope and lifecycle, including when browser-origin configuration is
+needed. `fastify-best-practices` supplies the framework expertise within those
+workflow boundaries. The skill is an unchanged copy of Matteo Collina's
 [Fastify skill](https://github.com/mcollina/skills/tree/main/skills/fastify),
 revision `856efd268ae85482d882f3d0bed869fd020b5c06`, distributed under its
 included MIT license.

@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { mkdir, readFile, rm, rmdir, stat, writeFile } from "node:fs/promises";
 import { basename, join, relative, resolve, sep } from "node:path";
 
-const previewPort = 4300;
+const firstPreviewPort = 4300;
 
 function fail(message) {
 	process.stderr.write(`${message}\n`);
@@ -73,6 +73,15 @@ try {
 	}
 	const workspacePath = `${repositoryPath}/`;
 	const sourceRoot = join(applicationRoot, "src");
+	const project = JSON.parse(
+		await readFile(join(root, ".flow/project.json"), "utf8"),
+	);
+	const applicationIndex = project.applications
+		.filter((candidate) => candidate.type === "web")
+		.findIndex((candidate) => candidate.name === application.name);
+	if (applicationIndex < 0)
+		fail(`${application.name} is missing from the project`);
+	const previewPort = firstPreviewPort + applicationIndex;
 	const previewUrl = `http://localhost:${previewPort}/`;
 	const packagePath = join(applicationRoot, "package.json");
 	if (await exists(packagePath)) {

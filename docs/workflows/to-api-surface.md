@@ -42,6 +42,5 @@ OpenAPI, and a green repository gate.
 `setup` defines the API and its relationships. Completed web surfaces provide
 consumer requirements, `interview` resolves the API contract, `fixtures` owns
 shared example records, and `fastify-best-practices` guides the framework-level
-implementation. A later integration workflow can replace the web's local
-repository with an HTTP adapter against this API without changing its domain
-components.
+implementation. `connect-to-api` later replaces the web's local repository
+with an HTTP adapter against this API without changing its domain components.

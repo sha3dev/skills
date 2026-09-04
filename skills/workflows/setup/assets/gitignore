@@ -11,6 +11,7 @@ coverage/
 # Local environment
 .env
 .env.*
+!.env.example
 
 # Operating system
 .DS_Store

@@ -23,7 +23,9 @@ Use technical English. Agree these values:
   one-sentence `responsibility`, and one `type`: `web`, `api`, or `worker`.
 - Zero or more directed `relationships`, each with `from`, `to`, and a
   one-sentence `description`. References exactly match two different application
-  names, and each directed pair appears at most once.
+  names, and each directed pair appears at most once. Direction follows runtime
+  use from consumer to provider; a web application that calls an API is
+  recorded as `web -> api`.
 
 The temporary JSON contains exactly `title`, `definition`, `terms`,
 `applications`, and `relationships`, with only the nested fields above. All text
@@ -31,8 +33,9 @@ values are non-empty and single-line. External dependencies and infrastructure
 are outside setup.
 
 The generator derives a unique kebab-case path under `apps/` from each
-application name and initializes one progress phase named after its type,
-`<type>-surface`, as `pending`.
+application name and initializes a progress phase named after its type,
+`<type>-surface`, as `pending`. A `web` application with an outgoing
+relationship to an `api` also receives an `api-connection` phase as `pending`.
 `.flow/project.json` is the sole persistent source for these values, paths, and
 progress.
 Later surface workflows may create shared deterministic domain records under

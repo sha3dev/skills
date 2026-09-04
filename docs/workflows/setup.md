@@ -56,13 +56,15 @@ turbo.json
 
 `.flow/project.json` owns the global product definition, confirmed
 project-specific domain terms, application names, types, paths, responsibilities, logical
-relationships, and phase progress. Every application starts with a single
-phase named after its type — `web-surface`, `api-surface`, or `worker-surface`
-— set to `pending`, so the outcome names the workflow that can advance it. The
-generated progress tool permits only deterministic `pending` to `in-progress`
-to `complete` transitions. Its `terms` entries define canonical language without
-requirements, implementation details, or general programming terminology. Setup
-declares application paths without creating empty directories.
+relationships, and phase progress. Every application starts with a phase named
+after its type — `web-surface`, `api-surface`, or `worker-surface` — set to
+`pending`. A web application that declares an outgoing relationship to an API
+also starts with `api-connection: pending`. The generated progress tool permits
+only deterministic `pending` to `in-progress` to `complete` transitions and
+invalidates completed connections when either surface is reopened. Its `terms`
+entries define canonical language without requirements, implementation details,
+or general programming terminology. Setup declares application paths without
+creating empty directories.
 
 The repository-state tool reports initialization state and, for initialized
 repositories, every application's type, path, responsibility, and phase
@@ -108,8 +110,10 @@ writes application content creates its directory.
 For each product-specific term introduced by the user, setup proposes a concise
 definition and asks for confirmation. It also discovers interactions
 conversationally and may propose missing applications for confirmation. It
-records only relationships among applications the repository will build;
-external dependencies and infrastructure belong to later surface workflows.
+records relationships from runtime consumer to provider, such as `web -> api`
+when a browser application calls an API, and only among applications the
+repository will build; external dependencies and infrastructure belong to later
+surface workflows.
 Before writing, it previews only `.flow/project.json`; the remaining output is
 fixed by the platform.
 

@@ -213,17 +213,35 @@ async function buildFiles(input) {
 	);
 	assertMinimumVersion(npmVersion, policy.minimumRuntimeVersions.npm, "npm");
 
+	const applicationTypesByName = new Map(
+		input.applications.map((application) => [
+			application.name,
+			application.type,
+		]),
+	);
 	const project = {
 		title: input.title,
 		definition: input.definition,
 		terms: input.terms,
-		applications: input.applications.map((application) => ({
-			name: application.name,
-			type: application.type,
-			path: `apps/${application.folder}/`,
-			responsibility: application.responsibility,
-			progress: { [`${application.type}-surface`]: "pending" },
-		})),
+		applications: input.applications.map((application) => {
+			const progress = { [`${application.type}-surface`]: "pending" };
+			const connectsToApi =
+				application.type === "web" &&
+				input.relationships.some(
+					(relationship) =>
+						relationship.from === application.name &&
+						applicationTypesByName.get(relationship.to) === "api",
+				);
+			if (connectsToApi) progress["api-connection"] = "pending";
+
+			return {
+				name: application.name,
+				type: application.type,
+				path: `apps/${application.folder}/`,
+				responsibility: application.responsibility,
+				progress,
+			};
+		}),
 		relationships: input.relationships,
 	};
 

@@ -63,6 +63,28 @@ async function loadRoutes() {
 				);
 			}
 		}
+		for (const [requirementIndex, phase] of (
+			rule.requiresCompletedSelf ?? []
+		).entries()) {
+			if (typeof phase !== "string" || !phase) {
+				fail(
+					`routes.json phases[${index}].requiresCompletedSelf[${requirementIndex}] must be a phase`,
+				);
+			}
+		}
+		for (const [requirementIndex, requirement] of (
+			rule.requiresCompletedOutgoing ?? []
+		).entries()) {
+			if (
+				!Array.isArray(requirement?.applicationTypes) ||
+				requirement.applicationTypes.length === 0 ||
+				typeof requirement?.phase !== "string"
+			) {
+				fail(
+					`routes.json phases[${index}].requiresCompletedOutgoing[${requirementIndex}] is incomplete`,
+				);
+			}
+		}
 	}
 	return routes;
 }
@@ -123,6 +145,47 @@ function incompleteIncoming(rule, application, project) {
 					application: source.name,
 					phase: requirement.phase,
 					status: source.progress?.[requirement.phase],
+				});
+			}
+		}
+	}
+	return blockers;
+}
+
+function incompleteSelf(rule, application) {
+	return (rule.requiresCompletedSelf ?? [])
+		.filter((phase) => application.progress?.[phase] !== "complete")
+		.map((phase) => ({
+			application: application.name,
+			phase,
+			status: application.progress?.[phase],
+		}));
+}
+
+function incompleteOutgoing(rule, application, project) {
+	const requirements = rule.requiresCompletedOutgoing ?? [];
+	if (requirements.length === 0) return [];
+	const applications = new Map(
+		(project.applications ?? []).map((candidate) => [
+			candidate.name,
+			candidate,
+		]),
+	);
+	const outgoing = (project.relationships ?? [])
+		.filter((relationship) => relationship.from === application.name)
+		.map((relationship) => applications.get(relationship.to))
+		.filter(Boolean);
+	const blockers = [];
+	for (const requirement of requirements) {
+		for (const target of outgoing) {
+			if (
+				requirement.applicationTypes.includes(target.type) &&
+				target.progress?.[requirement.phase] !== "complete"
+			) {
+				blockers.push({
+					application: target.name,
+					phase: requirement.phase,
+					status: target.progress?.[requirement.phase],
 				});
 			}
 		}
@@ -195,7 +258,11 @@ async function decide(root, routes) {
 				status,
 			};
 			const blockers = rule
-				? incompleteIncoming(rule, application, project)
+				? [
+						...incompleteSelf(rule, application),
+						...incompleteIncoming(rule, application, project),
+						...incompleteOutgoing(rule, application, project),
+					]
 				: [];
 			if (rule && blockers.length === 0) {
 				open.push({ ...entry, skill: rule.skill });

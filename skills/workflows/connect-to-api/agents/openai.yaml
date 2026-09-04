@@ -1,0 +1,6 @@
+interface:
+  display_name: "Connect to API"
+  short_description: "Connect an application to its API surfaces"
+  default_prompt: "Use $connect-to-api to connect a completed application surface to its completed API dependencies."
+policy:
+  allow_implicit_invocation: false

@@ -20,7 +20,10 @@ open phase that no installed workflow can advance is reported as such rather
 than retried, so a gap in the installed workflows is visible instead of silent.
 Declarative routing prerequisites can also hold back a surface until related
 applications provide the confirmed input it needs; an API consumed by a web
-application therefore waits for that web surface to complete.
+application therefore waits for that web surface to complete. The web's
+connection phase then waits for its own surface and every outgoing API surface,
+making surface design, API implementation, and integration distinct durable
+outcomes.
 
 One worker covers one workflow run — one skill, one outcome, one application —
 and stays alive for its whole duration, so an interview continues across turns

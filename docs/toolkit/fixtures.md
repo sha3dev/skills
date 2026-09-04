@@ -27,6 +27,6 @@ server lifetime and reset from fixtures on reload or restart.
 ## Where it fits
 
 `fixtures` is a model-invoked toolkit skill shared by surface workflows.
-`to-web-surface` and `to-api-surface` use it for disconnected data; later
-integration work can enrich the same records and replace local data access
-without reshaping the interface.
+`to-web-surface` and `to-api-surface` use it for disconnected data.
+`connect-to-api` leaves the records behind the API repository while
+replacing the web's local data access without reshaping the interface.
