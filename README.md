@@ -67,6 +67,7 @@ npm run check:toolchain
 - Node.js 22.12.0 or newer.
 - npm 10.9.0 or newer.
 - An agent supported by the [`skills`](https://skills.sh/) installer.
+- Browser automation available to surface and connection workflows.
 
 Before setup, the repository may contain metadata, documentation, editor and
 CI configuration, installed agent skills, and `skills-lock.json`. It must not
@@ -91,6 +92,23 @@ npx skills@latest add sha3dev/skills --skill <name>
 
 When installing a workflow skill individually, also install the toolkit skills
 listed in its prerequisites.
+
+### Browser automation
+
+Surface and connection workflows accept any browser automation that can
+navigate a local preview, resize its viewport, inspect rendered output, and
+exercise interactions. To install the recommended Playwright MCP:
+
+```bash
+# Codex
+codex mcp add playwright -- npx -y @playwright/mcp@latest
+
+# Claude Code
+claude mcp add --transport stdio --scope user playwright -- \
+  npx -y @playwright/mcp@latest
+```
+
+Restart the agent after configuration so the tools load into the new session.
 
 ## Available skills
 

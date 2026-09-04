@@ -39,15 +39,14 @@ The operator can resume from `surface.md`, receives one short UI decision at a
 time with a useful recommendation, and approves the specification before code
 is written. Different surfaces can reuse and extend the same stable fixture
 records without introducing mock-prefixed domain types into the web
-application. Each implementation turn produces a runnable, reviewed increment at
-the same preview URL, which one development server serves through hot module
-replacement for the whole workflow and releases when the workflow ends. An
-increment may leave a component the interface does not render yet without the
-checks demanding its deletion. If browser tooling is unavailable, visual
-verification remains pending until the user confirms desktop and mobile
-behavior from the preview URL. The phase completes only after approval of the
-whole interface, a green full `npm run check`, and a successful production
-build of its workspace.
+application. Each implementation turn produces a runnable, browser-verified
+increment at the same preview URL, which one development server serves through
+hot module replacement for the whole workflow and releases when the workflow
+ends. An increment may leave a component the interface does not render yet
+without the checks demanding its deletion. The phase completes only after
+desktop, mobile, and interaction verification, approval of the whole interface,
+a green full `npm run check`, and a successful production build of its
+workspace.
 
 ## Where it fits
 

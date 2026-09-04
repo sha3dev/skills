@@ -65,11 +65,10 @@ tracker. Do not create another specification artifact for this phase.
 9. Run the web and every related API at their fixed URLs under
    `$workflow-run`'s development process rules. Exercise each
    changed API operation as an external HTTP client, including CORS where it
-   applies. Then use available browser tooling at representative desktop and
-   mobile widths to verify that reads, confirmed writes, loading, empty, and
-   error behavior still match the web surface through real HTTP. If browser
-   tooling is unavailable, state that integrated browser verification is
-   pending and do not complete the phase.
+   applies. Then use the browser automation established by `$workflow-run` at
+   representative desktop and mobile widths to verify that reads, confirmed
+   writes, loading, empty, and error behavior still match the web surface
+   through real HTTP.
 10. Run affected workspace tests and `npm run check:code` while integrating.
     Then complete `api-connection` under `$workflow-run`'s completion rule.
     What the user approves is the integrated behavior verified in step 9. Its

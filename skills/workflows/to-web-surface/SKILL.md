@@ -66,18 +66,15 @@ sole progress tracker.
    interface code that nothing renders yet; that is not a defect to fix, so do
    not run the unused-code
    check between increments and never delete unwired work to satisfy one.
-   Before presenting the increment, use available browser tooling to inspect it at
-   representative desktop and mobile widths and exercise the changed
-   interactions. Ensure it follows the
-   user's established direction, has no visible or functional errors, lays out
+   Before presenting the increment, use the browser automation established by
+   `$workflow-run` to inspect it at representative desktop and mobile widths
+   and exercise the changed interactions. Ensure it follows the user's
+   established direction, has no visible or functional errors, lays out
    correctly at both widths, and remains reasonably coherent with the existing
    interface. Adjust or redesign what is needed to reach that threshold, then
    stop refining once the result is good enough for user review. Give the user
-   the preview URL. If browser tooling is unavailable, state that visual
-   verification is pending and do not treat the increment as reviewed until
-   the user confirms its desktop and mobile behavior. Use `$interview` again
-   when review reveals a product decision, and record that decision in
-   `surface.md` before changing the code.
+   the preview URL. Use `$interview` again when review reveals a product
+   decision, and record that decision in `surface.md` before changing the code.
 8. Complete `web-surface` under `$workflow-run`'s completion rule. What the
    user approves is the whole interface. Its phase-specific preconditions are
    a passing unused-code check within the full `npm run check` and a successful

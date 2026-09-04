@@ -2,13 +2,9 @@
 
 ## What it does
 
-`workflow-run` holds the rules the application workflows share: the toolchain
-entry check, ownership of development processes at fixed URLs, what a phase
-needs before it can be marked complete, how an approved phase is reopened, and
-where one run starts and ends. `to-web-surface`,
-`to-api-surface`, and `connect-to-api` state only what is specific to their
-phase and defer to this skill for the rest, so the three behave identically at
-their edges and a change to those rules happens in one place.
+`workflow-run` centralizes browser availability, toolchain entry checks,
+development process ownership, completion, reopening, and run boundaries for
+`to-web-surface`, `to-api-surface`, and `connect-to-api`.
 
 ## When to reach for it
 
@@ -20,16 +16,14 @@ is not a task workflow and never decides what to build.
 
 ## It's working if
 
-Each workflow verifies the toolchain once on entry instead of between
-increments, one development process per application answers its fixed URL and
-is stopped when the workflow ends, no phase reaches `complete` without the user
-explicitly approving it, a completed phase moves back only through an explicit
-request and `--set in-progress --reopen`, and a run never drifts into a second
-application's phase.
+Each workflow stops before implementation if the agent cannot operate its
+rendered interface. Otherwise it checks the toolchain once, owns one process per
+application at its fixed URL, requires explicit approval before completion,
+reopens only on request, and stays within one application's phase.
 
 ## Where it fits
 
-`workflow-run` is a model-invoked toolkit skill required by every application
-workflow. `setup` creates the phases and the `.flow/tools/` these rules operate
-on, `interview` and `fixtures` cover what a run produces, and `workflow-run`
-covers how it behaves.
+`workflow-run` is a model-invoked toolkit skill required by the three workflows
+above. `setup` creates the phases and the `.flow/tools/` these rules operate on,
+`interview` and `fixtures` cover what a run produces, and `workflow-run` covers
+how it behaves.

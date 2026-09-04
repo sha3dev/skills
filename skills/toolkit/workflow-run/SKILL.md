@@ -1,6 +1,6 @@
 ---
 name: workflow-run
-description: Apply the shared run discipline of the application workflows when one of them starts, runs its development servers, revises a completed phase, or ends. Covers the toolchain entry check, single development process ownership at fixed URLs, the user approval a phase needs before it is marked complete, reopening an approved phase, and the run boundary.
+description: Apply the shared run discipline of application workflows, including browser availability, entry checks, development process ownership, completion, reopening, and run boundaries.
 ---
 
 # Workflow Run
@@ -9,6 +9,20 @@ The application workflows — `to-web-surface`, `to-api-surface`, and
 `connect-to-api` — start, run processes, and end the same way. This skill is the
 single source for those rules; a workflow's own `SKILL.md` states only what is
 specific to its phase.
+
+## Browser automation
+
+Before starting any of these workflows, inspect the loaded tool catalog,
+including MCP tools, for any browser capability that can navigate the local
+preview, resize its viewport, inspect rendered output, and exercise
+interactions. Do not infer its absence from a missing Playwright name or from
+the conversation context.
+
+If none is loaded, stop as `blocked` before implementation. Identify the agent
+harness when known and direct the user to the Browser automation section of the
+repository `README.md`; configuration requires a restart. Do not configure MCP
+mid-run because new tools cannot enter the current tool catalog. User inspection
+does not replace browser verification.
 
 ## Entry check
 
