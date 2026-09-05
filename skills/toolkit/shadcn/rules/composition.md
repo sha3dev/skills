@@ -145,7 +145,9 @@ toast("File deleted.", {
 
 ## Card structure
 
-Use full composition — don't dump everything into `CardContent`:
+Use the sections that the content needs. Put headings in `CardHeader`, body
+content in `CardContent`, and footer actions in `CardFooter`; omit sections
+with no content or behavior instead of adding empty structure:
 
 ```tsx
 <Card>

@@ -22,13 +22,36 @@ function nonEmptyString(value, path) {
 	if (typeof value !== "string" || !value.trim()) {
 		fail(`${path} must be a non-empty string`);
 	}
-	return value;
+	const normalized = value.trim();
+	if (/\r|\n/.test(normalized)) fail(`${path} must be a single line`);
+	return normalized;
 }
 
-function parseApplications(project) {
+function validateTerms(project) {
+	if (!Array.isArray(project.terms)) {
+		fail(".flow/project.json terms must be an array");
+	}
+	const names = new Set();
+	for (const [index, entry] of project.terms.entries()) {
+		const label = `terms[${index}]`;
+		if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+			fail(`${label} must be an object`);
+		}
+		const term = nonEmptyString(entry.term, `${label}.term`);
+		const normalized = term.toLocaleLowerCase("en");
+		if (names.has(normalized)) fail(`Duplicate domain term: ${term}`);
+		names.add(normalized);
+		nonEmptyString(entry.definition, `${label}.definition`);
+	}
+}
+
+function parseProject(project) {
 	if (!project || typeof project !== "object" || Array.isArray(project)) {
 		fail(".flow/project.json must contain an object");
 	}
+	nonEmptyString(project.title, "title");
+	nonEmptyString(project.definition, "definition");
+	validateTerms(project);
 	if (
 		!Array.isArray(project.applications) ||
 		project.applications.length === 0
@@ -38,7 +61,7 @@ function parseApplications(project) {
 
 	const names = new Set();
 	const paths = new Set();
-	return project.applications.map((application, index) => {
+	const applications = project.applications.map((application, index) => {
 		const label = `applications[${index}]`;
 		if (
 			!application ||
@@ -57,7 +80,7 @@ function parseApplications(project) {
 			fail(`${label}.type must be web or api`);
 		}
 		const path = nonEmptyString(application.path, `${label}.path`);
-		if (!/^apps\/[^/]+\/$/.test(path)) {
+		if (!/^apps\/[a-z0-9]+(?:-[a-z0-9]+)*\/$/.test(path)) {
 			fail(`${label}.path must match apps/<app>/`);
 		}
 		if (paths.has(path)) fail(`Duplicate application path: ${path}`);
@@ -82,9 +105,6 @@ function parseApplications(project) {
 		}
 		return application;
 	});
-}
-
-function validateApiConnectionProgress(project, applications) {
 	if (!Array.isArray(project.relationships)) {
 		fail(".flow/project.json relationships must be an array");
 	}
@@ -92,19 +112,30 @@ function validateApiConnectionProgress(project, applications) {
 		applications.map((application) => [application.name, application]),
 	);
 	const connectedWebs = new Set();
+	const relationshipPairs = new Set();
 	for (const [index, relationship] of project.relationships.entries()) {
+		const label = `relationships[${index}]`;
 		if (
 			!relationship ||
 			typeof relationship !== "object" ||
 			Array.isArray(relationship)
 		) {
-			fail(`relationships[${index}] must be an object`);
+			fail(`${label} must be an object`);
 		}
-		const from = applicationsByName.get(relationship.from);
-		const to = applicationsByName.get(relationship.to);
+		const fromName = nonEmptyString(relationship.from, `${label}.from`);
+		const toName = nonEmptyString(relationship.to, `${label}.to`);
+		nonEmptyString(relationship.description, `${label}.description`);
+		const from = applicationsByName.get(fromName);
+		const to = applicationsByName.get(toName);
 		if (!from || !to) {
-			fail(`relationships[${index}] references an unknown application`);
+			fail(`${label} references an unknown application`);
 		}
+		if (from === to) fail(`${label} must connect two different applications`);
+		const pair = `${fromName}\0${toName}`;
+		if (relationshipPairs.has(pair)) {
+			fail(`Duplicate relationship: ${fromName} -> ${toName}`);
+		}
+		relationshipPairs.add(pair);
 		if (from.type === "web" && to.type === "api") {
 			connectedWebs.add(from.name);
 		}
@@ -122,6 +153,7 @@ function validateApiConnectionProgress(project, applications) {
 			);
 		}
 	}
+	return applications;
 }
 
 function invalidateApiConnections(project, application, phase) {
@@ -168,8 +200,7 @@ try {
 
 	const projectPath = join(root, ".flow/project.json");
 	const project = JSON.parse(await readFile(projectPath, "utf8"));
-	let applications = parseApplications(project);
-	validateApiConnectionProgress(project, applications);
+	let applications = parseProject(project);
 	if (type) {
 		applications = applications.filter(
 			(application) => application.type === type,

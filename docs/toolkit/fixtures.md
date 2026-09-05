@@ -12,8 +12,9 @@ shared records.
 
 ## When to reach for it
 
-Use it when a disconnected application surface needs representative data, or
-when another surface needs to reuse and enrich records that already exist. It
+Use it inside an initialized Flow project when a disconnected application
+surface needs representative data, or when another surface needs to reuse and
+enrich records that already exist. It is not a generic test-fixture skill and
 is unnecessary for purely visual state or transport-only response metadata.
 
 ## It's working if

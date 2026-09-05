@@ -2,7 +2,7 @@
 
 ## What it does
 
-`fastify-best-practices` provides detailed upstream guidance for Fastify
+`fastify-best-practices` provides detailed adapted upstream guidance for Fastify
 servers: plugin encapsulation, routes, schemas, serialization, errors, hooks,
 testing, security, configuration, databases, deployment, and related runtime
 concerns. Its focused rule files are loaded only when their subject is relevant.
@@ -26,7 +26,8 @@ calls.
 runtime, increments, and approval boundary. `connect-to-api` owns the later
 integration scope and lifecycle, including when browser-origin configuration is
 needed. `fastify-best-practices` supplies the framework expertise within those
-workflow boundaries. The skill is an unchanged copy of Matteo Collina's
+workflow boundaries, including the repository's established `tsx` runtime and
+toolchain. The skill is adapted from Matteo Collina's
 [Fastify skill](https://github.com/mcollina/skills/tree/main/skills/fastify),
 revision `856efd268ae85482d882f3d0bed869fd020b5c06`, distributed under its
 included MIT license.

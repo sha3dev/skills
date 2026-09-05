@@ -14,12 +14,19 @@ complete, when the user asks to revise a completed phase, and when deciding
 whether work belongs to the current run. It
 is not a task workflow and never decides what to build.
 
+For an API surface, the entry capability check also covers print-media
+inspection or temporary PDF rendering because print review is part of that
+workflow's completion evidence.
+
 ## It's working if
 
-Each workflow stops before implementation if the agent cannot operate its
-rendered interface. Otherwise it checks the toolchain once, owns one process per
-application at its fixed URL, requires explicit approval before completion,
-reopens only on request, and stays within one application's phase.
+Each workflow checks available tools, discoverable capabilities, and relevant
+installed browser skills before declaring that it cannot operate the rendered
+interface. Otherwise it checks the toolchain once, reuses unchanged context and
+verification results within the run, verifies process
+identity before acting on a fixed-port conflict, requires explicit approval
+before completion, reopens only on request, and stays within the selected
+workflow's declared application and provider scope.
 
 ## Where it fits
 

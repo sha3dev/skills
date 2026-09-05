@@ -1,6 +1,6 @@
 ---
 name: rest-api-design
-description: Shape a resource-oriented HTTP contract before it is implemented. Use when naming resources, choosing methods and paths, defining request and response representations, selecting status codes, or designing filtering, ordering, and pagination for a REST API.
+description: Shape a resource-oriented HTTP contract before it is implemented. Use when naming resources, choosing methods and paths, defining request and response representations, selecting status codes, or designing required collection query behavior for a REST API.
 license: MIT; complete terms in LICENSE.txt
 metadata:
   author: AJ Geddes
@@ -20,7 +20,7 @@ guidance owns the latter.
 - Choosing HTTP methods and paths for operations
 - Defining request and response representations
 - Selecting status codes for success, client errors, and server errors
-- Designing filtering, ordering, and pagination
+- Designing filtering, ordering, or pagination when the product requires them
 
 ## Quick start
 
@@ -58,8 +58,8 @@ Read only the file whose subject the current decision touches.
 - Use plural names for collections
 - Be consistent with naming conventions
 - Return appropriate HTTP status codes
-- Include pagination for collections
-- Provide filtering and sorting options
+- Add pagination when a collection can be large enough to require it
+- Add filtering and sorting only for confirmed consumer needs
 - Document thoroughly with OpenAPI
 - Provide clear error messages
 - Use ISO 8601 for dates

@@ -4,8 +4,8 @@
 
 `frontend-design` gives new or substantially reshaped interfaces a deliberate
 visual identity grounded in their subject, audience, and purpose. It develops a
-compact direction for color, typography, layout, copy, and one memorable
-signature element, then critiques that direction before and after implementation.
+compact direction for color, typography, layout, and copy. Existing interfaces
+reuse their approved direction; routine evolution does not restart exploration.
 
 The skill also preserves a quality floor for responsive behavior, keyboard
 focus, reduced motion, and visual inspection without turning those requirements
@@ -14,14 +14,14 @@ into a generic aesthetic.
 ## When to reach for it
 
 The skill is selected automatically when creating a new interface or making a
-material visual redesign. It does not activate for routine component fixes,
-small styling corrections, or work whose visual direction is already settled.
+material visual redesign, or when extending an existing interface requires visual
+composition decisions. Nonvisual fixes do not activate it.
 
 ## It's working if
 
 - The interface is recognizably specific to its real subject and audience.
 - Typography, color, structure, motion, and copy follow one coherent direction.
-- One justified signature choice carries the design while incidental decoration is restrained.
+- Distinctive elements serve the brief; internal review tools can reuse restrained templates.
 - The rendered result survives responsive and accessibility checks.
 
 ## Where it fits

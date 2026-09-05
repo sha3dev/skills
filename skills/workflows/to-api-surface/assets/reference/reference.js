@@ -51,10 +51,35 @@ function operationsOf(document) {
 }
 
 function anchor(operation) {
-	return operation.key
-		.toLowerCase()
-		.replaceAll(/[^a-z0-9]+/g, "-")
-		.replaceAll(/(^-|-$)/g, "");
+	return (
+		"operation-" +
+		[...operation.key]
+			.map((character) =>
+				/[A-Za-z0-9]/.test(character)
+					? character
+					: `-${character.codePointAt(0).toString(16)}-`,
+			)
+			.join("")
+	);
+}
+
+function resolveLocalReference(value) {
+	if (!value?.$ref) return { value };
+	if (!value.$ref.startsWith("#/")) {
+		return { issue: "Unsupported reference: " + value.$ref };
+	}
+	let resolved = contract;
+	for (const token of value.$ref
+		.slice(2)
+		.split("/")
+		.map((part) => part.replaceAll("~1", "/").replaceAll("~0", "~"))) {
+		resolved = resolved?.[token];
+	}
+	if (!resolved || typeof resolved !== "object") {
+		return { issue: "Unresolved reference: " + value.$ref };
+	}
+	const { $ref: _reference, ...siblings } = value;
+	return { value: { ...resolved, ...siblings }, reference: value.$ref };
 }
 
 function label(schema) {
@@ -101,8 +126,41 @@ function rules(schema = {}) {
 	return values;
 }
 
-function rowsFor(schema, field = "value", required = false, depth = 0) {
+function rowsFor(
+	schema,
+	field = "value",
+	required = false,
+	depth = 0,
+	seenReferences = new Set(),
+) {
 	if (!schema) return [];
+	const resolution = resolveLocalReference(schema);
+	if (resolution.issue) {
+		return [
+			{
+				field,
+				type: label(schema),
+				required,
+				rules: [resolution.issue],
+				depth,
+			},
+		];
+	}
+	if (resolution.reference) {
+		if (seenReferences.has(resolution.reference)) {
+			return [
+				{
+					field,
+					type: label(schema),
+					required,
+					rules: ["Recursive reference"],
+					depth,
+				},
+			];
+		}
+		seenReferences = new Set(seenReferences).add(resolution.reference);
+	}
+	schema = resolution.value;
 	const result = [];
 	const properties = schema.properties ?? {};
 	const rootObject =
@@ -125,21 +183,26 @@ function rowsFor(schema, field = "value", required = false, depth = 0) {
 				rootObject ? name : field + "." + name,
 				requiredNames.has(name),
 				depth,
+				seenReferences,
 			),
 		);
 	}
-	if (schema.type === "array" && schema.items?.properties) {
-		const requiredItems = new Set(schema.items.required ?? []);
-		for (const [name, child] of Object.entries(schema.items.properties)) {
-			result.push(
-				...rowsFor(
-					child,
-					field + "[]." + name,
-					requiredItems.has(name),
-					depth + 1,
-				),
-			);
-		}
+	if (
+		schema.type === "array" &&
+		schema.items &&
+		["$ref", "properties", "oneOf", "anyOf", "allOf"].some(
+			(key) => schema.items[key] !== undefined,
+		)
+	) {
+		result.push(
+			...rowsFor(
+				schema.items,
+				field + "[]",
+				required,
+				depth + 1,
+				seenReferences,
+			),
+		);
 	}
 	for (const key of ["oneOf", "anyOf", "allOf"]) {
 		for (const [index, variant] of (schema[key] ?? []).entries()) {
@@ -149,6 +212,7 @@ function rowsFor(schema, field = "value", required = false, depth = 0) {
 					field + " · " + key + " " + (index + 1),
 					required,
 					depth + 1,
+					seenReferences,
 				),
 			);
 		}
@@ -158,8 +222,22 @@ function rowsFor(schema, field = "value", required = false, depth = 0) {
 		typeof schema.additionalProperties === "object"
 	) {
 		result.push(
-			...rowsFor(schema.additionalProperties, field + ".*", false, depth + 1),
+			...rowsFor(
+				schema.additionalProperties,
+				field + ".*",
+				false,
+				depth + 1,
+				seenReferences,
+			),
 		);
+	} else if (schema.additionalProperties === true) {
+		result.push({
+			field: rootObject ? "*" : field + ".*",
+			type: "any",
+			required: false,
+			rules: ["Arbitrary fields allowed"],
+			depth: depth + 1,
+		});
 	}
 	return result;
 }
@@ -189,42 +267,69 @@ function schemaTable(schema) {
 	);
 }
 
+function examplesBlock(source) {
+	const entries =
+		source.example !== undefined
+			? [["Example", { value: source.example }]]
+			: Object.entries(source.examples ?? {});
+	return entries
+		.map(([name, rawExample]) => {
+			const resolution = resolveLocalReference(rawExample);
+			const example = resolution.value;
+			const detail = resolution.issue ?? (
+				example.value !== undefined
+					? compact(example.value)
+					: example.externalValue ? "External example: " + example.externalValue : ""
+			);
+			return (
+				'<div class="example"><span>' + esc(example?.summary ?? name) +
+				"</span>" +
+				(example?.description ? "<p>" + esc(example.description) + "</p>" : "") +
+				"<code>" + esc(detail) + "</code></div>"
+			);
+		})
+		.join("");
+}
+
 function contentBlock(content) {
 	if (!content || Object.keys(content).length === 0)
 		return '<p class="no-body">No body</p>';
-	const hasBodyShape = Object.values(content).some(({ schema }) =>
-		["$ref", "type", "properties", "oneOf", "anyOf", "allOf", "items"].some(
-			(key) => schema?.[key] !== undefined,
-		),
-	);
-	if (!hasBodyShape) return '<p class="no-body">No body</p>';
 	return Object.entries(content)
-		.map(
-			([mediaType, value]) =>
+		.map(([mediaType, rawValue]) => {
+			const resolution = resolveLocalReference(rawValue);
+			if (resolution.issue) {
+				return '<p class="no-body">' + esc(resolution.issue) + "</p>";
+			}
+			const value = resolution.value;
+			return (
 				'<section class="media-schema"><div class="media-bar"><code>' +
 				esc(mediaType) +
 				"</code><span>" +
 				esc(label(value.schema)) +
 				"</span></div>" +
-				schemaTable(value.schema) +
-				(value.example === undefined
-					? ""
-					: '<div class="example"><span>Example</span><code>' +
-						esc(compact(value.example)) +
-						"</code></div>") +
-				"</section>",
-		)
+				(value.schema ? schemaTable(value.schema) : '<p class="no-body">Schema not specified</p>') +
+				examplesBlock(value) +
+				"</section>"
+			);
+		})
 		.join("");
 }
 
 function parametersTable(operation) {
 	if (!operation.parameters.length) return "";
 	const rows = operation.parameters
-		.map((parameter) => {
+		.map((rawParameter) => {
+			const resolution = resolveLocalReference(rawParameter);
+			if (resolution.issue) {
+				return (
+					'<tr><td colspan="5" class="rules">' +
+					esc(resolution.issue) +
+					"</td></tr>"
+				);
+			}
+			const parameter = resolution.value;
 			const notes = rules(parameter.schema);
 			if (parameter.description) notes.unshift(parameter.description);
-			if (parameter.example !== undefined)
-				notes.push("example: " + compact(parameter.example));
 			return (
 				"<tr><td><code>" +
 				esc(parameter.name) +
@@ -236,6 +341,7 @@ function parametersTable(operation) {
 				esc(label(parameter.schema)) +
 				'</span></td><td class="rules">' +
 				(notes.length ? notes.map(esc).join("<br>") : "—") +
+				examplesBlock(parameter) +
 				"</td></tr>"
 			);
 		})
@@ -263,8 +369,10 @@ function securityLabel(security) {
 
 function responses(operation) {
 	return Object.entries(operation.responses ?? {})
-		.map(
-			([status, response]) =>
+		.map(([status, rawResponse]) => {
+			const resolution = resolveLocalReference(rawResponse);
+			const response = resolution.value ?? {};
+			return (
 				'<article class="response response-' +
 				(String(status).startsWith("2") ? "success" : "error") +
 				'"><header><span class="status">' +
@@ -272,9 +380,12 @@ function responses(operation) {
 				"</span><p>" +
 				esc(response.description ?? "Undocumented outcome") +
 				"</p></header>" +
-				contentBlock(response.content) +
-				"</article>",
-		)
+				(resolution.issue
+					? '<p class="no-body">' + esc(resolution.issue) + "</p>"
+					: contentBlock(response.content)) +
+				"</article>"
+			);
+		})
 		.join("");
 }
 
@@ -289,12 +400,17 @@ function block(title, content) {
 }
 
 function operationCard(operation) {
+	const requestBody = operation.requestBody
+		? resolveLocalReference(operation.requestBody)
+		: undefined;
 	const input =
 		block("Parameters", parametersTable(operation)) +
-		(operation.requestBody
+		(requestBody
 			? block(
-					"Body" + (operation.requestBody.required ? " · required" : ""),
-					contentBlock(operation.requestBody.content),
+					"Body" + (requestBody.value?.required ? " · required" : ""),
+					requestBody.issue
+						? '<p class="no-body">' + esc(requestBody.issue) + "</p>"
+						: contentBlock(requestBody.value.content),
 				)
 			: "");
 	const meta = [

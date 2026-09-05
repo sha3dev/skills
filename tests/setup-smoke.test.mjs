@@ -157,34 +157,93 @@ test("setup produces valid web and API surfaces in dependency order", async () =
 		]);
 		await writeFile(
 			join(targetRoot, "apps/viewer-web/src/user-repository.ts"),
-			`import users from "../../../.flow/fixtures/users.json";
+			`import type { User } from "@packages/domain";
+import users from "../../../.flow/fixtures/users.json";
 
-export type User = {
-	id: string;
-	name: string;
-};
+export type { User } from "@packages/domain";
 
-export function listUsers(): User[] {
+export async function listUsers(): Promise<User[]> {
 	return users;
 }
 `,
 		);
 		await writeFile(
 			join(targetRoot, "apps/viewer-web/src/App.tsx"),
-			`import { listUsers } from "./user-repository";
+			`import { useEffect, useState } from "react";
+import { listUsers, type User } from "./user-repository";
 
 export function App() {
+	const [users, setUsers] = useState<User[]>([]);
+	useEffect(() => {
+		void listUsers().then(setUsers);
+	}, []);
 	return (
 		<main>
-			<h1>{listUsers()[0]?.name}</h1>
+			<h1>{users[0]?.name}</h1>
 		</main>
 	);
 }
 `,
 		);
+		const domainRoot = join(targetRoot, "packages/domain");
+		await mkdir(join(domainRoot, "src"), { recursive: true });
+		await writeFile(join(domainRoot, "package.json"), JSON.stringify({
+			name: "@packages/domain", private: true, type: "module",
+			exports: { ".": "./src/index.ts" },
+			scripts: { typecheck: "tsc --noEmit --project tsconfig.json" },
+		}));
+		await writeFile(join(domainRoot, "tsconfig.json"), JSON.stringify({
+			extends: "../../tsconfig.base.json", include: ["src"],
+		}));
+		const domainSource = join(domainRoot, "src/index.ts");
+		const userType = "export type User = { id: string; name: string };\n";
+		await writeFile(domainSource, userType);
+		const webPackagePath = join(targetRoot, "apps/viewer-web/package.json");
+		const webPackage = JSON.parse(await readFile(webPackagePath, "utf8"));
+		webPackage.dependencies["@packages/domain"] = "*";
+		await writeFile(webPackagePath, JSON.stringify(webPackage));
 		run("npm", ["install", "--no-audit", "--no-fund"], targetRoot);
+		run("npm", ["run", "fix", "--", "packages/domain", "apps/viewer-web"], targetRoot);
 		run("npm", ["run", "check"], targetRoot);
+		const validDomainSource = await readFile(domainSource, "utf8");
+		await writeFile(domainSource, validDomainSource.replace("name: string", "name: number"));
+		assert.throws(() => execFileSync("npm", ["run", "typecheck"], {
+			cwd: targetRoot, stdio: "pipe",
+		}), (error) => {
+			assert.match(error.stdout.toString(), /Type 'string' is not assignable to type 'number'/);
+			return true;
+		}, "a shared-package-only change must invalidate the consumer typecheck");
+		await writeFile(domainSource, validDomainSource);
 		run("npm", ["run", "build"], targetRoot);
+		await writeFile(
+			usersFixture,
+			`${JSON.stringify([{ id: "user-ana", name: "After" }], null, "\t")}\n`,
+		);
+		run("npm", ["run", "build"], targetRoot);
+		const assets = join(targetRoot, "apps/viewer-web/dist/assets");
+		const bundle = (
+			await Promise.all(
+				(await readdir(assets))
+					.filter((entry) => entry.endsWith(".js"))
+					.map((entry) => readFile(join(assets, entry), "utf8")),
+			)
+		).join("\n");
+		assert.match(bundle, /After/);
+		assert.doesNotMatch(bundle, /Ana García/);
+		await writeFile(
+			usersFixture,
+			`${JSON.stringify([{ id: "user-ana", renamed: "After" }], null, "\t")}\n`,
+		);
+		assert.throws(() =>
+			execFileSync("npm", ["run", "typecheck"], {
+				cwd: targetRoot,
+				stdio: "pipe",
+			}),
+		);
+		await writeFile(
+			usersFixture,
+			`${JSON.stringify([{ id: "user-ana", name: "After" }], null, "\t")}\n`,
+		);
 		setProgress(targetRoot, "Viewer Web", "web-surface", "complete");
 		const apiDecision = routeProject(targetRoot);
 		assert.equal(apiDecision.decision, "run");

@@ -4,9 +4,11 @@
 domain language, applications, relationships, and workflow progress. Read its
 relevant sections before application work.
 
-When a workflow skill invokes a toolkit skill, the workflow defines the task
-scope, lifecycle, and project constraints. Apply the toolkit guidance within
-those boundaries; if they conflict, the workflow instruction takes precedence.
+The user's instructions take precedence over guidance in a skill. Within that
+boundary, when a workflow skill invokes a toolkit skill, the workflow defines
+the task scope, lifecycle, and project constraints. Apply the toolkit guidance
+within those boundaries; if they conflict, the workflow instruction takes
+precedence.
 
 Write technical project artifacts in English. Each application path declared in
 `.flow/project.json` becomes an npm workspace when materialized, and its source

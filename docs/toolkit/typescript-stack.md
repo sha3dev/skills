@@ -14,8 +14,10 @@ code is being changed.
 ## When to reach for it
 
 The skill is selected automatically when an agent writes or changes TypeScript,
-TSX, or an opaque JavaScript asset. Reviews and contract-only work do not select
-it unless they also require a code change.
+TSX, or an opaque JavaScript asset in a Flow project initialized with
+`.flow/project.json` and its generated toolchain. It does not apply to unrelated
+TypeScript repositories. Reviews and contract-only work do not select it unless
+they also require a code change.
 
 ## Repository-owned tooling
 
@@ -26,6 +28,8 @@ reproducible.
 
 Each `apps/<app>/` directory is an independently runnable workspace, with its
 application TypeScript under `src/`. Shared TypeScript lives in `packages/`.
+Declared workspace dependencies and upstream typecheck tasks ensure changes in
+shared types invalidate consumer checks instead of replaying stale success.
 JavaScript delivered without transformation is allowed only under
 `apps/<app>/public/`. Biome owns formatting, imports, and recommended lint
 rules; TypeScript owns type correctness without emitting JavaScript; Knip owns
@@ -59,9 +63,10 @@ Knip is right to report it and wrong to be obeyed at that moment. The full
 unused-code report there is a real finding rather than a snapshot of unfinished
 work.
 
-## No third gate
+## Static gates and functional checks
 
-The two gates are the whole verification surface of a code change. A workflow
+The two commands are the static verification surface. Workflows keep their
+specific tests, production builds, HTTP checks, and browser review. A workflow
 may run `npm run check:toolchain` once on entry before implementation. Each
 increment then uses `npm run check:code`; the final `npm run check` includes
 toolchain verification, so no additional standalone pass is needed.

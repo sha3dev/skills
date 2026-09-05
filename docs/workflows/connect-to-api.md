@@ -10,7 +10,8 @@ browser no longer loads those files.
 
 The workflow preserves the approved surface contracts, configures the required
 base URLs and cross-origin boundary, and verifies the integrated behavior with
-the applications running together. `.flow/project.json` records the connection
+the applications running together. Inspection begins at contracts and data
+boundaries, expanding into callers only as needed. `.flow/project.json` records the connection
 as `pending`, `in-progress`, or `complete`.
 
 ## When to reach for it

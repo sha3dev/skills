@@ -1,6 +1,6 @@
 ---
 name: fixtures
-description: Create and evolve deterministic shared fixture records when disconnected application surfaces need representative domain data that later surfaces must reuse.
+description: Create and evolve deterministic shared records under `.flow/fixtures/` in an initialized Flow project when disconnected application surfaces need representative domain data that later surfaces must reuse. Do not activate for generic test-fixture work outside this workflow.
 ---
 
 # Fixtures

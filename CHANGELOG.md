@@ -1,5 +1,33 @@
 # sha3dev-skills
 
+## 0.13.1
+
+### Fixed
+
+- Invalidate generated Turbo caches for shared fixture, compiler configuration,
+  and upstream workspace type changes, preventing stale successful checks.
+- Expand local schema references and named examples in API review documents,
+  expose unresolved references, and serve changed review assets without restarting.
+- Restore explicit Flow revisions, invalidate affected API connections, and
+  preserve established HTTP adapters when revising integrated web surfaces.
+- Strengthen durable project validation and clarify process ownership,
+  cross-application scope, browser discovery, and generated skill dependencies.
+- Repair Fastify skill YAML and align imported guidance with the fixed toolchain.
+
+### Changed
+
+- Reduce skill entrypoint text through scoped invocation, conditional references,
+  focused source inspection, and reuse of approved designs and unchanged checks.
+- Preserve complete functional and visual review at workflow boundaries while
+  avoiding redundant incremental work and unnecessary approval requests.
+- Make user and workflow instruction precedence explicit and align documentation
+  with generated project behavior.
+
+### Tests
+
+- Add catalog and invocation-policy checks, API reference regressions, stronger
+  project-state validation coverage, and generated cache-invalidation checks.
+
 ## 0.13.0
 
 ### Added

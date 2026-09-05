@@ -54,6 +54,10 @@ tsconfig.base.json
 turbo.json
 ```
 
+`setup` does not copy the installed skills into this foundation. They remain
+installer-managed project dependencies; only the project-owned instructions,
+state tools, and toolchain configuration above are generated snapshots.
+
 After approval, `setup` installs the fixed platform and runs its toolchain
 verification. You can repeat that read-only check at any time:
 
@@ -90,8 +94,10 @@ To install one named skill:
 npx skills@latest add sha3dev/skills --skill <name>
 ```
 
-When installing a workflow skill individually, also install the toolkit skills
-listed in its prerequisites.
+When installing a workflow skill individually, install every skill listed in
+its prerequisites. The surface workflows also require `setup` because their
+initializers share its scaffold code. `flow` requires every workflow it may
+route; install the full catalog when using it as the project entry point.
 
 ### Browser automation
 
@@ -109,6 +115,8 @@ claude mcp add --transport stdio --scope user playwright -- \
 ```
 
 Restart the agent after configuration so the tools load into the new session.
+API review additionally requires tooling that can inspect print media or create
+and render a temporary PDF.
 
 ## Available skills
 
@@ -134,18 +142,19 @@ Reusable constraints, practices, and specialist guidance that support the workfl
 | [`interview`](./docs/toolkit/interview.md) | Automatic | Resolve dependent decisions one question at a time while maintaining a durable, resumable artifact. |
 | [`fixtures`](./docs/toolkit/fixtures.md) | Automatic | Maintain deterministic domain records that disconnected application surfaces can reuse and extend. |
 | [`rest-api-design`](./docs/toolkit/rest-api-design.md) | Automatic | Shape resource names, methods, representations, status codes, and collection conventions for an HTTP contract. |
-| [`fastify-best-practices`](./docs/toolkit/fastify-best-practices.md) | Automatic | Apply upstream Fastify guidance for plugins, schemas, routes, lifecycle, security, and testing. |
+| [`fastify-best-practices`](./docs/toolkit/fastify-best-practices.md) | Automatic | Apply adapted upstream Fastify guidance for plugins, schemas, routes, lifecycle, security, and testing. |
 | [`lazy`](./docs/toolkit/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
 | [`typescript-stack`](./docs/toolkit/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
-| [`frontend-design`](./docs/toolkit/frontend-design.md) | Automatic | Give new or substantially reshaped interfaces a distinctive, subject-specific visual direction. |
+| [`frontend-design`](./docs/toolkit/frontend-design.md) | Automatic | Design new interfaces and evolve existing ones within their approved visual direction. |
 | [`composition-patterns`](./docs/toolkit/composition-patterns.md) | Automatic | Design scalable React component APIs when reuse or boolean-prop proliferation makes composition material. |
 | [`fixing-accessibility`](./docs/toolkit/fixing-accessibility.md) | Automatic | Audit and fix accessibility when interactive controls, forms, dialogs, focus, or keyboard behavior change. |
 | [`shadcn`](./docs/toolkit/shadcn.md) | Automatic | Work with shadcn projects, registries, components, and presets using live project and CLI context. |
 
 `flow` is the only workflow entry point users need to know. It selects and
 continues the applicable installed workflow in an isolated worker context
-when supported. Each workflow gets one writer and durable artifacts remain
-canonical.
+when supported, and an explicit product-level request can reopen one completed
+outcome through the same entry point. Bare `flow` never reopens completed work.
+Each workflow gets one writer and durable artifacts remain canonical.
 Internally, `setup` runs once, `to-web-surface` handles a `web` application, and
 `to-api-surface` handles an `api` application after its related web consumers
 are complete. `connect-to-api` then replaces each web's local repositories
@@ -164,9 +173,14 @@ is selected automatically whenever the agent writes application TypeScript or
 TSX.
 Invoke `lazy` explicitly when simplicity is the main constraint for a task.
 `frontend-design`, `composition-patterns`, and `fixing-accessibility` activate
-only for their respective UI concerns. `shadcn` activates for projects that
-already contain `components.json` or when shadcn is explicitly requested; it
+only for their respective UI concerns. `shadcn` activates for component work in
+projects with `components.json` or when shadcn is explicitly requested; it
 does not introduce shadcn into every React application.
+
+Workflows reuse unchanged context and verified results within a run. Source
+inspection starts at the affected contracts and data boundaries; specialized
+references load only for relevant tasks. Incremental visual checks follow
+rendered changes, while completion retains whole-surface review and project gates.
 
 ## Updating
 

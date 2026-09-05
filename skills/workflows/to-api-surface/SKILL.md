@@ -26,10 +26,12 @@ details from the generated OpenAPI document rather than duplicating them.
 2. Read the relevant `.flow/project.json` definition, terms, application, and
    relationship entries. For every incoming relationship from a `web`
    application, require its `web-surface` to be `complete`; otherwise stop and
-   name the unfinished consumer. Read each completed consumer's `surface.md`,
-   implementation, and relevant shared fixtures before defining the API. Read
+   name the unfinished consumer. Read relevant sections of each completed
+   consumer's `surface.md`, domain types, repository interfaces, and fixture
+   collections. Follow implementation callers to resolve concrete contract
+   questions, not entire source trees by default. Read
    the API's own `surface.md` first when it exists, then inspect
-   `<application.path>/src/` when implementation already exists. Create
+   affected routes and repositories when implementation already exists. Create
    `surface.md` if absent, seeded only with facts from those sources and the
    user's request. If `api-surface` is `pending`, change it to `in-progress`
    with `node .flow/tools/project-progress.mjs --root . --app <name> --phase api-surface --set in-progress`.
@@ -38,7 +40,9 @@ details from the generated OpenAPI document rather than duplicating them.
    decision. Its subject-specific lens is the API's consumers and use cases,
    resources, operations, methods and paths, request parameters and bodies,
    response representations, status codes, errors, state transitions,
-   filtering, ordering, pagination, concurrency, and security expectations.
+   filtering, ordering, pagination, concurrency, and security expectations when
+   the confirmed use cases require them. Do not add optional collection features
+   to a small bounded list without a demonstrated need.
    Start from confirmed consumer needs but include API-only fields and
    operations when the API responsibility requires them. Record required
    domain entities and meaningful data states without duplicating concrete
@@ -60,7 +64,8 @@ details from the generated OpenAPI document rather than duplicating them.
    and expose OpenAPI JSON from those same schemas; do not maintain a second
    handwritten machine contract.
 6. Treat the generated API reference as a review surface, not generic framework
-   documentation. Apply `$frontend-design` to give it a restrained visual and
+   documentation. Reuse the copied renderer and approved styles; apply
+   `$frontend-design` for new visual decisions. Give it a restrained visual and
    information architecture specific to the API's domain, audience, and
    responsibility. Compose it as a continuous, document-like contract: begin
    with a compact map of resources, methods, paths, reads, and mutations, then
@@ -97,11 +102,11 @@ details from the generated OpenAPI document rather than duplicating them.
    HTTP contract, including meaningful error and mutation behavior; do not test
    handlers directly. Exercise the changed operation against the running server
    as an external HTTP client and inspect the generated OpenAPI JSON. Use
-   the browser automation established by `$workflow-run` to inspect the review
-   surface at representative desktop and mobile widths and verify that the
-   entire changed contract is visible without interaction. Also inspect its
-   print layout or produce a temporary PDF to catch clipping, hidden content,
-   and poor page breaks. Adjust it to reach the same review threshold as a
+   the browser automation established by `$workflow-run` when rendered contract
+   content, layout, or interactions change. Inspect desktop and mobile widths
+   and print media or a temporary PDF, checking visibility without interaction,
+   clipping, and page breaks. Reuse checks for unchanged output. Group tiny
+   edits into one coherent reviewable increment. Adjust to the same threshold as a
    web-surface increment, then give the user its fixed URL. Use `$interview`
    again when review reveals a product decision, and record it in `surface.md`
    before changing code.
@@ -109,7 +114,9 @@ details from the generated OpenAPI document rather than duplicating them.
    user approves is the whole API surface. Its phase-specific preconditions are
    passing workspace tests, a generated OpenAPI that describes every confirmed
    operation, and a review surface that presents the whole contract without a
-   parallel hardcoded catalog. Then run
+   parallel hardcoded catalog. Verify the whole review surface at desktop and
+   mobile widths and in print before completion; reuse passing checks while
+   their inputs remain unchanged. Then run
    `node .flow/tools/project-progress.mjs --root . --app <name> --phase api-surface --set complete`.
 
 ## Run discipline

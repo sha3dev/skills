@@ -12,7 +12,7 @@ assuming defaults. It supports both Vite and Next.js projects.
 
 ## When to reach for it
 
-The skill is selected automatically for work in a project containing
+The skill is selected automatically for shadcn component work in a project with
 `components.json`, or when the user explicitly asks for shadcn components,
 registries, initialization, presets, debugging, or updates. Generic React work
 does not activate it.
@@ -26,9 +26,13 @@ network access to execute the current shadcn CLI and retrieve component docs.
 ## It's working if
 
 - CLI decisions come from `shadcn info --json` in the correct application workspace.
-- Existing components and live documentation are checked before code is added.
+- Existing components and verified project context are reused; current docs
+  resolve unfamiliar APIs, additions, upgrades, or uncertain behavior.
+- Registry choice comes from established project context, or is clarified when
+  that context is genuinely ambiguous.
 - Updates are previewed with `--dry-run` and `--diff`, preserving local changes.
 - Generated imports, primitives, icons, tokens, and paths match the detected project.
+- Preset and registry-authoring details load only for those tasks.
 
 ## Where it fits
 

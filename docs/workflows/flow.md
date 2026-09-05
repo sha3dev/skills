@@ -16,8 +16,10 @@ routes the same way. Supporting a new outcome is a rule change, not a prompt
 change.
 
 Work explicitly recorded as in progress is resumed before anything pending. An
-open phase that no installed workflow can advance is reported as such rather
-than retried, so a gap in the installed workflows is visible instead of silent.
+open phase with no routing rule is reported rather than retried, so a gap in the
+supported workflow map is visible instead of silent. An installation layout
+the router cannot verify is attempted and becomes a blocker only if the selected
+skill cannot actually be loaded.
 Declarative routing prerequisites can also hold back a surface until related
 applications provide the confirmed input it needs; an API consumed by a web
 application therefore waits for that web surface to complete. The web's
@@ -36,10 +38,23 @@ the source of truth.
 The internal skill names are not part of the user journey. Knowing and invoking
 `flow` is sufficient.
 
+An explicit request to revise completed work is resolved to one application and
+phase before ordinary routing. Unambiguous work is reopened through the existing
+progress writer; ambiguous targets are clarified in product terms. Bare `flow`
+never reopens completed work.
+
 ## When to reach for it
 
 Invoke `flow` without arguments whenever the next step is unclear, including
-when returning to a project after time away or finishing a workflow stage.
+when returning to a project after time away, finishing a workflow stage, or
+explicitly revising a completed outcome.
+
+## Prerequisites
+
+Install every workflow that `flow` may select, together with each workflow's
+listed toolkit prerequisites. A clean persistent worker is preferred for
+context isolation; when the harness cannot provide one, Flow runs the selected
+workflow in its current context.
 
 ## It's working if
 

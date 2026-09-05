@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import {
+	copyFile,
+	mkdir,
+	mkdtemp,
+	readFile,
+	rm,
+	writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -32,7 +39,13 @@ function application(name, type, progress) {
 // the two tools it shells out to.
 async function synthesize(
 	t,
-	{ applications, relationships = [], repository = true, stateTool = true },
+	{
+		applications,
+		relationships = [],
+		repository = true,
+		stateTool = true,
+		projectFields = {},
+	},
 ) {
 	const root = await mkdtemp(join(tmpdir(), "sha3dev-route-"));
 	t.after(() => rm(root, { recursive: true, force: true }));
@@ -47,7 +60,14 @@ async function synthesize(
 	await copyFile(progressTool, join(root, ".flow/tools/project-progress.mjs"));
 	await writeFile(
 		join(root, ".flow/project.json"),
-		JSON.stringify({ applications, relationships }),
+		JSON.stringify({
+			title: "Route test",
+			definition: "Exercise deterministic routing.",
+			terms: [],
+			applications,
+			relationships,
+			...projectFields,
+		}),
 	);
 	return root;
 }
@@ -127,4 +147,117 @@ test("route blocks when project.json has no state tool beside it", async (t) => 
 	const decision = routeProject(root);
 	assert.equal(decision.decision, "blocked");
 	assert.equal(decision.reason, "invalid-project");
+});
+
+test("project state rejects incomplete and unsafe durable definitions", async (t) => {
+	const invalidProjects = [
+		{
+			name: "missing title",
+			applications: [
+				application("viewer-web", "web", { "web-surface": "pending" }),
+			],
+			projectFields: { title: undefined },
+		},
+		{
+			name: "unsafe application path",
+			applications: [
+				{
+					...application("viewer-web", "web", {
+						"web-surface": "pending",
+					}),
+					path: "apps/../",
+				},
+			],
+		},
+		{
+			name: "duplicate term",
+			applications: [
+				application("viewer-web", "web", { "web-surface": "pending" }),
+			],
+			projectFields: {
+				terms: [
+					{ term: "Viewer", definition: "A viewer." },
+					{ term: "viewer", definition: "The same viewer." },
+				],
+			},
+		},
+		{
+			name: "self relationship",
+			applications: [
+				application("viewer-web", "web", { "web-surface": "pending" }),
+			],
+			relationships: [
+				{ from: "viewer-web", to: "viewer-web", description: "Self." },
+			],
+		},
+		{
+			name: "dangling relationship",
+			applications: [
+				application("viewer-web", "web", { "web-surface": "pending" }),
+			],
+			relationships: [
+				{ from: "viewer-web", to: "missing-api", description: "Load." },
+			],
+		},
+		{
+			name: "duplicate relationship",
+			applications: [
+				application("viewer-web", "web", { "web-surface": "pending" }),
+				application("viewer-two", "web", { "web-surface": "pending" }),
+			],
+			relationships: [
+				{ from: "viewer-web", to: "viewer-two", description: "First." },
+				{ from: "viewer-web", to: "viewer-two", description: "Again." },
+			],
+		},
+		{
+			name: "missing relationship description",
+			applications: [
+				application("viewer-web", "web", { "web-surface": "pending" }),
+				application("viewer-two", "web", { "web-surface": "pending" }),
+			],
+			relationships: [
+				{ from: "viewer-web", to: "viewer-two", description: "" },
+			],
+		},
+	];
+
+	for (const fixture of invalidProjects) {
+		await t.test(fixture.name, async (subtest) => {
+			const root = await synthesize(subtest, fixture);
+			const decision = routeProject(root);
+			assert.equal(decision.decision, "blocked");
+			assert.equal(decision.reason, "invalid-state");
+			assert.equal(decision.state.state, "invalid_project");
+		});
+	}
+});
+
+test("an invalid progress write leaves project.json unchanged", async (t) => {
+	const root = await synthesize(t, {
+		applications: [
+			application("viewer-web", "web", { "web-surface": "pending" }),
+		],
+		projectFields: { definition: "invalid\nmultiline" },
+	});
+	const projectPath = join(root, ".flow/project.json");
+	const before = await readFile(projectPath, "utf8");
+	assert.throws(() =>
+		execFileSync(
+			process.execPath,
+			[
+				progressTool,
+				"--root",
+				root,
+				"--app",
+				"viewer-web",
+				"--phase",
+				"web-surface",
+				"--set",
+				"in-progress",
+			],
+			{ stdio: "pipe" },
+		),
+	);
+	assert.equal(await readFile(projectPath, "utf8"), before);
 });

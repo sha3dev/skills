@@ -6,7 +6,23 @@ disable-model-invocation: true
 
 # Flow
 
-Enter or continue the project's workflow. The skill takes no arguments.
+Enter or continue the project's workflow. The skill takes no arguments; an
+explicit revision request may accompany the invocation in natural language.
+
+## Explicit revisions
+
+Before ordinary routing, handle a revision only when the current user request
+explicitly identifies completed work to change. Read `.flow/project.json` and
+map the product request to exactly one application and completed phase. If the
+application or phase is ambiguous, ask one product-level question and do not
+change progress. Never reopen work for bare `flow`.
+
+For one unambiguous target, run
+`node .flow/tools/project-progress.mjs --root . --app <name> --phase <phase> --set in-progress --reopen`.
+This authorized durable-state transition precedes routing; it is not a
+conversational override of the route. Then run the router normally. Its
+preference for `in-progress` work ensures the selected revision is not displaced
+by unrelated pending work. Preserve the progress tool's connection invalidation.
 
 ## Route
 
@@ -21,7 +37,8 @@ the repository yourself.
   conversation context when it exists; otherwise state the minimum useful
   context and ask which application to continue, in product terms. Then
   continue with that candidate's `skill`.
-- `done` — no phase is open. Say so and stop.
+- `done` — no phase is open. Say so and stop unless an explicit revision still
+  needs the pre-routing transition above.
 - `blocked` — report the concrete blocker from `reason` with `detail`, `state`,
   `unroutable`, or `waiting`. Never invent a workflow to work around it.
 
@@ -31,9 +48,11 @@ workflow. A `skillStatus` of `unverified` means the installation layout could
 not be confirmed, not that the workflow is missing; proceed, and treat an actual
 load failure as a blocker.
 
-Do not load the selected `SKILL.md` or its working artifacts into the main
-context. Supporting another outcome means adding a rule to `routes.json`, not
-new prose here.
+When a clean worker is available, do not load the selected `SKILL.md` or its
+working artifacts into the main context. The fallback below is the exception:
+running the workflow here requires reading its `SKILL.md` completely.
+Supporting another outcome means adding a rule to `routes.json`, not new prose
+here.
 
 ## Delegate
 

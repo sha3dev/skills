@@ -28,9 +28,10 @@ tracker. Do not create another specification artifact for this phase.
    `api-surface` to be `complete`; stop with the precise unfinished phase if any
    prerequisite is not satisfied. An absent API relationship or
    `api-connection` phase is an invalid route, not work to infer.
-3. Read the web and related API `surface.md` files, their implementations, the
-   generated OpenAPI documents or route schemas, and only the fixture
-   collections needed to understand their mappings. Treat both confirmed
+3. Read relevant sections of the web and API `surface.md` files, domain types,
+   repository interfaces, adapters, and affected OpenAPI operations or route
+   schemas. Read only fixture collections needed for those mappings; follow
+   callers when a concrete question remains. Treat both confirmed
    surfaces as fixed contracts. Correct technical integration defects that fit
    those contracts, but stop and request a surface revision when connecting
    them would require a new product behavior, endpoint, representation, or
@@ -57,7 +58,9 @@ tracker. Do not create another specification artifact for this phase.
    configuration in that API workspace's `.env.example`. Follow an established
    configuration name when one exists; otherwise use `ALLOWED_WEB_ORIGINS` for
    a comma-separated list. Never enable a wildcard merely to make development
-   pass. Do not otherwise restructure or extend the API.
+   pass. This narrow provider configuration is part of the declared connection
+   scope; it does not reopen or extend the provider's product contract. Do not
+   otherwise restructure or extend the API.
 8. Remove the web's local fixture adapter and direct fixture imports when they
    are no longer used. Do not copy fixtures into application source, keep a
    hidden fixture fallback, change `.flow/fixtures/`, introduce `Mock`-prefixed

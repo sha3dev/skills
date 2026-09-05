@@ -4,7 +4,9 @@ Configuration is read from `components.json`.
 
 > **IMPORTANT:** Always run commands using the project's package runner: `npx shadcn@latest`, `pnpm dlx shadcn@latest`, or `bunx --bun shadcn@latest`. Check `packageManager` from project context to choose the right one. Examples below use `npx shadcn@latest` but substitute the correct runner for the project.
 
-> **IMPORTANT:** Only use the flags documented below. Do not invent or guess flags — if a flag isn't listed here, it doesn't exist. The CLI auto-detects the package manager from the project's lockfile; there is no `--package-manager` flag.
+Use the documented flags; when a needed option is absent from this reference,
+check the current command's `--help` rather than guessing. The CLI auto-detects
+the package manager from the project's lockfile.
 
 ## Contents
 
@@ -56,6 +58,7 @@ Applies a preset to an existing project, overwriting preset-driven config, fonts
 | `--yes`             | `-y`  | Skip confirmation prompt                   | `false` |
 | `--cwd <cwd>`       | `-c`  | Working directory                          | current |
 | `--silent`          | `-s`  | Mute output                                | `false` |
+| `--only <parts>`    | —     | Apply `theme`, `font`, or both, comma-separated | — |
 
 `[preset]` is a shorthand for `--preset <preset>`. If both are provided, they must match.
 If no preset is provided, the CLI offers to open the custom preset builder on `ui.shadcn.com/create`.
@@ -125,7 +128,11 @@ npx shadcn@latest add button --diff globals.css
 
 #### Smart Merge from Upstream
 
-See [Updating Components in SKILL.md](./SKILL.md#updating-components) for the full workflow.
+Run `add <component> --dry-run`, then `--diff <file>` for the affected files.
+Preserve local changes when applying upstream updates. Overwrite only within
+the user's explicit authorization; ask if that scope is unresolved, not again
+when the user has already approved it. Use the CLI rather than raw GitHub files
+so registry resolution and project paths remain correct.
 
 ### `search` — Search registries
 
@@ -281,10 +288,14 @@ Three ways to specify a preset via `--preset`:
 
 ## Switching Presets
 
-Ask the user first: **overwrite**, **merge**, or **skip** existing components?
+Resolve whether the request calls for **overwrite**, **partial**, **merge**, or
+**skip** existing components. Ask only when the user has not already settled
+that choice. Inspect the current preset with `shadcn preset resolve` and the
+incoming code with `shadcn preset decode <code>` using the project runner.
 
 - **Overwrite / Re-install** → `npx shadcn@latest apply --preset <code>`. Overwrites all detected component files with the new preset styles. Use when the user hasn't customized components.
-- **Merge** → `npx shadcn@latest init --preset <code> --force --no-reinstall`, then run `npx shadcn@latest info` to get the list of installed components and use the [smart merge workflow](./SKILL.md#updating-components) to update them one by one, preserving local changes. Use when the user has customized components.
+- **Partial** → `npx shadcn@latest apply <code> --only theme,font`. Select `theme`, `font`, or both; icon changes may require component updates.
+- **Merge** → `npx shadcn@latest init --preset <code> --force --no-reinstall`, then run `npx shadcn@latest info` and use the smart merge procedure above on the installed components, preserving local changes.
 - **Skip** → `npx shadcn@latest init --preset <code> --force --no-reinstall`. Only updates config and CSS variables, leaves existing components as-is.
 
 Always run preset commands inside the user's project directory. `apply` only works in an existing project with a `components.json` file. The CLI automatically preserves the current base (`base` vs `radix`) from `components.json`. If you must use a scratch/temp directory (e.g. for `--dry-run` comparisons), pass `--base <current-base>` explicitly — preset codes do not encode the base.

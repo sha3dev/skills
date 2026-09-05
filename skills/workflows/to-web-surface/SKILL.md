@@ -7,7 +7,7 @@ argument-hint: "[web application]"
 
 # To Web Surface
 
-Create only the selected application's disconnected React/Vite interface inside
+Create the selected application's initially disconnected React/Vite interface inside
 `<application.path>/`, with application source under `src/`. Maintain its
 durable interface specification at `.flow/applications/<application-slug>/surface.md`,
 where `<application-slug>` is the final directory in `<application.path>`. It is
@@ -23,7 +23,10 @@ sole progress tracker.
 2. Read the relevant `.flow/project.json` definition, terms, application, and
    relationship entries. Read
    `.flow/applications/<application-slug>/surface.md` first when it exists, then
-   inspect `<application.path>/src/` when implementation already exists. Create
+   inspect affected screens, data adapters, and runtime configuration when implementation
+   already exists. Do not infer disconnection from `api-connection: pending`: a
+   reopened web surface may retain its HTTP adapter. In that revision mode,
+   preserve the established adapter and approved API contracts. Create
    `surface.md` at that path if absent, seeded only with facts from those sources
    and the user's request. If `web-surface` is `pending`, change it to
    `in-progress` with
@@ -56,17 +59,23 @@ sole progress tracker.
 	the records into application memory and make changes observable until the
 	page reloads; never write them back to `.flow/fixtures/`. Keep visual state in
 	the application; do not add APIs, server code, persistence, authentication,
-	or infrastructure.
+	or infrastructure. For an existing integrated application, keep its HTTP
+	repositories and do not restore fixture access or a local fallback. If the
+	requested product change requires a new or changed API contract, stop and ask
+	for that API revision to be handled explicitly instead of changing it here.
 6. Serve this application with `npm run dev --workspace <workspace-name>` in
    the background, at the fixed preview URL its `vite.config.ts` pins, under
-   `$workflow-run`'s development process rules.
+   `$workflow-run`'s development process rules. In integrated revision mode,
+   also run the declared API providers needed to review existing behavior;
+   treat them as supporting processes, not authorization to change their code.
 7. After an increment that changes `.flow/fixtures/`, apply `$fixtures`'
    validation procedure. After every increment, apply the repository's
    TypeScript workflow through `npm run check:code`. An increment may leave
    interface code that nothing renders yet; that is not a defect to fix, so do
    not run the unused-code
    check between increments and never delete unwired work to satisfy one.
-   Before presenting the increment, use the browser automation established by
+   Group tiny edits into one coherent reviewable increment. Before presenting
+   visible or interactive changes, use the browser automation established by
    `$workflow-run` to inspect it at representative desktop and mobile widths
    and exercise the changed interactions. Ensure it follows the user's
    established direction, has no visible or functional errors, lays out
@@ -78,7 +87,9 @@ sole progress tracker.
 8. Complete `web-surface` under `$workflow-run`'s completion rule. What the
    user approves is the whole interface. Its phase-specific preconditions are
    a passing unused-code check within the full `npm run check` and a successful
-   `npm run build --workspace <workspace-name>`. Then run
+   `npm run build --workspace <workspace-name>`. Verify the whole interface at
+   desktop and mobile widths and exercise its confirmed interactions; reuse
+   passing checks while their inputs remain unchanged. Then run
    `node .flow/tools/project-progress.mjs --root . --app <name> --phase web-surface --set complete`.
 
 ## Run discipline

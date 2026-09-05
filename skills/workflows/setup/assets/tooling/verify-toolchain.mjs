@@ -149,11 +149,13 @@ try {
 		fail("package.json workspaces do not match the toolchain policy");
 	}
 	if (
+		!turboJson.globalDependencies?.includes(".flow/fixtures/**") ||
+		!turboJson.globalDependencies?.includes("tsconfig.base.json") ||
 		turboJson.tasks?.dev?.cache !== false ||
 		turboJson.tasks?.dev?.persistent !== true ||
 		!turboJson.tasks?.build?.dependsOn?.includes("^build") ||
 		!turboJson.tasks?.build?.outputs?.includes("dist/**") ||
-		!turboJson.tasks?.typecheck
+		!turboJson.tasks?.typecheck?.dependsOn?.includes("^typecheck")
 	) {
 		fail("turbo.json is missing the required build, dev, or typecheck task");
 	}

@@ -45,7 +45,10 @@ reads, and mutations is followed by every operation's already-expanded request,
 response, error, and schema information. Review never depends on opening tabs,
 accordions, or detail panels, and the full surface has a coherent print/PDF
 layout. Contract facts come from `/openapi.json`, while the model may tailor
-grouping, hierarchy, and visualization to the domain. Reads begin from stable
+grouping, hierarchy, and visualization to the domain. Existing approved styles
+and the copied renderer are reused. Named examples remain visible, including
+locally referenced examples. Incremental visual and print checks follow changes
+to rendered output; final review still covers the whole surface. Reads begin from stable
 shared fixtures, required writes are observable during the process, and
 restarting restores the initial data. The phase completes only after browser
 verification, whole-surface visual approval, passing workspace tests, complete

@@ -62,21 +62,8 @@ import Fastify from "fastify";
 
 export async function buildApp() {
 \tconst app = Fastify({ logger: false });
-\tconst [referenceDocument, referenceStyles, referenceScript] =
-\t\tawait Promise.all([
-\t\t\treadFile(
-\t\t\t\tnew URL("../public/reference/index.html", import.meta.url),
-\t\t\t\t"utf8",
-\t\t\t),
-\t\t\treadFile(
-\t\t\t\tnew URL("../public/reference/reference.css", import.meta.url),
-\t\t\t\t"utf8",
-\t\t\t),
-\t\t\treadFile(
-\t\t\t\tnew URL("../public/reference/reference.js", import.meta.url),
-\t\t\t\t"utf8",
-\t\t\t),
-\t\t]);
+\tconst referenceAsset = (name: string) =>
+\t\treadFile(new URL(\`../public/reference/\${name}\`, import.meta.url), "utf8");
 
 \tawait app.register(swagger, {
 \t\topenapi: {
@@ -89,25 +76,33 @@ export async function buildApp() {
 \t});
 
 \tapp.get("/", { schema: { hide: true } }, async (_request, reply) =>
-\t\treply.type("text/html; charset=utf-8").send(referenceDocument),
+\t\treply
+\t\t\t.type("text/html; charset=utf-8")
+\t\t\t.send(await referenceAsset("index.html")),
 \t);
 
 \tapp.get("/reference", { schema: { hide: true } }, async (_request, reply) =>
-\t\treply.type("text/html; charset=utf-8").send(referenceDocument),
+\t\treply
+\t\t\t.type("text/html; charset=utf-8")
+\t\t\t.send(await referenceAsset("index.html")),
 \t);
 
 \tapp.get(
 \t\t"/reference.css",
 \t\t{ schema: { hide: true } },
 \t\tasync (_request, reply) =>
-\t\t\treply.type("text/css; charset=utf-8").send(referenceStyles),
+\t\t\treply
+\t\t\t\t.type("text/css; charset=utf-8")
+\t\t\t\t.send(await referenceAsset("reference.css")),
 \t);
 
 \tapp.get(
 \t\t"/reference.js",
 \t\t{ schema: { hide: true } },
 \t\tasync (_request, reply) =>
-\t\t\treply.type("text/javascript; charset=utf-8").send(referenceScript),
+\t\t\treply
+\t\t\t\t.type("text/javascript; charset=utf-8")
+\t\t\t\t.send(await referenceAsset("reference.js")),
 \t);
 
 \tapp.get(
@@ -153,6 +148,7 @@ await app.listen({ host: "127.0.0.1", port: ${previewPort} });
 		[
 			"src/tests/app.test.ts",
 			`import assert from "node:assert/strict";
+import { readFile, writeFile } from "node:fs/promises";
 import test from "node:test";
 import { buildApp } from "../app";
 
@@ -179,6 +175,22 @@ test("exposes health, OpenAPI, and the visual contract", async (context) => {
 \t});
 \tassert.equal(referenceScript.statusCode, 200);
 \tassert.match(referenceScript.body, /fetch\\("\\/openapi.json"\\)/);
+
+\tconst stylesheetPath = new URL(
+\t\t"../../public/reference/reference.css",
+\t\timport.meta.url,
+\t);
+\tconst originalStyles = await readFile(stylesheetPath, "utf8");
+\tcontext.after(() => writeFile(stylesheetPath, originalStyles));
+\tawait writeFile(
+\t\tstylesheetPath,
+\t\t\`\${originalStyles}\\n/* live-reference-test */\\n\`,
+\t);
+\tconst updatedStyles = await app.inject({
+\t\tmethod: "GET",
+\t\turl: "/reference.css",
+\t});
+\tassert.match(updatedStyles.body, /live-reference-test/);
 });
 `,
 		],

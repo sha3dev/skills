@@ -2,6 +2,7 @@
 
 ## Working principles
 
+- User instructions take precedence over guidance in repository skills.
 - Keep responses concise, direct, and information-dense. Preserve necessary technical details, warnings, and requested explanations.
 - Write technical repository content in English.
 

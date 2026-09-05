@@ -2,8 +2,8 @@
 
 ## What it does
 
-`to-web-surface` turns a fuzzy UI into an agreed specification and then a
-disconnected React/Vite interface for one `web` application. It maintains the
+`to-web-surface` turns a fuzzy UI into an agreed specification and then an
+initially disconnected React/Vite interface for one `web` application. It maintains the
 resumable specification at `.flow/applications/<application-slug>/surface.md`
 and builds the confirmed interface in the application workspace, with source
 under `<application.path>/src/`, one visible increment at a time.
@@ -24,9 +24,9 @@ application. Invoke it on a completed surface only when explicitly revising it.
 
 `setup` must have generated a valid `.flow/project.json` and toolchain, the
 application must declare a `web-surface` phase, and the `workflow-run`,
-`interview`, and `fixtures` toolkit skills must be available. The `setup` skill
-must remain installed alongside this one: its bundled workspace initializer is
-shared with `to-api-surface`.
+`interview`, `fixtures`, and `typescript-stack` toolkit skills must be available.
+The `setup` skill must remain installed alongside this one: its bundled
+workspace initializer is shared with `to-api-surface`.
 
 The workflow verifies the toolchain once on entry and installs dependencies when
 they are missing, so a fresh clone does not read as a broken repository.
@@ -39,8 +39,8 @@ The operator can resume from `surface.md`, receives one short UI decision at a
 time with a useful recommendation, and approves the specification before code
 is written. Different surfaces can reuse and extend the same stable fixture
 records without introducing mock-prefixed domain types into the web
-application. Each implementation turn produces a runnable, browser-verified
-increment at the same preview URL, which one development server serves through
+application. Coherent increments with visible or interactive changes are
+browser-verified at the same preview URL, which one development server serves through
 hot module replacement for the whole workflow and releases when the workflow
 ends. An increment may leave a component the interface does not render yet
 without the checks demanding its deletion. The phase completes only after
@@ -48,10 +48,14 @@ desktop, mobile, and interaction verification, approval of the whole interface,
 a green full `npm run check`, and a successful production build of its
 workspace.
 
+When revising an already integrated web, the existing HTTP adapter and approved
+API contracts remain in place. Its API providers run only to support review;
+contract changes are handled as an explicit API revision.
+
 ## Where it fits
 
 `setup` defines applications and progress. `interview` supplies the reusable
 decision discipline, and `fixtures` owns the shared example-data contract.
-`to-web-surface` applies both toolkit skills to a web UI. After its related API
+`to-web-surface` applies those toolkit contracts to a web UI. After its related API
 surfaces are complete, `connect-to-api` replaces the local data adapter and
 verifies the integrated applications.

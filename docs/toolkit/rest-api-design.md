@@ -4,7 +4,7 @@
 
 `rest-api-design` supplies resource-oriented HTTP conventions for deciding what
 an API exposes: resource names, methods and paths, request and response
-representations, status codes, and filtering, ordering, and pagination. Its
+representations, status codes, and collection query behavior when required. Its
 reference files are read only when the current decision touches their subject.
 
 ## When to reach for it
@@ -18,8 +18,8 @@ is confirmed.
 
 Resources read as nouns, collections are plural and consistent, each operation
 uses the method and status codes its semantics imply, error responses carry a
-usable code and message, and collection endpoints agree on one filtering,
-ordering, and pagination convention.
+usable code and message. Filtering, ordering, and pagination appear only when
+confirmed scale or consumer needs justify them, and then remain consistent.
 
 ## Where it fits
 

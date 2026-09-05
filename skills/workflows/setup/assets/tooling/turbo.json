@@ -1,5 +1,6 @@
 {
 	"$schema": "https://turborepo.com/schema.json",
+	"globalDependencies": [".flow/fixtures/**", "tsconfig.base.json"],
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
@@ -9,6 +10,8 @@
 			"cache": false,
 			"persistent": true
 		},
-		"typecheck": {}
+		"typecheck": {
+			"dependsOn": ["^typecheck"]
+		}
 	}
 }

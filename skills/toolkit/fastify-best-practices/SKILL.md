@@ -1,8 +1,9 @@
 ---
 name: fastify-best-practices
-description: "Guides development of Fastify Node.js backend servers and REST APIs using TypeScript or JavaScript. Use when building, configuring, or debugging a Fastify application — including defining routes, implementing plugins, setting up JSON Schema validation, handling errors, optimising performance, managing authentication, configuring CORS and security headers, integrating databases, working with WebSockets, and deploying to production. Covers the full Fastify request lifecycle (hooks, serialization, logging with Pino) and TypeScript integration via strip types. Trigger terms: Fastify, Node.js server, REST API, API routes, backend framework, fastify.config, server.ts, app.ts."
+description: "Guide development of Fastify applications using TypeScript or JavaScript. Use when Fastify is established and the work involves its routes, plugins, schemas, lifecycle, errors, testing, security, integrations, performance, or deployment. Do not activate for generic Node.js, REST, or backend work that does not use Fastify."
 metadata:
   tags: fastify, nodejs, typescript, backend, api, server, http
+  modified: Adapted to preserve the consuming project's runtime and toolchain.
 ---
 
 ## When to use
@@ -11,7 +12,7 @@ Use this skill when you need to:
 - Develop backend applications using Fastify
 - Implement Fastify plugins and route handlers
 - Get guidance on Fastify architecture and patterns
-- Use TypeScript with Fastify (strip types)
+- Use TypeScript with Fastify within the project's established runtime
 - Implement testing with Fastify's inject method
 - Configure validation, serialization, and error handling
 
@@ -73,3 +74,7 @@ Read individual rule files for detailed explanations and code examples:
 - **Performance**: Fastify is optimized for speed; use its features correctly
 - **Async/await**: All handlers and hooks support async functions
 - **Minimal dependencies**: Prefer Fastify's built-in features and official plugins
+
+Project configuration takes precedence over runtime examples in the imported
+rules. Preserve an established `tsx`, compiler, module, and script setup unless
+the user explicitly requests a toolchain migration.

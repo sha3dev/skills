@@ -24,6 +24,11 @@ metadata:
 
 ## Type Stripping with Node.js
 
+Use this option only when the project has already chosen direct Node.js type
+stripping or the user explicitly requests that migration. Otherwise preserve
+the established runtime and TypeScript configuration; in repositories generated
+by this skills catalog, server TypeScript runs through `tsx`.
+
 Use Node.js built-in type stripping (Node.js 22.6+):
 
 ```bash
