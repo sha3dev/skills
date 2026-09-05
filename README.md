@@ -23,12 +23,16 @@ Choose a project-scoped installation, select your agent, and install all sixteen
 skills. Project-scoped installations create `skills-lock.json`; commit it so
 the installed sources and content hashes remain reproducible.
 
-Restart the agent in the repository after installation. Invoke `flow` without
-arguments to enter or continue the appropriate workflow:
+Restart the agent in the repository after installation. Invoke `flow` to enter
+or continue the appropriate workflow, optionally adding context about current
+work and next priorities:
 
 ```text
 $flow
 ```
+
+For example: `$flow We have refined the home page header, but the rest of the
+web surface is unfinished. Continue with the remaining pages.`
 
 In a new repository it starts the setup flow and asks for the rough product
 idea. It will agree the product definition and domain language, identify `web`

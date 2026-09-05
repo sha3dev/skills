@@ -45,9 +45,16 @@ never reopens completed work.
 
 ## When to reach for it
 
-Invoke `flow` without arguments whenever the next step is unclear, including
+Invoke `flow` whenever the next step is unclear, including
 when returning to a project after time away, finishing a workflow stage, or
 explicitly revising a completed outcome.
+
+Optionally add free-form context about what has been refined, what remains,
+or where to focus: `$flow We have refined the home page header, but the rest
+of the web surface is unfinished. Continue with the remaining pages.` This
+guidance reaches the selected workflow so it can preserve existing refinements
+and focus the next work. Durable state still determines the route; describing
+partial work does not mark a phase complete or reopen completed work.
 
 ## Prerequisites
 

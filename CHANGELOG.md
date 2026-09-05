@@ -1,5 +1,13 @@
 # sha3dev-skills
 
+## 0.13.2
+
+### Added
+
+- Accept optional free-form context with `flow` to describe refined work,
+  remaining tasks, and next priorities. Pass relevant guidance to the selected
+  workflow while preserving durable routing and explicit revision rules.
+
 ## 0.13.1
 
 ### Fixed

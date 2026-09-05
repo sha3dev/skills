@@ -1,13 +1,27 @@
 ---
 name: flow
-description: Inspect durable project state, select the appropriate installed workflow, and run it in an isolated worker context when supported. Use explicitly without arguments to enter or continue a project.
+description: Inspect durable project state, select the appropriate installed workflow, and run it in an isolated worker context when supported. Use explicitly to enter or continue a project, optionally with context about current work and next priorities.
 disable-model-invocation: true
 ---
 
 # Flow
 
-Enter or continue the project's workflow. The skill takes no arguments; an
-explicit revision request may accompany the invocation in natural language.
+Enter or continue the project's workflow, optionally followed by free-form
+context: `$flow [context]`. With no context, route normally.
+
+## Optional context
+
+The user may describe what has been refined, what remains unfinished, or where
+to focus next. For example: `$flow We have refined the home page header, but
+the rest of the web surface is unfinished. Continue with the remaining pages.`
+
+Pass relevant context to the selected workflow as user guidance, including in
+the current-context fallback. Use it to preserve existing refinements and guide
+the next work within that workflow's scope. Reconcile reported progress with
+durable artifacts and the implementation; a partial-work summary is not proof
+of phase completion or an instruction to reopen completed work. Context may
+resolve a `choose` decision, but must not override a `run`, `done`, or `blocked`
+decision. Explicit requests to revise completed work follow the rule below.
 
 ## Explicit revisions
 
@@ -81,11 +95,14 @@ Give the worker only:
 - The repository root.
 - The selected skill's identifier or `SKILL.md` location.
 - The selected outcome or application.
+- Any invocation context relevant to this run, preserving the user's scope,
+  priorities, and distinction between finished and remaining work.
 - The latest relevant user reply, including referenced attachments, only when
   it is not durable yet.
 
-Tell it to read the selected `SKILL.md` completely, derive every other fact
-from durable project artifacts, execute until that workflow's next stopping
+Tell it to read the selected `SKILL.md` completely, reconcile user context with
+the project, derive every other fact from durable project artifacts, execute
+until that workflow's next stopping
 condition, and return only:
 
 - `status`: `needs-input`, `complete`, or `blocked`.
