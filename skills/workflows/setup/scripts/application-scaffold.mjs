@@ -1,5 +1,4 @@
-// Shared workspace initializer for the application workflows. `to-web-surface`
-// and `to-api-surface` create the same workspace shape — validated phase,
+// Shared initializer for web, API, and worker review workspaces: validated phase,
 // `apps/<slug>` layout, root-pinned dependencies, derived preview port,
 // `already-initialized` short circuit and all-or-nothing write — and differ
 // only in type, port range and file map. It lives in `setup` because that

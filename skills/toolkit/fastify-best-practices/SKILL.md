@@ -1,47 +1,20 @@
 ---
 name: fastify-best-practices
-description: "Guide development of Fastify applications using TypeScript or JavaScript. Use when Fastify is established and the work involves its routes, plugins, schemas, lifecycle, errors, testing, security, integrations, performance, or deployment. Do not activate for generic Node.js, REST, or backend work that does not use Fastify."
+description: Implement or review routes, plugins, schemas, and lifecycle behavior in an existing Fastify application. Load integrations or deployment guidance only for that work.
 metadata:
   tags: fastify, nodejs, typescript, backend, api, server, http
   modified: Adapted to preserve the consuming project's runtime and toolchain.
 ---
 
-## When to use
+# Fastify
 
-Use this skill when you need to:
-- Develop backend applications using Fastify
-- Implement Fastify plugins and route handlers
-- Get guidance on Fastify architecture and patterns
-- Use TypeScript with Fastify within the project's established runtime
-- Implement testing with Fastify's inject method
-- Configure validation, serialization, and error handling
+Use the project's existing runtime, configuration, and dependencies. Introduce a
+plugin, layer, or service only for a concrete requirement; examples are options,
+not a mandatory architecture. Preserve simpler solutions that already satisfy
+validation, lifecycle, and ownership needs.
 
-## Quick Start
-
-A minimal, runnable Fastify server to get started immediately:
-
-```ts
-import Fastify from 'fastify'
-
-const app = Fastify({ logger: true })
-
-app.get('/health', async (request, reply) => {
-  return { status: 'ok' }
-})
-
-const start = async () => {
-  await app.listen({ port: 3000, host: '0.0.0.0' })
-}
-start()
-```
-
-## Recommended Reading Order for Common Scenarios
-
-- **New to Fastify?** Start with `plugins.md` → `routes.md` → `schemas.md`
-- **Adding authentication:** `plugins.md` → `hooks.md` → `authentication.md`
-- **Improving performance:** `schemas.md` → `serialization.md` → `performance.md`
-- **Setting up testing:** `routes.md` → `testing.md`
-- **Going to production:** `logging.md` → `configuration.md` → `deployment.md`
+Read only the matching rule below. Follow related rules when a concrete
+dependency or unresolved question requires them, not a preset reading sequence.
 
 ## How to use
 
@@ -66,15 +39,3 @@ Read individual rule files for detailed explanations and code examples:
 - [rules/configuration.md](rules/configuration.md) - Application configuration
 - [rules/deployment.md](rules/deployment.md) - Production deployment
 - [rules/http-proxy.md](rules/http-proxy.md) - HTTP proxying and reply.from()
-
-## Core Principles
-
-- **Encapsulation**: Fastify's plugin system provides automatic encapsulation
-- **Schema-first**: Define schemas for validation and serialization
-- **Performance**: Fastify is optimized for speed; use its features correctly
-- **Async/await**: All handlers and hooks support async functions
-- **Minimal dependencies**: Prefer Fastify's built-in features and official plugins
-
-Project configuration takes precedence over runtime examples in the imported
-rules. Preserve an established `tsx`, compiler, module, and script setup unless
-the user explicitly requests a toolchain migration.

@@ -16,7 +16,8 @@ established design system.
 
 ## Project context
 
-Run `shadcn info --json` from the application workspace using its package runner:
+When project configuration is unknown or has changed, run `shadcn info --json`
+from the application workspace using its package runner:
 `npx shadcn@latest`, `pnpm dlx shadcn@latest`, or `bunx --bun shadcn@latest`.
 Reuse that result within the run until configuration or installed components
 change. Use its actual aliases, resolved paths, primitive base, icon library,

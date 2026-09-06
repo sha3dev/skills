@@ -23,8 +23,7 @@ The skill never trades away security, trust-boundary validation, data-loss
 protection, required error handling, accessibility, or necessary environment
 calibration. It also does not silently discard explicit requirements.
 
-Unless a detailed explanation is requested, its handoff remains short: what was
-intentionally skipped and the condition that would justify adding it.
+Unless a detailed explanation is requested, its handoff remains short: what changed, how it was verified, and any material limitation.
 
 ## It's working if
 

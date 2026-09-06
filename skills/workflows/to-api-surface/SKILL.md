@@ -1,6 +1,6 @@
 ---
 name: to-api-surface
-description: Specify, build, or resume one initialized API application's HTTP surface through a persistent contract interview, a domain-specific visual review surface, and runnable incremental Fastify implementation.
+description: Specify and build one Flow API HTTP contract with fixture-backed Fastify routes and a visual review document.
 disable-model-invocation: true
 argument-hint: "[API application]"
 ---
@@ -25,8 +25,9 @@ details from the generated OpenAPI document rather than duplicating them.
    `$workflow-run`'s entry check.
 2. Read the relevant `.flow/project.json` definition, terms, application, and
    relationship entries. For every incoming relationship from a `web`
-   application, require its `web-surface` to be `complete`; otherwise stop and
-   name the unfinished consumer. Read relevant sections of each completed
+   application, require its `web-surface` to be `complete` during initial
+   construction; otherwise stop and name the unfinished consumer. In an approved
+   change, use its jointly agreed contracts and ordered step instead. Read relevant sections of each completed
    consumer's `surface.md`, domain types, repository interfaces, and fixture
    collections. Follow implementation callers to resolve concrete contract
    questions, not entire source trees by default. Read
@@ -35,7 +36,7 @@ details from the generated OpenAPI document rather than duplicating them.
    `surface.md` if absent, seeded only with facts from those sources and the
    user's request. If `api-surface` is `pending`, change it to `in-progress`
    with `node .flow/tools/project-progress.mjs --root . --app <name> --phase api-surface --set in-progress`.
-3. Use `$interview` before implementation, with `surface.md` as its durable
+3. Use `$interview` for unresolved product decisions before implementation, with `surface.md` as its durable
    artifact, and `$rest-api-design` to shape the HTTP form of each confirmed
    decision. Its subject-specific lens is the API's consumers and use cases,
    resources, operations, methods and paths, request parameters and bodies,
@@ -53,11 +54,13 @@ details from the generated OpenAPI document rather than duplicating them.
    integrations.
 4. The interview is complete when an implementer could build the HTTP contract
    without inventing a product decision. Mark `surface.md` as awaiting
-   confirmation and present it. After the user confirms it, record that status
-   before writing application code.
+   confirmation and present it. Reuse existing explicit confirmation for unchanged scope; otherwise obtain
+   confirmation. Record that status before writing application code.
 5. If the workspace does not exist, run the bundled
    `scripts/initialize-api-application.mjs --root . --app <name>` relative to
-   this `SKILL.md`, then `npm install`. Apply `$fastify-best-practices` to the
+   this `SKILL.md`, then `npm install`. For an existing workspace, apply
+   `$workflow-run`'s workspace check and add any missing reference assets or
+   routes within the established server. Apply `$fastify-best-practices` to the
    implementation and read only the rule files relevant to the current
    increment. Keep application construction separate from server startup,
    and define request and response schemas for every product route. Generate
@@ -96,18 +99,16 @@ details from the generated OpenAPI document rather than duplicating them.
    from its watch process at the fixed URL reported by the initializer, under
    `$workflow-run`'s development process rules. Evolve the review surface with
    the contract so each increment is visible at that same URL.
-10. After an increment that changes `.flow/fixtures/`, apply `$fixtures`'
-   validation procedure. After every increment, run the workspace tests and
-   `npm run check:code`. Tests use Fastify injection and assert the observable
+10. Apply `$fixtures` when records change and `$workflow-run` for incremental
+   verification.
+   Tests for changed HTTP behavior use Fastify injection and assert the observable
    HTTP contract, including meaningful error and mutation behavior; do not test
    handlers directly. Exercise the changed operation against the running server
    as an external HTTP client and inspect the generated OpenAPI JSON. Use
    the browser automation established by `$workflow-run` when rendered contract
-   content, layout, or interactions change. Inspect desktop and mobile widths
-   and print media or a temporary PDF, checking visibility without interaction,
-   clipping, and page breaks. Reuse checks for unchanged output. Group tiny
-   edits into one coherent reviewable increment. Adjust to the same threshold as a
-   web-surface increment, then give the user its fixed URL. Use `$interview`
+   content, layout, or interactions change. Choose viewport and print checks
+   under the shared rules, checking visibility without interaction, clipping,
+   and page breaks. Correct visible defects, then give the user the fixed URL. Use `$interview`
    again when review reveals a product decision, and record it in `surface.md`
    before changing code.
 11. Complete `api-surface` under `$workflow-run`'s completion rule. What the
@@ -119,10 +120,7 @@ details from the generated OpenAPI document rather than duplicating them.
    their inputs remain unchanged. Then run
    `node .flow/tools/project-progress.mjs --root . --app <name> --phase api-surface --set complete`.
 
-## Run discipline
+## Run boundary
 
-Apply `$workflow-run` for the entry check, development process ownership,
-completing a phase, revising an approved surface, and the run boundary. This
-run is one `api` application's surface: it starts at step 1 and ends at step 11
-or at a blocker, and it resumes from `.flow/project.json`, the related
-completed surfaces, and the API's `surface.md`.
+Apply `$workflow-run` throughout. One run owns this application's surface and
+resumes from project state and its `surface.md`.

@@ -267,8 +267,67 @@ export function App() {
 		assert.equal(connectionDecision.application, "Viewer Web");
 		setProgress(targetRoot, "Viewer Web", "api-connection", "in-progress");
 		setProgress(targetRoot, "Viewer Web", "api-connection", "complete");
-		const doneDecision = routeProject(targetRoot);
-		assert.equal(doneDecision.decision, "done");
+		assert.equal(routeProject(targetRoot).skill, "to-architecture-surface");
+		for (const status of ["in-progress", "complete"]) {
+			run(process.execPath, [
+				join(targetRoot, ".flow/tools/project-progress.mjs"),
+				"--root", targetRoot, "--project", "--phase", "architecture-surface", "--set", status,
+			]);
+		}
+		const domainDecision = routeProject(targetRoot);
+		assert.equal(domainDecision.skill, "to-domain-surface");
+		assert.equal(domainDecision.scope, "project");
+		for (const status of ["in-progress", "complete"]) {
+			run(process.execPath, [
+				join(targetRoot, ".flow/tools/project-progress.mjs"),
+				"--root",
+				targetRoot,
+				"--project",
+				"--phase",
+				"domain-surface",
+				"--set",
+				status,
+			]);
+		}
+		assert.equal(routeProject(targetRoot).decision, "done");
+
+		await mkdir(join(targetRoot, ".flow/changes"), { recursive: true });
+		await writeFile(
+			join(targetRoot, ".flow/changes/architecture-review.md"),
+			"# Architecture review\n\nClarify approved ownership.\n",
+		);
+		const changePlan = join(targetRoot, "change-plan.json");
+		await writeFile(changePlan, JSON.stringify([{ phase: "domain-surface" }]));
+		const change = (...args) =>
+			run(process.execPath, [
+				join(targetRoot, ".flow/tools/project-progress.mjs"),
+				"--root",
+				targetRoot,
+				"--change",
+				"architecture-review",
+				...args,
+			]);
+		change("--plan", changePlan);
+		assert.equal(routeProject(targetRoot).change.status, "proposed");
+		change("--set", "approved", "--approval", "Approve proposal");
+		change("--set", "implementing");
+		assert.equal(routeProject(targetRoot).skill, "to-domain-surface");
+		for (const status of ["in-progress", "complete"]) {
+			run(process.execPath, [
+				join(targetRoot, ".flow/tools/project-progress.mjs"),
+				"--root",
+				targetRoot,
+				"--project",
+				"--phase",
+				"domain-surface",
+				"--set",
+				status,
+			]);
+		}
+		change("--set", "in-review");
+		change("--set", "complete", "--approval", "Accept revised architecture");
+		assert.equal(routeProject(targetRoot).decision, "done");
+		await rm(changePlan);
 
 		setProgress(targetRoot, "Viewer Web", "web-surface", "in-progress", true);
 		let reopenedProject = JSON.parse(
@@ -476,4 +535,80 @@ test("setup rejects an invalid project without writing anything", async (t) => {
 		(await readdir(targetRoot)).filter((entry) => entry !== ".git"),
 		[],
 	);
+});
+
+test("worker setup, review workspace, and phase reopening work end to end", async (t) => {
+	const temporaryRoot = await mkdtemp(join(tmpdir(), "sha3dev-worker-"));
+	t.after(() => rm(temporaryRoot, { recursive: true, force: true }));
+	const targetRoot = join(temporaryRoot, "repository");
+	const inputPath = join(temporaryRoot, "input.json");
+	run("git", ["init", "--quiet", targetRoot], temporaryRoot);
+	await writeFile(
+		inputPath,
+		JSON.stringify({
+			title: "Background processing",
+			definition: "Review background contracts.",
+			terms: [],
+			applications: [
+				{
+					name: "Orders Worker",
+					type: "worker",
+					responsibility: "Process orders.",
+				},
+				{
+					name: "Events Worker",
+					type: "worker",
+					responsibility: "Handle events.",
+				},
+			],
+			relationships: [],
+		}),
+	);
+	run(process.execPath, [
+		setup,
+		"--root",
+		targetRoot,
+		"--input",
+		inputPath,
+		"--write",
+	]);
+	const decision = routeProject(targetRoot);
+	assert.equal(decision.decision, "choose");
+	setProgress(targetRoot, "Orders Worker", "worker-surface", "in-progress");
+	assert.equal(routeProject(targetRoot).skill, "to-worker-surface");
+	const initializer = join(
+		repositoryRoot,
+		"skills/workflows/to-worker-surface/scripts/initialize-worker-application.mjs",
+	);
+	const initialize = (name) =>
+		JSON.parse(
+			execFileSync(
+				process.execPath,
+				[initializer, "--root", targetRoot, "--app", name],
+				{ encoding: "utf8" },
+			),
+		);
+	assert.equal(initialize("Orders Worker").url, "http://localhost:4500/");
+	assert.equal(initialize("Events Worker").url, "http://localhost:4501/");
+	const serverPath = join(targetRoot, "apps/orders-worker/src/server.ts");
+	await writeFile(
+		serverPath,
+		(await readFile(serverPath, "utf8")).replace("4500", "4599"),
+	);
+	const resumed = initialize("Orders Worker");
+	assert.equal(resumed.status, "already-initialized");
+	assert.equal(resumed.url, "http://localhost:4599/");
+	run("npm", ["install", "--no-audit", "--no-fund"], targetRoot);
+	run("npm", ["run", "test", "--workspaces"], targetRoot);
+	run("npm", ["run", "check"], targetRoot);
+	setProgress(targetRoot, "Orders Worker", "worker-surface", "complete");
+	assert.equal(routeProject(targetRoot).application, "Events Worker");
+	setProgress(
+		targetRoot,
+		"Orders Worker",
+		"worker-surface",
+		"in-progress",
+		true,
+	);
+	assert.equal(routeProject(targetRoot).application, "Orders Worker");
 });

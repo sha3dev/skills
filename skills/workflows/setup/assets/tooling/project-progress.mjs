@@ -3,8 +3,15 @@
 import { readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 
+import {
+	activeChange,
+	assertChangeStep,
+	updateChange,
+	validateChanges,
+} from "./project-changes.mjs";
+
 const statuses = ["pending", "in-progress", "complete"];
-const applicationTypes = ["web", "api"];
+const applicationTypes = ["web", "api", "worker"];
 
 function fail(message) {
 	process.stderr.write(`${message}\n`);
@@ -53,6 +60,19 @@ function parseProject(project) {
 	nonEmptyString(project.definition, "definition");
 	validateTerms(project);
 	if (
+		project.progress !== undefined &&
+		(!project.progress ||
+			typeof project.progress !== "object" ||
+			Array.isArray(project.progress) ||
+			Object.entries(project.progress).some(
+				([phase, status]) =>
+					!["architecture-surface", "domain-surface"].includes(phase) ||
+					!statuses.includes(status),
+			) ||
+			!project.progress["domain-surface"])
+	)
+		fail("project.progress must declare a valid domain-surface status");
+	if (
 		!Array.isArray(project.applications) ||
 		project.applications.length === 0
 	) {
@@ -77,7 +97,7 @@ function parseProject(project) {
 
 		const type = nonEmptyString(application.type, `${label}.type`);
 		if (!applicationTypes.includes(type)) {
-			fail(`${label}.type must be web or api`);
+			fail(`${label}.type must be web, api, or worker`);
 		}
 		const path = nonEmptyString(application.path, `${label}.path`);
 		if (!/^apps\/[a-z0-9]+(?:-[a-z0-9]+)*\/$/.test(path)) {
@@ -153,6 +173,7 @@ function parseProject(project) {
 			);
 		}
 	}
+	validateChanges(project);
 	return applications;
 }
 
@@ -185,22 +206,44 @@ try {
 	const root = resolve(option(args, "--root", "."));
 	const applicationName = option(args, "--app");
 	const type = option(args, "--type");
+	const projectScope = args.includes("--project");
+	if (projectScope && (applicationName || type))
+		fail("--project cannot be combined with --app or --type");
 	const phase = option(args, "--phase");
 	const nextStatus = option(args, "--set");
 	const reopen = args.includes("--reopen");
+	const changeId = option(args, "--change");
+	const plan = option(args, "--plan");
+	const approval = option(args, "--approval");
+	if (changeId && (applicationName || type || projectScope || phase || reopen))
+		fail("--change cannot be combined with phase options");
+	if (!changeId && (plan || approval))
+		fail("--plan and --approval require --change");
 	if (type && !applicationTypes.includes(type)) {
-		fail("--type must be web or api");
+		fail("--type must be web, api, or worker");
 	}
-	if (nextStatus && !statuses.includes(nextStatus)) {
+	if (!changeId && nextStatus && !statuses.includes(nextStatus)) {
 		fail("--set must be pending, in-progress, or complete");
 	}
-	if (nextStatus && (!applicationName || !phase)) {
-		fail("--set requires --app and --phase");
+	if (
+		!changeId &&
+		nextStatus &&
+		((!applicationName && !projectScope) || !phase)
+	) {
+		fail("--set requires --app or --project, and --phase");
 	}
 
 	const projectPath = join(root, ".flow/project.json");
 	const project = JSON.parse(await readFile(projectPath, "utf8"));
 	let applications = parseProject(project);
+	const before = JSON.stringify(project);
+	if (changeId)
+		await updateChange(project, root, {
+			id: changeId,
+			plan,
+			status: nextStatus,
+			approval,
+		});
 	if (type) {
 		applications = applications.filter(
 			(application) => application.type === type,
@@ -217,8 +260,33 @@ try {
 		fail("Application is not unique");
 	}
 
-	if (nextStatus) {
-		const application = applications[0];
+	if (nextStatus && !changeId) {
+		assertChangeStep(project, {
+			application: projectScope ? undefined : applications[0].name,
+			phase,
+		});
+		const application = projectScope
+			? { name: "Project", progress: project.progress ?? {} }
+			: applications[0];
+		if (
+			projectScope &&
+			!["architecture-surface", "domain-surface"].includes(phase)
+		)
+			fail("Unknown project phase");
+		if (
+			projectScope &&
+			applications.some((app) =>
+				Object.values(app.progress).some((status) => status !== "complete"),
+			)
+		) {
+			fail(`All application phases must be complete before ${phase}`);
+		}
+		if (
+			projectScope &&
+			phase === "domain-surface" &&
+			project.progress?.["architecture-surface"] !== "complete"
+		)
+			fail("Complete architecture-surface before domain-surface");
 		const current = application.progress[phase];
 		if (!current) fail(`${application.name} has no ${phase} phase`);
 		const normalTransition =
@@ -232,23 +300,35 @@ try {
 		}
 		if (current !== nextStatus) {
 			application.progress[phase] = nextStatus;
-			if (reopenTransition) {
+			if (
+				!activeChange(project) &&
+				project.progress &&
+				(!projectScope || phase === "architecture-surface")
+			) {
+				project.progress["domain-surface"] = "pending";
+				if (
+					!projectScope &&
+					project.progress["architecture-surface"] !== undefined
+				)
+					project.progress["architecture-surface"] = "pending";
+			}
+			if (!activeChange(project) && reopenTransition && !projectScope) {
 				invalidateApiConnections(project, application, phase);
 			}
-			const temporaryPath = join(
-				dirname(projectPath),
-				`.project.json.${process.pid}.tmp`,
-			);
-			await writeFile(
-				temporaryPath,
-				`${JSON.stringify(project, null, "\t")}\n`,
-			);
-			await rename(temporaryPath, projectPath);
 		}
+	}
+	validateChanges(project);
+	if (JSON.stringify(project) !== before) {
+		const temporaryPath = join(
+			dirname(projectPath),
+			`.project.json.${process.pid}.tmp`,
+		);
+		await writeFile(temporaryPath, `${JSON.stringify(project, null, "\t")}\n`);
+		await rename(temporaryPath, projectPath);
 	}
 
 	process.stdout.write(
-		`${JSON.stringify({ applications, relationships: project.relationships }, null, 2)}\n`,
+		`${JSON.stringify({ applications, relationships: project.relationships, progress: project.progress, changes: project.changes, changeSupport: true }, null, 2)}\n`,
 	);
 } catch (error) {
 	fail(error.message);

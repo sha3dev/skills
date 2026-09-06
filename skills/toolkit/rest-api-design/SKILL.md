@@ -1,6 +1,6 @@
 ---
 name: rest-api-design
-description: Shape a resource-oriented HTTP contract before it is implemented. Use when naming resources, choosing methods and paths, defining request and response representations, selecting status codes, or designing required collection query behavior for a REST API.
+description: Design REST resource names, methods, representations, status codes, and required query behavior before framework implementation.
 license: MIT; complete terms in LICENSE.txt
 metadata:
   author: AJ Geddes

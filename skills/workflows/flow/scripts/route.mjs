@@ -86,6 +86,11 @@ async function loadRoutes() {
 			}
 		}
 	}
+	for (const rule of routes.projectPhases ?? []) {
+		if (typeof rule?.phase !== "string" || typeof rule?.skill !== "string") {
+			fail("routes.json projectPhases entry is incomplete");
+		}
+	}
 	return routes;
 }
 
@@ -174,6 +179,22 @@ function incompleteSelf(rule, application) {
 		}));
 }
 
+function projectPrerequisite(state, phase) {
+	if (
+		phase !== "domain-surface" ||
+		state.progress?.["architecture-surface"] === "complete"
+	)
+		return undefined;
+	return {
+		decision: "blocked",
+		reason: "architecture-required",
+		detail:
+			state.progress?.["architecture-surface"] === undefined
+				? "This project predates architecture-surface. Update its project-owned .flow tools and add the pending architecture phase through a reviewed migration before running domain. Updating installed skills alone does not migrate project state."
+				: "Complete architecture-surface before running domain-surface; revise the active plan if it omits this prerequisite.",
+	};
+}
+
 async function decide(root, routes) {
 	const stateTool = resolve(root, ".flow/tools/repo-state.mjs");
 	const projectFile = resolve(root, ".flow/project.json");
@@ -213,6 +234,56 @@ async function decide(root, routes) {
 		}
 		return { decision: "blocked", reason: "invalid-state", state };
 	}
+	const change = state.changes?.find((entry) => entry.status !== "complete");
+	if (change) {
+		const document = `.flow/changes/${change.id}.md`;
+		if (!(await exists(resolve(root, document))))
+			return {
+				decision: "blocked",
+				reason: "missing-change-document",
+				document,
+			};
+		if (change.status !== "implementing")
+			return { decision: "change", change, document };
+		const step = change.steps.find((entry) => {
+			const progress = entry.application
+				? state.applications.find((app) => app.name === entry.application)
+						.progress
+				: state.progress;
+			return progress[entry.phase] !== "complete";
+		});
+		if (!step)
+			return { decision: "change", change, document, action: "review" };
+		const prerequisite =
+			!step.application && projectPrerequisite(state, step.phase);
+		if (prerequisite) return prerequisite;
+		const app = step.application
+			? state.applications.find((entry) => entry.name === step.application)
+			: undefined;
+		const rule = app
+			? ruleFor(routes, app, step.phase)
+			: (routes.projectPhases ?? []).find(
+					(entry) => entry.phase === step.phase,
+				);
+		if (!rule)
+			return {
+				decision: "blocked",
+				reason: "no-installed-workflow",
+				change: change.id,
+				step,
+			};
+		return {
+			decision: "run",
+			...step,
+			...(app ? { type: app.type, path: app.path } : { scope: "project" }),
+			status: (app?.progress ?? state.progress)[step.phase],
+			skill: rule.skill,
+			skillStatus: await installation(rule.skill),
+			change: change.id,
+			document,
+		};
+	}
+
 	const open = [];
 	const waiting = [];
 	const unroutable = [];
@@ -281,7 +352,37 @@ async function decide(root, routes) {
 			waiting,
 		};
 	}
-	return { decision: "done", reason: "no-open-phase" };
+	for (const [phase, status] of Object.entries(state.progress ?? {}).sort(
+		([a], [b]) =>
+			(routes.projectPhases ?? []).findIndex((rule) => rule.phase === a) -
+			(routes.projectPhases ?? []).findIndex((rule) => rule.phase === b),
+	)) {
+		if (status === "complete") continue;
+		const prerequisite = projectPrerequisite(state, phase);
+		if (prerequisite) return prerequisite;
+		const rule = (routes.projectPhases ?? []).find(
+			(entry) => entry.phase === phase,
+		);
+		if (!rule)
+			return {
+				decision: "blocked",
+				reason: "no-installed-workflow",
+				unroutable: [{ scope: "project", phase, status }],
+			};
+		return {
+			decision: "run",
+			scope: "project",
+			phase,
+			status,
+			skill: rule.skill,
+			skillStatus: await installation(rule.skill),
+		};
+	}
+	return {
+		decision: "done",
+		reason: "no-open-phase",
+		changeSupport: state.changeSupport === true,
+	};
 }
 
 async function main() {

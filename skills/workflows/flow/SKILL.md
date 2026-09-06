@@ -1,6 +1,6 @@
 ---
 name: flow
-description: Inspect durable project state, select the appropriate installed workflow, and run it in an isolated worker context when supported. Use explicitly to enter or continue a project, optionally with context about current work and next priorities.
+description: Resume a Flow project from durable state or manage a requested project-wide change, including its approvals and workflow routing.
 disable-model-invocation: true
 ---
 
@@ -21,22 +21,21 @@ the next work within that workflow's scope. Reconcile reported progress with
 durable artifacts and the implementation; a partial-work summary is not proof
 of phase completion or an instruction to reopen completed work. Context may
 resolve a `choose` decision, but must not override a `run`, `done`, or `blocked`
-decision. Explicit requests to revise completed work follow the rule below.
+decision. Requests for subsequent features or revisions follow the change cycle below.
 
-## Explicit revisions
+## Project evolution
 
-Before ordinary routing, handle a revision only when the current user request
-explicitly identifies completed work to change. Read `.flow/project.json` and
-map the product request to exactly one application and completed phase. If the
-application or phase is ambiguous, ask one product-level question and do not
-change progress. Never reopen work for bare `flow`.
+Initial construction follows the ordinary route. Once it is complete, a new
+feature or revision is one project-wide change, potentially spanning several
+applications. Flow creates and maintains that change automatically from the
+user's request; users provide intent and approvals, not state commands.
 
-For one unambiguous target, run
-`node .flow/tools/project-progress.mjs --root . --app <name> --phase <phase> --set in-progress --reopen`.
-This authorized durable-state transition precedes routing; it is not a
-conversational override of the route. Then run the router normally. Its
-preference for `in-progress` work ensures the selected revision is not displaced
-by unrelated pending work. Preserve the progress tool's connection invalidation.
+For a new change or an active one, read [Project changes](references/changes.md).
+Prepare and agree its scope before reopening phases. Keep one active change;
+its approved order replaces initial discovery prerequisites. Bare `flow` only
+resumes existing work. During initial construction, refine the current phase;
+explicit revisions of an already approved phase may still use its progress
+command with `--reopen` while initial work remains open.
 
 ## Route
 
@@ -46,13 +45,16 @@ and prints one JSON `decision`. That decision is the route. Never override it
 from conversation, artifacts, code, or checks, and never route by inspecting
 the repository yourself.
 
-- `run` — continue with `skill` for the reported `application` and `phase`.
+- `run` — continue with `skill` for the reported `application` and `phase`,
+  or the whole project when `scope` is `project`.
 - `choose` — the open work is genuinely ambiguous. Answer from unambiguous
   conversation context when it exists; otherwise state the minimum useful
   context and ask which application to continue, in product terms. Then
   continue with that candidate's `skill`.
-- `done` — no phase is open. Say so and stop unless an explicit revision still
-  needs the pre-routing transition above.
+- `change` — continue proposal, execution preparation, or integrated review
+  under [Project changes](references/changes.md), in the main context.
+- `done` — no phase or change is open. If the user requested new work, prepare
+  its change; otherwise say so and stop.
 - `blocked` — report the concrete blocker from `reason` with `detail`, `state`,
   `unroutable`, or `waiting`. Never invent a workflow to work around it.
 
@@ -62,64 +64,19 @@ workflow. A `skillStatus` of `unverified` means the installation layout could
 not be confirmed, not that the workflow is missing; proceed, and treat an actual
 load failure as a blocker.
 
-When a clean worker is available, do not load the selected `SKILL.md` or its
-working artifacts into the main context. The fallback below is the exception:
+When using a clean worker, do not load the selected `SKILL.md` or its
+working artifacts into the main context. Current-context execution is the exception:
 running the workflow here requires reading its `SKILL.md` completely.
 Supporting another outcome means adding a rule to `routes.json`, not new prose
 here.
 
-## Delegate
+## Execute
 
-The unit of delegation is one workflow run: one skill, one outcome, one
-application. Its end is the only natural place to drop context. An interface
-interview and its increments are worth nothing to the next application, and
-carrying them there anchors new decisions on old ones.
-
-Once the route is unambiguous, spawn exactly one worker for that run. It must
-start from an empty context: inherit no conversation turns, and receive only
-the values listed below. If the delegation mechanism can only fork the current
-context, it is not clean; treat it as unavailable. Reuse that same worker for
-every user reply inside the run. Never re-spawn it per question: that trades a
-warm context for a re-read of the skill, its artifacts, and the code already
-written, on every turn. If no clean worker is available, or workers cannot stay
-alive across turns, run the workflow in this context instead, under the same
-communication limits — repeated cold spawns cost more than they isolate.
-
-Background processes a worker starts, such as a development server, belong to
-that worker and outlive it. Require it to stop them before returning `complete`
-or `blocked`, and to leave them running on `needs-input` because that worker
-continues.
-
-Give the worker only:
-
-- The repository root.
-- The selected skill's identifier or `SKILL.md` location.
-- The selected outcome or application.
-- Any invocation context relevant to this run, preserving the user's scope,
-  priorities, and distinction between finished and remaining work.
-- The latest relevant user reply, including referenced attachments, only when
-  it is not durable yet.
-
-Tell it to read the selected `SKILL.md` completely, reconcile user context with
-the project, derive every other fact from durable project artifacts, execute
-until that workflow's next stopping
-condition, and return only:
-
-- `status`: `needs-input`, `complete`, or `blocked`.
-- `user_message`: the concise, standalone message the user needs next.
-
-On `needs-input`, relay the message and send the user's reply back to the same
-worker. On `blocked`, close it and relay the blocker. On `complete`, close it
-and route again.
-
-Closing a worker ends that run's context, which is the point. Do not carry its
-questions, answers, or intermediate results into the next routing decision; let
-`route.mjs` and the durable artifacts produce it. If the new decision is
-identical to the one just executed, report the inconsistency and stop.
-Otherwise act on it in a fresh worker.
-
-Do not run independent writers or permit nested delegation. Workers share the
-worktree; this is context isolation, not filesystem isolation.
+When clean, persistent workers are available and delegation is authorized, read
+[Delegation](references/delegation.md) and use one worker per workflow run.
+Otherwise load the selected skill and execute in the current context. Preserve
+its stopping rules and reroute after completion. If routing returns the same
+completed step, report the inconsistency instead of looping.
 
 ## Boundaries
 

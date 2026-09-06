@@ -1,6 +1,6 @@
 ---
 name: typescript-stack
-description: "Write TypeScript, TSX, and opaque JavaScript assets in a Flow project initialized with `.flow/project.json` and the fixed Node.js/tsx, React/Vite, and Fastify toolchain. Do not activate for TypeScript work outside that generated project structure."
+description: Implement TypeScript or browser JavaScript in initialized Flow projects using their fixed toolchain. Does not apply outside Flow.
 ---
 
 # TypeScript Stack
@@ -17,25 +17,14 @@ Biome owns formatting, imports, naming, and lint rules. TypeScript with
 `noEmit` owns type correctness. Knip owns unused files, exports, and
 dependencies. Do not reproduce their rules in prose or subjective review.
 
-## Workflow
+## Checks
 
-1. Implement the requested behavior. Comments explain only intent or invariants.
-2. Run `npm run fix -- <edited-paths>` for safe Biome fixes, then
-   `npm run check:code`. Resolve diagnostics at their source and repeat until
-   green.
-3. At the task or workflow completion boundary, run `npm run check` before
-   handing the work back or recording a phase as complete.
-
-These are the static project gates. Workflows also retain their own functional
-tests, builds, HTTP checks, and browser review. A workflow may run
-`npm run check:toolchain` once on entry before implementation. Do not repeat
-that standalone check during implementation because the final `npm run check`
-already includes it. When verification reports that dependencies are not
-installed, run `npm install` and retry. When it reports a toolchain configuration
-problem, report that problem and stop; do not initialize or migrate tooling
-during a code change.
-
-Never use unsafe fixes, suppress checks, or change their configuration to pass.
+Use `npm run fix -- <edited-paths>` for safe Biome fixes when needed, and
+`npm run check:code` after a coherent code change. Run `npm run check` at task
+completion. During application workflows, `workflow-run` owns check timing,
+entry checks, and evidence reuse; do not run a second verification sequence.
+Resolve diagnostics at their source. Never use unsafe fixes, suppress checks,
+or change toolchain configuration merely to pass.
 
 ## Unused code
 

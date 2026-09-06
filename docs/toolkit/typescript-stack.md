@@ -55,7 +55,7 @@ resolved versions and verifies them against those minimums.
 ### Why are there two check gates?
 
 Because the two kinds of question have different answers mid-task. Formatting,
-lint, and types must hold after every edit, so `npm run check:code` runs in the
+lint, and types must hold after each coherent code increment, so `npm run check:code` runs in the
 iteration loop. Reachability must hold only once the work is wired up: a
 component written before the screen that renders it is legitimately unused, and
 Knip is right to report it and wrong to be obeyed at that moment. The full
@@ -67,7 +67,7 @@ work.
 
 The two commands are the static verification surface. Workflows keep their
 specific tests, production builds, HTTP checks, and browser review. A workflow
-may run `npm run check:toolchain` once on entry before implementation. Each
+may run `npm run check:toolchain` once on entry before implementation. Each code
 increment then uses `npm run check:code`; the final `npm run check` includes
 toolchain verification, so no additional standalone pass is needed.
 

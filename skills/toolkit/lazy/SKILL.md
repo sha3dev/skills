@@ -26,7 +26,10 @@ The ladder is a reflex, not a research project. When two rungs work, choose the 
 ## Rules
 
 - Fix root causes, not reported symptoms. Search the callers before changing shared behavior and fix the narrowest shared point that owns the defect.
-- No speculative machinery: no interface for one implementation, factory for one product, configuration for a value that does not vary, or scaffolding for hypothetical future work.
+- Add interfaces, factories, configuration, or reusable packages only when their
+  boundary has a concrete benefit. A required replaceable adapter or credible
+  independent reuse can justify a boundary with one current implementation;
+  hypothetical extensibility alone cannot.
 - Prefer deletion over addition, boring code over clever code, and fewer files and layers over structural ceremony.
 - Never add a dependency for something trivial to implement correctly.
 - Choose the simplest robust option, not the shortest fragile one.
@@ -36,4 +39,5 @@ The ladder is a reflex, not a research project. When two rungs work, choose the 
 
 ## Output
 
-Do the work first. Unless the user requested a detailed explanation, use at most three short lines to report what was intentionally skipped and the condition that would justify adding it.
+Do the work first. Report what changed and how it was verified. Mention omitted work only when
+it affects the requested outcome or a material limitation.

@@ -1,0 +1,184 @@
+/* Match the API review document typography, palette, and page treatment. */
+:root {
+	font-family: Inter, "Avenir Next", "Segoe UI", sans-serif;
+	color: #172033;
+	background: #dfe5e8;
+	font-synthesis: none;
+	--ink: #172033;
+	--muted: #647084;
+	--line: #d9dfe5;
+	--soft: #f4f6f7;
+	--blue: #1955d1;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	min-width: 320px;
+}
+
+code {
+	font-family: "SFMono-Regular", Consolas, monospace;
+}
+
+h1,
+h3,
+p,
+a {
+	overflow-wrap: anywhere;
+}
+
+.contract {
+	width: min(80rem, calc(100% - 2rem));
+	margin: 1.5rem auto;
+	background: #fff;
+	box-shadow: 0 18px 70px rgb(30 45 55 / 14%);
+}
+
+.cover {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	gap: 2rem;
+	align-items: end;
+	padding: 2.4rem 3rem 2.1rem;
+	border-top: 6px solid var(--blue);
+	border-bottom: 1px solid var(--line);
+}
+
+.eyebrow {
+	margin: 0 0 0.55rem;
+	font:
+		750 0.68rem / 1 ui-monospace,
+		monospace;
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	color: var(--blue);
+}
+
+.eyebrow span {
+	color: var(--muted);
+}
+
+.cover h1 {
+	margin: 0;
+	font:
+		750 clamp(2.1rem, 5vw, 3.7rem) / 0.96 "Avenir Next",
+		"Segoe UI",
+		sans-serif;
+	letter-spacing: -0.055em;
+}
+
+.lede {
+	max-width: 48rem;
+	margin: 0.7rem 0 0;
+	font-size: 0.98rem;
+	line-height: 1.45;
+	color: var(--muted);
+}
+
+.document {
+	padding: 2rem 3rem 3rem;
+}
+
+.document-section {
+	margin-bottom: 2rem;
+}
+
+.section-heading {
+	padding-bottom: 0.45rem;
+	border-bottom: 2px solid var(--ink);
+}
+
+.section-heading h2 {
+	margin: 0;
+	font-size: 1.2rem;
+	letter-spacing: -0.025em;
+}
+
+article {
+	padding: 1.1rem 0 1.45rem;
+	border-bottom: 1px solid var(--line);
+	scroll-margin-top: 1.5rem;
+}
+h3 {
+	margin: 0 0 0.5rem;
+	font-size: 1.02rem;
+	letter-spacing: -0.02em;
+}
+p {
+	margin: 0.5rem 0;
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+.trigger,
+.metadata {
+	color: var(--muted);
+}
+.metadata {
+	font-size: 0.76rem;
+}
+.parameter {
+	color: var(--blue);
+	background: #eef3ff;
+	border-radius: 0.2rem;
+	padding: 0.12rem 0.25rem;
+	text-decoration: none;
+	box-decoration-break: clone;
+}
+.parameter code {
+	font-size: 0.82em;
+	font-weight: 650;
+}
+.parameter:hover {
+	text-decoration: underline;
+}
+:focus-visible {
+	outline: 3px solid #6b9cff;
+	outline-offset: 3px;
+}
+article:target {
+	background: var(--soft);
+}
+@media (max-width: 760px) {
+	.contract {
+		width: 100%;
+		margin: 0;
+		box-shadow: none;
+	}
+	.cover {
+		grid-template-columns: 1fr;
+		padding: 1.5rem;
+	}
+	.document {
+		padding: 1.25rem;
+	}
+}
+@media print {
+	:root,
+	body {
+		background: white;
+		color: #111;
+	}
+	.contract {
+		width: auto;
+		margin: 0;
+		box-shadow: none;
+	}
+	.cover {
+		padding: 0 0 7mm;
+		border-top: 3px solid #111;
+	}
+	.document {
+		padding: 7mm 0 0;
+	}
+	article {
+		break-inside: avoid;
+	}
+	.section-heading h2,
+	h3 {
+		break-after: avoid;
+	}
+}

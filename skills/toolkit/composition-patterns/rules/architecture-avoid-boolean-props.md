@@ -7,6 +7,9 @@ tags: composition, props, architecture
 
 ## Avoid Boolean Prop Proliferation
 
+Apply this to interacting behavior modes, not ordinary state such as `disabled`
+or `open`. Keep a boolean when it expresses a clear independent choice.
+
 Don't add boolean props like `isThread`, `isEditing`, `isDMThread` to customize
 component behavior. Each boolean doubles possible states and creates
 unmaintainable conditional logic. Use composition instead.

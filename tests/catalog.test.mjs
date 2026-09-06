@@ -3,6 +3,7 @@ import { access, readFile, readdir } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { parse } from "yaml";
 
 const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
 const skillsRoot = join(repositoryRoot, "skills");
@@ -18,13 +19,23 @@ async function directories(path) {
 function frontmatter(source, path) {
 	const match = source.match(/^---\n([\s\S]*?)\n---\n/);
 	assert.ok(match, `${path} must start with YAML frontmatter`);
-	assert.doesNotMatch(match[1], /^ *\t/m, `${path} has invalid YAML tab indentation`);
-	const name = match[1].match(/^name:\s*["']?([^\n"']+)/m)?.[1]?.trim();
-	const description = match[1].match(/^description:\s*(.+)$/m)?.[1]?.trim();
-	assert.ok(name, `${path} must declare name`);
-	assert.ok(description, `${path} must declare description`);
+	const data = parse(match[1]);
+	const { name, description } = data;
+	assert.ok(
+		typeof name === "string" && name.trim(),
+		`${path} must declare name`,
+	);
+	assert.ok(
+		typeof description === "string" && description.trim(),
+		`${path} must declare description`,
+	);
+	assert.ok(
+		data["disable-model-invocation"] === undefined ||
+			data["disable-model-invocation"] === true,
+		`${path} must omit invocation policy for model-invoked skills`,
+	);
 	return {
-		explicit: /^disable-model-invocation:\s*true$/m.test(match[1]),
+		explicit: data["disable-model-invocation"] === true,
 		name,
 	};
 }
@@ -38,17 +49,22 @@ test("skill catalog, documentation, and invocation policies stay aligned", async
 			const skillRoot = join(skillsRoot, category, directoryName);
 			const skillPath = join(skillRoot, "SKILL.md");
 			const metadataPath = join(skillRoot, "agents/openai.yaml");
-			const docsPath = join(repositoryRoot, "docs", category, `${directoryName}.md`);
+			const docsPath = join(
+				repositoryRoot,
+				"docs",
+				category,
+				`${directoryName}.md`,
+			);
 			const skill = frontmatter(await read(skillPath), skillPath);
-			const metadata = await read(metadataPath);
+			const metadata = parse(await read(metadataPath));
 			const docs = await read(docsPath);
 
 			assert.equal(skill.name, directoryName);
 			assert.ok(!names.has(skill.name), `duplicate skill name: ${skill.name}`);
 			names.add(skill.name);
 			assert.equal(
-				/^\s*allow_implicit_invocation:\s*false$/m.test(metadata),
-				skill.explicit,
+				metadata.policy?.allow_implicit_invocation,
+				skill.explicit ? false : undefined,
 				`${skill.name} invocation policies must agree`,
 			);
 			assert.ok(
@@ -56,6 +72,18 @@ test("skill catalog, documentation, and invocation policies stay aligned", async
 					`[\`${skill.name}\`](./docs/${category}/${skill.name}.md)`,
 				),
 				`README.md is missing ${skill.name}`,
+			);
+			const row = readme
+				.split("\n")
+				.find((line) =>
+					line.includes(`](./docs/${category}/${skill.name}.md)`),
+				);
+			assert.ok(
+				row
+					?.split("|")
+					.map((cell) => cell.trim())
+					.includes(skill.explicit ? "Explicit" : "Automatic"),
+				`${skill.name} catalog mode must match its policy`,
 			);
 			for (const heading of [
 				"## What it does",
@@ -84,12 +112,16 @@ test("skill catalog, documentation, and invocation policies stay aligned", async
 });
 
 test("relative Markdown links resolve to repository files", async () => {
-	const roots = [join(repositoryRoot, "README.md")];
-	for (const category of ["workflows", "toolkit"]) {
-		for (const directoryName of await directories(join(skillsRoot, category))) {
-			roots.push(join(skillsRoot, category, directoryName, "SKILL.md"));
-			roots.push(join(repositoryRoot, "docs", category, `${directoryName}.md`));
-		}
+	const roots = [
+		join(repositoryRoot, "README.md"),
+		join(repositoryRoot, "AGENTS.md"),
+	];
+	for (const directory of ["skills", "docs"]) {
+		for (const path of await readdir(join(repositoryRoot, directory), {
+			recursive: true,
+		}))
+			if (path.endsWith(".md"))
+				roots.push(join(repositoryRoot, directory, path));
 	}
 
 	for (const sourcePath of roots) {

@@ -2,31 +2,60 @@
 	"initialize": {
 		"skill": "setup"
 	},
+	"projectPhases": [
+		{
+			"phase": "architecture-surface",
+			"skill": "to-architecture-surface"
+		},
+		{
+			"phase": "domain-surface",
+			"skill": "to-domain-surface"
+		}
+	],
 	"phases": [
 		{
 			"phase": "web-surface",
-			"applicationTypes": ["web"],
+			"applicationTypes": [
+				"web"
+			],
 			"skill": "to-web-surface"
 		},
 		{
 			"phase": "api-surface",
-			"applicationTypes": ["api"],
+			"applicationTypes": [
+				"api"
+			],
 			"skill": "to-api-surface",
 			"requiresCompletedIncoming": [
 				{
-					"applicationTypes": ["web"],
+					"applicationTypes": [
+						"web"
+					],
 					"phase": "web-surface"
 				}
 			]
 		},
 		{
+			"phase": "worker-surface",
+			"applicationTypes": [
+				"worker"
+			],
+			"skill": "to-worker-surface"
+		},
+		{
 			"phase": "api-connection",
-			"applicationTypes": ["web"],
+			"applicationTypes": [
+				"web"
+			],
 			"skill": "connect-to-api",
-			"requiresCompletedSelf": ["web-surface"],
+			"requiresCompletedSelf": [
+				"web-surface"
+			],
 			"requiresCompletedOutgoing": [
 				{
-					"applicationTypes": ["api"],
+					"applicationTypes": [
+						"api"
+					],
 					"phase": "api-surface"
 				}
 			]

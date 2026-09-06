@@ -499,7 +499,10 @@ app.post('/login', async (request, reply) => {
 
 ## Rate Limiting for Auth Endpoints
 
-Protect auth endpoints from brute force. **IMPORTANT: For production security, you MUST configure rate limiting with a Redis backend.** In-memory rate limiting is not safe for distributed deployments and can be bypassed.
+Protect authentication endpoints from brute force. For multiple instances,
+enforce shared limits through the approved gateway or shared store; per-process
+counters alone do not provide a global limit. Reuse existing enforcement. The
+Redis example below is one option, not a required new service.
 
 ```typescript
 import fastifyRateLimit from '@fastify/rate-limit';
@@ -511,7 +514,7 @@ const redis = new Redis(process.env.REDIS_URL);
 app.register(fastifyRateLimit, {
   max: 100,
   timeWindow: '1 minute',
-  redis, // REQUIRED for production - ensures rate limiting works across all instances
+  redis, // Shared counters across these instances
 });
 
 // Stricter limit for auth endpoints
@@ -519,7 +522,7 @@ app.register(async function authRoutes(fastify) {
   await fastify.register(fastifyRateLimit, {
     max: 5,
     timeWindow: '1 minute',
-    redis, // REQUIRED for production
+    redis, // Same shared store
     keyGenerator: (request) => {
       // Rate limit by IP + email combination
       const email = request.body?.email || '';

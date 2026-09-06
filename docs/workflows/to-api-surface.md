@@ -18,9 +18,9 @@ without changing those fixture files.
 ## When to reach for it
 
 Invoke it after `setup` to specify, build, or resume an `api` application. When
-the API has related web consumers, complete those web surfaces first so their
-confirmed journeys and data needs can drive the contract. Invoke it on a
-completed API surface only when explicitly revising it.
+the API has related web consumers during initial construction, complete those
+web surfaces first so their confirmed journeys and data needs can drive the contract. Invoke it on a
+completed API surface through Flow's approved project change.
 
 ## Prerequisites
 
@@ -28,7 +28,8 @@ completed API surface only when explicitly revising it.
 application must declare an `api-surface` phase. The `setup` skill must remain
 installed alongside this one: its bundled workspace initializer is shared with
 `to-web-surface`. Related incoming web surfaces
-must be complete. The `workflow-run`, `interview`, `fixtures`,
+must be complete during initial construction; later changes follow their
+approved joint contracts and step order. The `workflow-run`, `interview`, `fixtures`,
 `typescript-stack`, `rest-api-design`, and `fastify-best-practices` toolkit
 skills must be available. `frontend-design` must also be available to shape the
 review interface around the API's real subject and audience.

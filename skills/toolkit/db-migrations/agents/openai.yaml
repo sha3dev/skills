@@ -1,0 +1,4 @@
+interface:
+  display_name: "Database Migrations"
+  short_description: "Preserve data and validate incremental schema history"
+  default_prompt: "Use $db-migrations to review this schema upgrade for compatibility, data preservation, and migration history integrity."

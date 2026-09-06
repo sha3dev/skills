@@ -1,0 +1,6 @@
+interface:
+  display_name: "To Architecture Surface"
+  short_description: "Approve infrastructure and environment configuration"
+  default_prompt: "Use $to-architecture-surface to interview and approve the project's infrastructure, broad uses, and environment configuration without connecting real services."
+policy:
+  allow_implicit_invocation: false

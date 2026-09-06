@@ -19,7 +19,7 @@ git init
 npx skills@latest add sha3dev/skills
 ```
 
-Choose a project-scoped installation, select your agent, and install all sixteen
+Choose a project-scoped installation, select your agent, and install the catalogued
 skills. Project-scoped installations create `skills-lock.json`; commit it so
 the installed sources and content hashes remain reproducible.
 
@@ -35,8 +35,8 @@ For example: `$flow We have refined the home page header, but the rest of the
 web surface is unfinished. Continue with the remaining pages.`
 
 In a new repository it starts the setup flow and asks for the rough product
-idea. It will agree the product definition and domain language, identify `web`
-and `api` applications, and discover their logical relationships. It
+idea. It will agree the product definition and domain language, identify `web`,
+`api`, and `worker` applications, and discover their logical relationships. It
 shows the generated `.flow/project.json` and waits for approval before writing
 anything.
 
@@ -134,7 +134,10 @@ End-to-end development stages with an explicit start, progression, and finish.
 | [`setup`](./docs/workflows/setup.md) | Explicit | Initialize an empty repository, define typed applications and relationships, and materialize the fixed toolchain. |
 | [`to-web-surface`](./docs/workflows/to-web-surface.md) | Explicit | Specify one web interface through a persistent design interview, then build it incrementally with the user. |
 | [`to-api-surface`](./docs/workflows/to-api-surface.md) | Explicit | Specify an API contract, then iterate on its visual review surface and fixture-backed Fastify implementation. |
+| [`to-worker-surface`](./docs/workflows/to-worker-surface.md) | Explicit | Describe background processes and configuration through a concise visual contract with linked parameter defaults. |
 | [`connect-to-api`](./docs/workflows/connect-to-api.md) | Explicit | Connect a completed application surface to its APIs; currently supports web consumers. |
+| [`to-architecture-surface`](./docs/workflows/to-architecture-surface.md) | Explicit | Approve infrastructure, its broad uses, and environment configuration through an interview. |
+| [`to-domain-surface`](./docs/workflows/to-domain-surface.md) | Explicit | Design minimal app/package ownership using approved functionality and infrastructure, without implementing code. |
 
 ### Toolkit
 
@@ -142,10 +145,12 @@ Reusable constraints, practices, and specialist guidance that support the workfl
 
 | Skill | Invocation | Purpose |
 | --- | --- | --- |
-| [`workflow-run`](./docs/toolkit/workflow-run.md) | Automatic | Share the application workflows' entry check, development server ownership, completion gate, revision rule, and run boundary. |
+| [`workflow-run`](./docs/toolkit/workflow-run.md) | Automatic | Share application run checks, process ownership, durable context, completion, and revision rules. |
 | [`interview`](./docs/toolkit/interview.md) | Automatic | Resolve dependent decisions one question at a time while maintaining a durable, resumable artifact. |
 | [`fixtures`](./docs/toolkit/fixtures.md) | Automatic | Maintain deterministic domain records that disconnected application surfaces can reuse and extend. |
 | [`rest-api-design`](./docs/toolkit/rest-api-design.md) | Automatic | Shape resource names, methods, representations, status codes, and collection conventions for an HTTP contract. |
+| [`db-naming`](./docs/toolkit/db-naming.md) | Automatic | Apply consistent relational schema names and canonical SQL conventions within approved schema work. |
+| [`db-migrations`](./docs/toolkit/db-migrations.md) | Automatic | Preserve data and application compatibility through incremental schema upgrades and validated migration history. |
 | [`fastify-best-practices`](./docs/toolkit/fastify-best-practices.md) | Automatic | Apply adapted upstream Fastify guidance for plugins, schemas, routes, lifecycle, security, and testing. |
 | [`lazy`](./docs/toolkit/lazy.md) | Explicit | Force the smallest correct implementation and resist unnecessary code, dependencies, files, and abstractions. |
 | [`typescript-stack`](./docs/toolkit/typescript-stack.md) | Automatic | Govern TypeScript and TSX changes through the repository's Biome, TypeScript, Knip, and toolchain gates. |
@@ -156,16 +161,18 @@ Reusable constraints, practices, and specialist guidance that support the workfl
 
 `flow` is the only workflow entry point users need to know. It selects and
 continues the applicable installed workflow in an isolated worker context
-when supported, and an explicit product-level request can reopen one completed
-outcome through the same entry point. Bare `flow` never reopens completed work.
+when supported. After initial completion, a feature or revision opens one
+project-wide change through the same entry point. Flow prepares its proposal,
+records human approval, and executes the affected phases in the approved order.
+Bare `flow` resumes existing work without creating a change.
 Each workflow gets one writer and durable artifacts remain canonical.
-Internally, `setup` runs once, `to-web-surface` handles a `web` application, and
+During initial construction, `setup` runs once, `to-web-surface` handles a `web` application, and
 `to-api-surface` handles an `api` application after its related web consumers
 are complete. `connect-to-api` then replaces each web's local repositories
-with HTTP adapters after all its related API surfaces are complete. Both surface
+with HTTP adapters after all its related API surfaces are complete. Web and API surface
 workflows use `interview` to resolve their contract one question at a time and
 `fixtures` to evolve shared example data behind replaceable repositories. All
-three application workflows defer their entry check, development server
+application workflows defer their entry check, development server
 ownership, completion gate, revision rule, and run boundary to `workflow-run`,
 so no phase reaches `complete` without an explicit user approval. API
 contracts apply `rest-api-design` while the interview shapes them, API
@@ -175,6 +182,26 @@ a model-designed, printable contract document that reads that OpenAPI at runtime
 so the user can scan and approve the evolving API visually. `typescript-stack`
 is selected automatically whenever the agent writes application TypeScript or
 TSX.
+`to-worker-surface` handles `worker` applications with a read-only document:
+short process descriptions, highlighted configuration references, and a complete
+parameter catalog. It defines behavior without simulations or running background
+tasks. Runtime implementation and worker integrations are separate work.
+After all application phases complete, `to-architecture-surface` interviews the
+user to approve infrastructure, its broad uses, and environment configuration.
+Sensitive values remain in local ignored files; services stay disconnected.
+Then `to-domain-surface` uses that approved architecture to document the
+project-wide app/package split and single ownership of shared responsibilities.
+Its Markdown review uses fixtures as examples and requires human design
+approval, without creating packages or running application/browser gates.
+Later changes live at `.flow/changes/<slug>.md`, with lifecycle and ordered steps
+in `project.json`: `proposed` → `approved` → `implementing` → `in-review` →
+`complete`. Only one change is active. Flow manages its files and state; the
+user approves scope and the integrated result. Current contracts remain the
+product definition, and closed change records remain distinct. Application
+changes include affected connections, architecture review, and domain reconciliation. This cycle
+revises declared outcomes; unsupported implementation or application-inventory
+changes require corresponding workflow or tooling support.
+
 Invoke `lazy` explicitly when simplicity is the main constraint for a task.
 `frontend-design`, `composition-patterns`, and `fixing-accessibility` activate
 only for their respective UI concerns. `shadcn` activates for component work in

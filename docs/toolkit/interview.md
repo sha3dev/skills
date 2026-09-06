@@ -5,7 +5,9 @@
 `interview` resolves ambiguous intent one decision at a time. Every question is
 short and includes a recommended answer. A durable document records confirmed
 and unresolved decisions plus the current question, so the interview can resume
-without its chat history.
+without its chat history. Its shared [durable-context contract](../../skills/toolkit/interview/references/durable-context.md)
+keeps documents compact and supports selectively read thematic references,
+such as `surface/**` or `connect/**`, without losing requirements or approvals.
 
 ## When to reach for it
 
@@ -19,7 +21,8 @@ can be discovered from the repository or available tools.
 ## It's working if
 
 The operator sees one answerable decision with a useful default, the document
-matches the latest understanding, and another session can continue from it.
+matches the latest understanding without accumulated history or duplicated
+detail, and another session can continue from it without losing requirements.
 
 ## Where it fits
 

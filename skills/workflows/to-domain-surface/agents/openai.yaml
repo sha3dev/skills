@@ -1,0 +1,6 @@
+interface:
+  display_name: "To Domain Surface"
+  short_description: "Design minimal app and package responsibilities"
+  default_prompt: "Use $to-domain-surface to use the approved infrastructure and all completed surfaces and connections and document the smallest app/package architecture with one owner per shared responsibility, without implementing it."
+policy:
+  allow_implicit_invocation: false

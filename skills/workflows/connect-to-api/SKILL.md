@@ -1,6 +1,6 @@
 ---
 name: connect-to-api
-description: Connect an application's completed surface to its completed API dependencies by replacing local fixture-backed data access with HTTP adapters and verifying the integrated behavior. Currently applies to declared web-to-API relationships.
+description: Connect a completed web surface to its declared APIs through HTTP adapters while keeping the APIs fixture-backed.
 disable-model-invocation: true
 argument-hint: "[web application]"
 ---
@@ -14,7 +14,10 @@ boundary. Preserve the approved consumer and API surfaces while replacing the
 consumer's local fixture-backed composition with real HTTP calls. The APIs remain
 backed by the shared records under `.flow/fixtures/`; the web must no longer
 load those records at runtime. `.flow/project.json` is the sole progress
-tracker. Do not create another specification artifact for this phase.
+tracker. Maintain concise integration context at
+`.flow/applications/<application-slug>/connect.md`, where the slug is the final
+directory in the web application's path. It records integration decisions and
+remaining issues, while the approved surfaces remain the product contracts.
 
 ## Workflow
 
@@ -28,16 +31,24 @@ tracker. Do not create another specification artifact for this phase.
    `api-surface` to be `complete`; stop with the precise unfinished phase if any
    prerequisite is not satisfied. An absent API relationship or
    `api-connection` phase is an invalid route, not work to infer.
-3. Read relevant sections of the web and API `surface.md` files, domain types,
+3. Read the web application's `connect.md` first when it exists, following
+   references only as needed. Then read relevant sections of the web and API
+   `surface.md` files, domain types,
    repository interfaces, adapters, and affected OpenAPI operations or route
    schemas. Read only fixture collections needed for those mappings; follow
    callers when a concrete question remains. Treat both confirmed
    surfaces as fixed contracts. Correct technical integration defects that fit
    those contracts, but stop and request a surface revision when connecting
    them would require a new product behavior, endpoint, representation, or
-   fixture scenario.
+   fixture scenario outside the approved change. Return to Flow to revise the
+   joint proposal; do not reopen a provider inside this run.
 4. If `api-connection` is `pending`, change it to `in-progress` with
    `node .flow/tools/project-progress.mjs --root . --app <name> --phase api-connection --set in-progress`.
+   Create `connect.md` if absent, seeded from the request and inspected sources.
+   Keep the integration scope, essential adapter and mapping decisions,
+   configuration references, unresolved incompatibilities, and review state
+   current under `$workflow-run`'s durable-context rules. After a surface revision,
+   reconcile these decisions with current contracts and clear stale review claims.
 5. Preserve the web's production-facing domain types, repository interfaces,
    components, and interaction semantics. Implement one HTTP repository adapter
    per API responsibility and replace the local adapter only at the composition
@@ -72,7 +83,7 @@ tracker. Do not create another specification artifact for this phase.
    representative desktop and mobile widths to verify that reads, confirmed
    writes, loading, empty, and error behavior still match the web surface
    through real HTTP.
-10. Run affected workspace tests and `npm run check:code` while integrating.
+10. Apply `$workflow-run`'s incremental verification rules while integrating.
     Then complete `api-connection` under `$workflow-run`'s completion rule.
     What the user approves is the integrated behavior verified in step 9. Its
     phase-specific preconditions are passing related API tests, successful
@@ -87,8 +98,8 @@ Apply `$workflow-run` for the entry check, development process ownership,
 completing a phase, revising a completed connection, and the run boundary. This
 run is one `web` application and all of its declared API dependencies: it starts
 at step 1 and ends at step 10 or at a blocker, and its inputs are durable in
-`.flow/project.json`, the confirmed surface specifications, OpenAPI or route
-schemas, and application code; no interview context carries into it. Do not
+`.flow/project.json`, `connect.md` and its relevant references, the confirmed
+surface specifications, OpenAPI or route schemas, and application code. Do not
 begin a surface revision inside this run. Beyond an explicitly requested
 reopen, the progress tool also returns a completed connection to `pending` when
 its web surface or any related API surface is reopened.

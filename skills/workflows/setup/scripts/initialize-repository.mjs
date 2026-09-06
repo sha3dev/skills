@@ -18,7 +18,7 @@ import { getRepositoryState } from "./repo-state.mjs";
 
 const assetDirectory = fileURLToPath(new URL("../assets/", import.meta.url));
 const scriptDirectory = fileURLToPath(new URL("./", import.meta.url));
-const applicationTypes = new Set(["web", "api"]);
+const applicationTypes = new Set(["web", "api", "worker"]);
 
 function fail(message) {
 	throw new Error(message);
@@ -109,7 +109,7 @@ function normalizeInput(raw) {
 
 		const type = text(application.type, `${path}.type`);
 		if (!applicationTypes.has(type)) {
-			fail(`${path}.type must be web or api`);
+			fail(`${path}.type must be web, api, or worker`);
 		}
 
 		const folder = applicationFolder(name, path);
@@ -244,6 +244,10 @@ async function buildFiles(input) {
 			};
 		}),
 		relationships: input.relationships,
+		progress: {
+			"architecture-surface": "pending",
+			"domain-surface": "pending",
+		},
 	};
 
 	const packageJson = formattedJson({
@@ -283,6 +287,11 @@ ${ignoredDependencies}
 }\n`;
 
 	const files = [
+		{
+			path: ".flow/tools/project-changes.mjs",
+			content: await loadAsset("tooling/project-changes.mjs"),
+			copiedFrom: "assets/tooling/project-changes.mjs",
+		},
 		{ path: "AGENTS.md", content: agents, copiedFrom: "assets/AGENTS.md" },
 		{ path: "CLAUDE.md", content: claude, copiedFrom: "assets/CLAUDE.md" },
 		{

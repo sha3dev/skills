@@ -13,6 +13,10 @@ base URLs and cross-origin boundary, and verifies the integrated behavior with
 the applications running together. Inspection begins at contracts and data
 boundaries, expanding into callers only as needed. `.flow/project.json` records the connection
 as `pending`, `in-progress`, or `complete`.
+Integration context lives at `.flow/applications/<application-slug>/connect.md`,
+with optional thematic detail under `connect/**`. It preserves essential
+integration decisions and open issues across sessions without duplicating the
+surface contracts, implementation, or progress tracker.
 
 ## When to reach for it
 
@@ -25,7 +29,7 @@ infrastructure.
 
 `setup` must have created the web application's `api-connection` phase. Its
 `web-surface` and every related `api-surface` must be complete. The
-`workflow-run`, `typescript-stack`, and `fastify-best-practices` toolkit skills
+`workflow-run`, `interview`, `typescript-stack`, and `fastify-best-practices` toolkit skills
 must be available.
 
 ## It's working if
@@ -38,6 +42,9 @@ integrated browser flow, tests, builds, and repository gate pass. The
 connection reaches `complete` only after you approve the integrated behavior,
 and reopening either surface returns it to `pending` so stale integration is
 never reported as complete.
+Resuming uses the compact `connect.md` entry point and only relevant references;
+after a surface revision, integration decisions are reconciled with the current
+contracts before earlier review claims are reused.
 
 ## Where it fits
 

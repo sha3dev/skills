@@ -8,6 +8,8 @@ resumable specification at `.flow/applications/<application-slug>/surface.md`
 and builds the confirmed interface in the application workspace, with source
 under `<application.path>/src/`, one visible increment at a time.
 `.flow/project.json` remains the progress tracker.
+The specification follows the shared [durable-context contract](../../skills/toolkit/interview/references/durable-context.md):
+compact current decisions with optional detail under `surface/**` read as needed.
 Shared deterministic domain records live under `.flow/fixtures/` and reach the
 interface through a replaceable local data-access boundary. Confirmed writes
 change an in-memory copy for the current page lifetime without modifying the
@@ -18,7 +20,8 @@ reshaping its consumers.
 ## When to reach for it
 
 Invoke it after `setup` to specify, build, or resume the surface of a `web`
-application. Invoke it on a completed surface only when explicitly revising it.
+application. Revisions after initial completion belong to Flow's approved
+project changes.
 
 ## Prerequisites
 
@@ -50,7 +53,8 @@ workspace.
 
 When revising an already integrated web, the existing HTTP adapter and approved
 API contracts remain in place. Its API providers run only to support review;
-contract changes are handled as an explicit API revision.
+contract changes are agreed in the same project change and executed in its
+approved order.
 
 ## Where it fits
 

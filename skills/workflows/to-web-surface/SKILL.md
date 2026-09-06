@@ -26,12 +26,13 @@ sole progress tracker.
    inspect affected screens, data adapters, and runtime configuration when implementation
    already exists. Do not infer disconnection from `api-connection: pending`: a
    reopened web surface may retain its HTTP adapter. In that revision mode,
-   preserve the established adapter and approved API contracts. Create
+   preserve the established adapter and API contracts except for differences
+   explicitly covered by the active approved change. Create
    `surface.md` at that path if absent, seeded only with facts from those sources
    and the user's request. If `web-surface` is `pending`, change it to
    `in-progress` with
    `node .flow/tools/project-progress.mjs --root . --app <name> --phase web-surface --set in-progress`.
-3. Use `$interview` before implementation, using
+3. Use `$interview` for unresolved product decisions before implementation, using
    `surface.md` as its durable artifact. Its subject-specific lens is the UI's
    purpose and audience, journeys, information architecture, screens, states,
    interactions, content and data assumptions, visual direction, responsive
@@ -42,11 +43,13 @@ sole progress tracker.
    the established language of interface copy.
 4. The interview is complete when an implementer could build the interface
    without inventing a product decision. Mark `surface.md` as awaiting
-   confirmation and present it. After the user confirms it, record that status
-   before writing interface code.
+   confirmation and present it. Reuse existing explicit confirmation for unchanged scope; otherwise obtain
+   confirmation. Record that status before writing interface code.
 5. If the workspace does not exist, run the bundled
    `scripts/initialize-web-application.mjs --root . --app <name>` relative to
-   this `SKILL.md`, then `npm install`. Implement one small, coherent increment
+   this `SKILL.md`, then `npm install`. For an existing workspace, apply
+   `$workflow-run`'s workspace check and adapt missing preview wiring within its
+   established Vite application. Implement one small, coherent increment
    at a time, starting with the shell and global navigation unless the
    specification implies a better order. Use `$fixtures` to create or extend
    the shared records under `.flow/fixtures/`. Access them through a replaceable
@@ -61,41 +64,35 @@ sole progress tracker.
 	the application; do not add APIs, server code, persistence, authentication,
 	or infrastructure. For an existing integrated application, keep its HTTP
 	repositories and do not restore fixture access or a local fallback. If the
-	requested product change requires a new or changed API contract, stop and ask
-	for that API revision to be handled explicitly instead of changing it here.
+	requested behavior needs an API contract change outside the approved change,
+	return to Flow to revise the joint proposal. Within an approved change, use
+	the API contract delivered by its preceding step; do not edit the provider here.
 6. Serve this application with `npm run dev --workspace <workspace-name>` in
    the background, at the fixed preview URL its `vite.config.ts` pins, under
    `$workflow-run`'s development process rules. In integrated revision mode,
    also run the declared API providers needed to review existing behavior;
    treat them as supporting processes, not authorization to change their code.
-7. After an increment that changes `.flow/fixtures/`, apply `$fixtures`'
-   validation procedure. After every increment, apply the repository's
-   TypeScript workflow through `npm run check:code`. An increment may leave
-   interface code that nothing renders yet; that is not a defect to fix, so do
-   not run the unused-code
-   check between increments and never delete unwired work to satisfy one.
-   Group tiny edits into one coherent reviewable increment. Before presenting
+7. Apply `$fixtures` when records change and `$workflow-run` for incremental
+   verification.
+   Before presenting
    visible or interactive changes, use the browser automation established by
-   `$workflow-run` to inspect it at representative desktop and mobile widths
-   and exercise the changed interactions. Ensure it follows the user's
+   `$workflow-run` to inspect affected output and exercise changed interactions,
+   selecting viewport checks under its shared rules. Ensure it follows the user's
    established direction, has no visible or functional errors, lays out
-   correctly at both widths, and remains reasonably coherent with the existing
-   interface. Adjust or redesign what is needed to reach that threshold, then
+   correctly at the checked widths, and remains reasonably coherent with the
+   existing interface. Adjust or redesign what is needed to reach that threshold, then
    stop refining once the result is good enough for user review. Give the user
    the preview URL. Use `$interview` again when review reveals a product
    decision, and record that decision in `surface.md` before changing the code.
 8. Complete `web-surface` under `$workflow-run`'s completion rule. What the
    user approves is the whole interface. Its phase-specific preconditions are
-   a passing unused-code check within the full `npm run check` and a successful
+   a successful
    `npm run build --workspace <workspace-name>`. Verify the whole interface at
    desktop and mobile widths and exercise its confirmed interactions; reuse
    passing checks while their inputs remain unchanged. Then run
    `node .flow/tools/project-progress.mjs --root . --app <name> --phase web-surface --set complete`.
 
-## Run discipline
+## Run boundary
 
-Apply `$workflow-run` for the entry check, development process ownership,
-completing a phase, revising an approved surface, and the run boundary. This
-run is one `web` application's surface: it starts at step 1 and ends at step 8
-or at a blocker, and it resumes from `.flow/project.json` and the
-application's `surface.md`.
+Apply `$workflow-run` throughout. One run owns this application's surface and
+resumes from project state and its `surface.md`.

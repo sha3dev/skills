@@ -5,7 +5,7 @@
 `setup` initializes the permanent project context and predefined TypeScript
 platform for an empty repository. It turns a rough idea into an agreed project
 definition and domain language, identifies typed applications and their logical
-interactions. `.flow/project.json` records application paths and responsibilities
+interactions across `web`, `api`, and `worker` applications. `.flow/project.json` records application paths and responsibilities
 so later agents can avoid broad codebase exploration.
 
 It creates one canonical `AGENTS.md`; `CLAUDE.md` imports it so agent harnesses
@@ -62,3 +62,13 @@ repository-pinned toolchain.
 project definition, domain language, application map, progress, and toolchain.
 `typescript-stack` consumes the generated gates, while application code is the
 durable output of surface workflows.
+
+Setup also initializes project-level `architecture-surface` and `domain-surface`
+progress, in that order. Once all
+application phases are complete, Flow can route the architecture review.
+
+The generated progress tools also support subsequent global changes managed by
+Flow, with one active change and separate proposal and integrated approvals.
+Setup creates no change documents or empty directories. Existing projects need
+updated generated tools to use this lifecycle; installed skill updates alone
+do not migrate their snapshots.

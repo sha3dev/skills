@@ -3,10 +3,10 @@
 ## What it does
 
 `composition-patterns` provides focused React patterns for reusable component
-APIs. It replaces proliferating boolean modes with explicit variants or compound
+APIs. When their complexity justifies a change, it replaces proliferating boolean modes with explicit variants or compound
 components, and separates shared state interfaces from their implementation.
 
-Detailed rules include incorrect and corrected examples for component
+Detailed rules include illustrative alternatives for component
 architecture, state ownership, composition, and relevant React 19 APIs.
 
 ## When to reach for it
@@ -21,6 +21,7 @@ a blanket style guide for ordinary React components.
 - Call sites express intent through composition or explicit variants.
 - Shared state is owned once and exposed through a stable interface.
 - Consumers can extend a component without adding combinations of mode flags.
+- Simple props remain valid when composition would add unnecessary structure.
 - React-version-specific guidance is applied only to compatible projects.
 
 ## Where it fits

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Database Naming"
+  short_description: "Apply consistent database names and canonical SQL"
+  default_prompt: "Use $db-naming to review this relational schema for consistent names and canonical SQL."

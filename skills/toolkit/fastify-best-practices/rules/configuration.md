@@ -18,7 +18,9 @@ metadata:
 
 ## Use env-schema for Configuration
 
-**Always use `env-schema` for configuration validation.** It provides JSON Schema validation for environment variables with sensible defaults.
+Validate required environment values at startup using the established mechanism.
+`env-schema` is an option when JSON Schema validation is useful; do not add it
+solely to replace adequate existing validation. The examples below are optional.
 
 ```typescript
 import Fastify from 'fastify';
@@ -144,54 +146,16 @@ app.get('/dashboard', async (request) => {
 
 ## Anti-Patterns to Avoid
 
-### NEVER use configuration files
-
-```typescript
-// ❌ NEVER DO THIS - configuration files are an antipattern
-import config from './config/production.json';
-
-// ❌ NEVER DO THIS - per-environment config files
-const env = process.env.NODE_ENV || 'development';
-const config = await import(`./config/${env}.js`);
-```
-
-Configuration files lead to:
-- Security risks (secrets in files)
-- Deployment complexity
-- Environment drift
-- Difficult secret rotation
-
-### NEVER use per-environment configuration
-
-```typescript
-// ❌ NEVER DO THIS
-const configs = {
-  development: { logLevel: 'debug' },
-  production: { logLevel: 'info' },
-  test: { logLevel: 'silent' },
-};
-const config = configs[process.env.NODE_ENV];
-```
-
-Instead, use a single configuration source (environment variables) with sensible defaults. The environment controls the values, not conditional code.
-
-### Use specific environment variables, not NODE_ENV
-
-```typescript
-// ❌ AVOID checking NODE_ENV
-if (process.env.NODE_ENV === 'production') {
-  // do something
-}
-
-// ✅ BETTER - use explicit feature flags or configuration
-if (app.config.ENABLE_DETAILED_LOGGING) {
-  // do something
-}
-```
+Keep deployment-specific values and secrets out of tracked configuration. Reuse
+safe static configuration and the existing environment-loading mechanism. Prefer
+explicit environment variables when a deployment needs independent controls;
+do not replace ordinary `NODE_ENV` behavior or add feature flags without a need.
 
 ## Dynamic Configuration
 
-For configuration that needs to change without restart, fetch from an external service:
+Only when configuration must change without restart, use the approved dynamic
+configuration mechanism. The following illustrates an external source; do not
+add a service or polling loop for ordinary startup configuration:
 
 ```typescript
 interface DynamicConfig {

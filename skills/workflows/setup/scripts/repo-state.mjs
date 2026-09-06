@@ -71,13 +71,28 @@ export async function getRepositoryState(rootInput = ".") {
 			return {
 				state: "invalid_project",
 				markers,
-				error: progress.stderr.trim() || ".flow/project.json could not be parsed",
+				error:
+					progress.stderr.trim() || ".flow/project.json could not be parsed",
 			};
 		}
 		// The progress tool is the single parser and validator of project.json;
 		// callers read applications and relationships from this state.
-		const { applications, relationships } = JSON.parse(progress.stdout);
-		return { state: "already_initialized", markers, applications, relationships };
+		const {
+			applications,
+			relationships,
+			progress: projectProgress,
+			changes,
+			changeSupport,
+		} = JSON.parse(progress.stdout);
+		return {
+			state: "already_initialized",
+			markers,
+			applications,
+			relationships,
+			progress: projectProgress,
+			changes,
+			changeSupport,
+		};
 	}
 
 	const reservedOutputs = [

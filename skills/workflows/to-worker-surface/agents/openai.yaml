@@ -1,0 +1,6 @@
+interface:
+  display_name: "To Worker Surface"
+  short_description: "Document worker processes and configuration"
+  default_prompt: "Use $to-worker-surface to design a concise visual contract for a worker's processes and configuration."
+policy:
+  allow_implicit_invocation: false

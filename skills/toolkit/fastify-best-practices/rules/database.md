@@ -21,7 +21,10 @@ metadata:
 
 ## Use Official Fastify Database Adapters
 
-Always use the official Fastify database plugins from the `@fastify` organization. They provide proper connection pooling, encapsulation, and integration with Fastify's lifecycle.
+Reuse the approved database client and its connection ownership. Official
+`@fastify` plugins are useful when Fastify should own the connection lifecycle;
+do not introduce a second client or pool just to adopt a plugin. Read only the
+example for the selected database.
 
 ## PostgreSQL with @fastify/postgres
 

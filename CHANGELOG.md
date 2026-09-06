@@ -1,5 +1,54 @@
 # sha3dev-skills
 
+## 0.14.0
+
+### Added
+
+- Add `to-architecture-surface` before domain: interview infrastructure uses and
+  approve environment configuration without connecting services. Route and
+  validate architecture before domain, including subsequent change reviews.
+
+- Let Flow manage repeatable project-wide changes with one active proposal,
+  approved execution order, integrated review, and distinct closed records.
+  Validate plan coverage, approval freshness, and sequential phase writes while
+  preserving initial routing and required connection/domain reconciliation.
+
+- Add `to-domain-surface` for documentation-only review of minimal app/package
+  ownership after all surfaces and connections, with project-level Flow routing,
+  progress tracking, and invalidation after application revisions.
+
+- Maintain resumable connection context in `connect.md` with optional
+  `connect/**` detail, and require the same context pattern for future phases.
+
+- Add `db-naming` for consistent database object naming across schemas.
+- Add `db-migrations` for incremental schema upgrades, data preservation, and
+  validated migration history, with automatic invocation and toolkit documentation.
+
+- Add `to-worker-surface` for concise, read-only process and configuration
+  documentation, with linked parameter values from a shared typed contract.
+- Support worker applications in setup, progress tracking, and Flow routing.
+
+### Fixed
+
+- Preserve closed change history across new planning rules and block domain
+  execution when architecture approval is absent.
+- Keep revised plans limited to remaining or affected work, preserving valid
+  completed phases and their evidence.
+- Shorten skill discovery text, load Flow delegation conditionally, and remove
+  duplicate checks and unjustified toolkit prescriptions.
+- Validate YAML and catalog invocation modes, check secondary Markdown links,
+  and cover historical changes, legacy routing, and replanning regressions.
+
+- Centralize narrative artifact compaction in `interview` and `workflow-run`
+  for web, API, and worker specifications, preserving essential decisions and
+  approval state throughout the run without accumulating history. Support
+  referenced thematic subdocuments, optionally under a matching directory such
+  as `surface/**`, that are read only when relevant.
+- Preserve existing worker configuration names and escape their visual references.
+- Define how to add a worker review page without changing runtime entry points.
+- Share existing-workspace checks and proportional incremental verification across
+  surface and connection workflows, retaining full completion gates.
+
 ## 0.13.2
 
 ### Added

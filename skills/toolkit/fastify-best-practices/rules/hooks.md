@@ -463,7 +463,8 @@ app.post('/orders', {
 
 ## Async Hook Patterns
 
-Always use async/await in hooks:
+Prefer async/await for asynchronous work. Callback hooks remain supported;
+preserve the existing style and never mix a returned promise with `done`.
 
 ```typescript
 // GOOD - async hook
@@ -472,7 +473,7 @@ app.addHook('preHandler', async (request, reply) => {
   request.user = user;
 });
 
-// AVOID - callback style (deprecated)
+// Also supported - callback style, without an async function
 app.addHook('preHandler', (request, reply, done) => {
   loadUser(request.headers.authorization)
     .then((user) => {

@@ -10,11 +10,10 @@ must provide the artifact path, decision scope, and definition of done.
 
 ## Artifact contract
 
-Keep the artifact concise, implementation-facing, and sufficient to resume
-without chat history. It must distinguish interview status, established
-context, confirmed decisions, unresolved decisions, and at most one current
-question with its recommended answer. Record rejected options only when they
-create a lasting constraint; remove superseded content.
+Read and apply [Durable context](references/durable-context.md) when creating or
+resuming the artifact. During an interview, also retain its status and at most
+one current question with a recommended answer; an unanswered recommendation
+is not a confirmed decision.
 
 ## Interview loop
 
