@@ -58,10 +58,12 @@ async function findRepositoryViolations(root) {
 	async function visit(directory) {
 		for (const entry of await readdir(directory, { withFileTypes: true })) {
 			const path = join(directory, entry.name);
+			const repositoryPath = relative(root, path).split(sep).join("/");
 			if (entry.isDirectory()) {
+				// Installed skill assets are templates, not application source.
+				if (repositoryPath === ".agents/skills") continue;
 				if (!ignored.has(entry.name)) await visit(path);
 			} else {
-				const repositoryPath = relative(root, path).split(sep).join("/");
 				const insideApplication = /^apps\/[^/]+\//.test(repositoryPath);
 				const insidePackage = /^packages\/[^/]+\//.test(repositoryPath);
 				const insideApplicationSource = /^apps\/[^/]+\/src\//.test(

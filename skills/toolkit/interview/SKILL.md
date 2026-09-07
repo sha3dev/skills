@@ -20,7 +20,12 @@ is not a confirmed decision.
 1. Read the artifact first. Resume its current question, or choose the next
    unresolved decision whose prerequisites are already settled.
 2. Discover available facts instead of asking for them. Ask only for a decision,
-   preference, or unavailable context.
+   preference, or unavailable context. Within the consuming workflow's scope,
+   infer missing capabilities from the domain and trace relevant scenarios
+   through roles, lifecycle, business rules, dependencies, and exceptions to
+   their consequences for the deliverable. Resolve consequential gaps even when
+   the user did not name them; inferred requirements remain proposals until
+   confirmed. Follow relevant branches, not an exhaustive questionnaire.
 3. Before asking, persist one short question and a clearly labelled recommended
    answer with a brief reason. Then ask it and wait; never batch questions or
    silently accept the recommendation.

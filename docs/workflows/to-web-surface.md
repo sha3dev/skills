@@ -27,7 +27,7 @@ project changes.
 
 `setup` must have generated a valid `.flow/project.json` and toolchain, the
 application must declare a `web-surface` phase, and the `workflow-run`,
-`interview`, `fixtures`, and `typescript-stack` toolkit skills must be available.
+`interview`, `frontend-design`, `fixtures`, and `typescript-stack` toolkit skills must be available.
 The `setup` skill must remain installed alongside this one: its bundled
 workspace initializer is shared with `to-api-surface`.
 
@@ -40,7 +40,10 @@ verification as part of the complete gate.
 
 The operator can resume from `surface.md`, receives one short UI decision at a
 time with a useful recommendation, and approves the specification before code
-is written. Different surfaces can reuse and extend the same stable fixture
+is written. Domain rules and exceptional journeys inform the agreed UI, including
+needs the user did not initially name. The first increment establishes a polished
+visual language that subsequent screens follow.
+Different surfaces can reuse and extend the same stable fixture
 records without introducing mock-prefixed domain types into the web
 application. Coherent increments with visible or interactive changes are
 browser-verified at the same preview URL, which one development server serves through

@@ -8,6 +8,8 @@ and unresolved decisions plus the current question, so the interview can resume
 without its chat history. Its shared [durable-context contract](../../skills/toolkit/interview/references/durable-context.md)
 keeps documents compact and supports selectively read thematic references,
 such as `surface/**` or `connect/**`, without losing requirements or approvals.
+Discovery covers consequential domain requirements the user has not yet named,
+within the calling workflow's scope; inferred needs remain proposals until confirmed.
 
 ## When to reach for it
 

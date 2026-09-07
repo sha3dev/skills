@@ -280,7 +280,7 @@ async function buildFiles(input) {
 	// on one line; `npm run check:biome` fails on the generated file otherwise.
 	const knip = `{
 \t"$schema": "https://unpkg.com/knip@${policy.minimumToolVersions.knip}/schema.json",
-\t"ignore": [".flow/**", "apps/*/public/**/*.js"],
+\t"ignore": [".flow/**", ".agents/skills/**", "apps/*/public/**/*.js"],
 \t"ignoreDependencies": [
 ${ignoredDependencies}
 \t]

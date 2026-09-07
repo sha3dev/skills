@@ -104,6 +104,25 @@ test("setup produces valid web and API surfaces in dependency order", async () =
 			"--write",
 		]);
 		run("npm", ["install", "--no-audit", "--no-fund"], targetRoot);
+		const skillAssets = join(targetRoot, ".agents/skills/to-worker-surface/assets");
+		await mkdir(skillAssets, { recursive: true });
+		await copyFile(
+			join(repositoryRoot, "skills/workflows/to-worker-surface/assets/render.ts"),
+			join(skillAssets, "render.ts"),
+		);
+		run("npm", ["run", "check:toolchain"], targetRoot);
+		const misplacedSource = join(targetRoot, ".agents/misplaced.ts");
+		await writeFile(misplacedSource, "export {};\n");
+		assert.throws(
+			() => execFileSync(process.execPath, [
+				join(targetRoot, ".flow/tools/verify-toolchain.mjs"), "--root", targetRoot,
+			], { encoding: "utf8", stdio: "pipe" }),
+			(error) => {
+				assert.match(error.stderr, /TypeScript must stay.*\.agents\/misplaced\.ts/);
+				return true;
+			},
+		);
+		await rm(misplacedSource);
 		run("npm", ["run", "check"], targetRoot);
 		const initialProject = JSON.parse(
 			await readFile(join(targetRoot, ".flow/project.json"), "utf8"),

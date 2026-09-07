@@ -51,7 +51,8 @@ sole progress tracker.
    `$workflow-run`'s workspace check and adapt missing preview wiring within its
    established Vite application. Implement one small, coherent increment
    at a time, starting with the shell and global navigation unless the
-   specification implies a better order. Use `$fixtures` to create or extend
+   specification implies a better order. Apply `$frontend-design` for visual
+   decisions and review. Use `$fixtures` to create or extend
    the shared records under `.flow/fixtures/`. Access them through a replaceable
 	local repository or equivalent data-source boundary so components and domain
 	logic use production-facing names and do not import fixtures directly. Model
@@ -78,10 +79,9 @@ sole progress tracker.
    visible or interactive changes, use the browser automation established by
    `$workflow-run` to inspect affected output and exercise changed interactions,
    selecting viewport checks under its shared rules. Ensure it follows the user's
-   established direction, has no visible or functional errors, lays out
-   correctly at the checked widths, and remains reasonably coherent with the
-   existing interface. Adjust or redesign what is needed to reach that threshold, then
-   stop refining once the result is good enough for user review. Give the user
+   established direction, has no visible or functional errors, and lays out
+   correctly at the checked widths, and meets `$frontend-design`'s review criteria.
+   Give the user
    the preview URL. Use `$interview` again when review reveals a product
    decision, and record that decision in `surface.md` before changing the code.
 8. Complete `web-surface` under `$workflow-run`'s completion rule. What the

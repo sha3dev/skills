@@ -21,6 +21,7 @@ composition decisions. Nonvisual fixes do not activate it.
 
 - The interface is recognizably specific to its real subject and audience.
 - Typography, color, structure, motion, and copy follow one coherent direction.
+- The first increment looks polished, with components adapted to that direction.
 - Distinctive elements serve the brief; internal review tools can reuse restrained templates.
 - The rendered result survives responsive and accessibility checks.
 

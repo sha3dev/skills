@@ -1,5 +1,17 @@
 # sha3dev-skills
 
+## 0.14.1
+
+### Fixed
+
+- Discover consequential domain requirements through the shared interview,
+  keeping inferred needs subject to confirmation and within workflow scope.
+- Establish polished visual design from the first increment through shared
+  frontend guidance, and apply that guidance explicitly in `to-web-surface`.
+- Exclude installed `.agents/skills` assets from generated toolchain placement
+  checks and Knip analysis; cover the exclusion and continued rejection of
+  misplaced TypeScript in the setup smoke test.
+
 ## 0.14.0
 
 ### Added

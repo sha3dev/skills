@@ -30,6 +30,10 @@ sake. Internal tools and API review pages can use restrained existing templates.
 
 ## Design and implementation
 
+- Establish a polished visual language from the first increment, with deliberate
+  typography, hierarchy, spacing, density, color, and component styling. Adapt
+  library components to the agreed direction rather than presenting unstyled
+  defaults as finished design.
 - Use the subject's real content and domain language. Layout and hierarchy
   should make the main task obvious; numbering and visual structure must encode
   actual meaning.
@@ -47,6 +51,7 @@ sake. Internal tools and API review pages can use restrained existing templates.
 
 Use the consuming workflow's browser and completion checks. Inspect the changed
 visual result and interactions; correct concrete problems in hierarchy,
-readability, responsiveness, accessibility, and consistency. Stop when the
+readability, responsiveness, accessibility, and consistency. Correct unfinished
+or generic presentation before user review. Stop when the
 approved direction and review criteria are met. Do not run a second aesthetic
 exploration or duplicate a completed browser pass without a relevant change.
